@@ -306,12 +306,38 @@ function roqueshield(d) {
 }
 
 // Marca ---------------------------------------------------------------------------------------
-/** O desenho do logo: um portao (arco) com a marca de verificado dentro. Original, geometrico. */
-const marca = (cx, cy, r) => (t) =>
-  `<g>` +
-  `<circle cx="${cx}" cy="${cy}" r="${r}" fill="${t.destaqueFundo}" stroke="${t.destaque}" stroke-width="${r * 0.07}"/>` +
-  `<path d="M${cx - r * 0.46} ${cy + r * 0.5} L${cx - r * 0.46} ${cy - r * 0.1} A${r * 0.46} ${r * 0.46} 0 0 1 ${cx + r * 0.46} ${cy - r * 0.1} L${cx + r * 0.46} ${cy + r * 0.5}" fill="none" stroke="${t.destaque}" stroke-width="${r * 0.09}" stroke-linecap="round" stroke-linejoin="round"/>` +
-  `<path d="M${cx - r * 0.2} ${cy + r * 0.12} L${cx - r * 0.04} ${cy + r * 0.28} L${cx + r * 0.24} ${cy - r * 0.12}" fill="none" stroke="${t.verde}" stroke-width="${r * 0.1}" stroke-linecap="round" stroke-linejoin="round"/>` +
+/**
+ * A marca: um ciclo de tres fases (o AI-DLC) fechando em volta de uma verificacao (o gate).
+ * Original e geometrica; cores fixas da marca, iguais nos temas claro e escuro. Base de 256x256.
+ */
+const ponto = (g, r) => [128 + r * Math.cos((g * Math.PI) / 180), 128 + r * Math.sin((g * Math.PI) / 180)]
+const fmt = (pt) => pt.map((n) => n.toFixed(2)).join(' ')
+const arco = (ini, fim, r = 78) => `M${fmt(ponto(ini, r))} A${r} ${r} 0 0 1 ${fmt(ponto(fim, r))}`
+/** Ponta de seta no fim do arco, no sentido horario: o ciclo anda para frente. */
+const seta = (g, r = 78) => {
+  const rad = (g * Math.PI) / 180
+  const [ex, ey] = ponto(g, r)
+  const t = [-Math.sin(rad), Math.cos(rad)]
+  const n = [Math.cos(rad), Math.sin(rad)]
+  const pt = (a, b) => `${(ex + t[0] * a + n[0] * b).toFixed(2)} ${(ey + t[1] * a + n[1] * b).toFixed(2)}`
+  return `M${pt(20, 0)} L${pt(-2, 18)} L${pt(-2, -18)} Z`
+}
+const marca = (cx, cy, r) => () =>
+  `<g transform="translate(${cx - r} ${cy - r}) scale(${r / 128})">` +
+  `<defs>` +
+  `<linearGradient id="mk-fundo" x1="0.1" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="0.55" stop-color="#2447d6"/><stop offset="1" stop-color="#1b2a86"/></linearGradient>` +
+  `<linearGradient id="mk-anel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c7d8ff"/></linearGradient>` +
+  `<linearGradient id="mk-ok" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#10b981"/></linearGradient>` +
+  `<radialGradient id="mk-luz" cx="0.3" cy="0.12" r="0.8"><stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>` +
+  `</defs>` +
+  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-fundo)"/>` +
+  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-luz)"/>` +
+  `<rect x="7.5" y="7.5" width="241" height="241" rx="56.5" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="3"/>` +
+  [[-130, -60], [-10, 60], [110, 180]]
+    .map(([i, f]) => `<path d="${arco(i, f)}" fill="none" stroke="url(#mk-anel)" stroke-width="20" stroke-linecap="round"/><path d="${seta(f)}" fill="#e4edff" stroke="#e4edff" stroke-width="6" stroke-linejoin="round"/>`)
+    .join('') +
+  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="#0b1f4d" stroke-opacity="0.35" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)"/>` +
+  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="url(#mk-ok)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>` +
   `</g>`
 
 function logo(d) {
