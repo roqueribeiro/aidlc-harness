@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 630" width="1200" height="630" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="Uma fonte de instruções, três ferramentas">
+<rect width="1200" height="630" fill="#0b1220"/>
+<defs><marker id="ponta-suave" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>
+<text x="32" y="44" font-size="22" font-weight="700" fill="#e2e8f0">Uma fonte de instruções, três ferramentas</text>
+<text x="32" y="68" font-size="13" fill="#94a3b8">AGENTS.md é a única que se edita. As outras são derivadas, e o CI reprova divergência.</text>
+<g><rect x="40" y="200" width="270" height="130" rx="9" fill="#13284d" stroke="#60a5fa" stroke-width="1.4"/><text x="52" y="224" font-size="15" font-weight="700" fill="#e2e8f0">AGENTS.md</text><text x="52" y="244" font-size="12" fill="#94a3b8">a fonte única</text><text x="52" y="261" font-size="12" fill="#94a3b8">regras, fases, comandos</text></g>
+<g><rect x="450" y="110" width="330" height="90" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="462" y="134" font-size="15" font-weight="700" fill="#e2e8f0">CLAUDE.md</text><text x="462" y="154" font-size="12" fill="#94a3b8">importa @AGENTS.md</text><text x="462" y="171" font-size="12" fill="#94a3b8">mais o que é só do Claude Code</text></g>
+<g><rect x="450" y="230" width="330" height="90" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="462" y="254" font-size="15" font-weight="700" fill="#e2e8f0">.kiro/steering/aidlc.md</text><text x="462" y="274" font-size="12" fill="#94a3b8">cópia derivada, inclusion: always</text></g>
+<g><rect x="450" y="350" width="330" height="90" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="462" y="374" font-size="15" font-weight="700" fill="#e2e8f0">.github/copilot-instructions.md</text><text x="462" y="394" font-size="12" fill="#94a3b8">cópia derivada</text></g>
+<path d="M310 265 L380 265 L380 155 L450 155" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M380 275 L450 275" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M310 265 L380 265 L380 395 L450 395" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<text x="388" y="147" font-size="11" text-anchor="start" fill="#94a3b8">@import</text>
+<text x="388" y="268" font-size="11" text-anchor="start" fill="#94a3b8">sync</text>
+<text x="388" y="387" font-size="11" text-anchor="start" fill="#94a3b8">sync</text>
+<g><rect x="860" y="110" width="300" height="90" rx="9" fill="#0f2a1b" stroke="#4ade80" stroke-width="1.4"/><text x="872" y="134" font-size="15" font-weight="700" fill="#e2e8f0">Claude Code</text><text x="872" y="154" font-size="12" fill="#94a3b8">hooks e gate bloqueiam</text></g>
+<g><rect x="860" y="230" width="300" height="90" rx="9" fill="#33250a" stroke="#fbbf24" stroke-width="1.4"/><text x="872" y="254" font-size="15" font-weight="700" fill="#e2e8f0">Kiro</text><text x="872" y="274" font-size="12" fill="#94a3b8">instruções; o CI cobra</text></g>
+<g><rect x="860" y="350" width="300" height="90" rx="9" fill="#33250a" stroke="#fbbf24" stroke-width="1.4"/><text x="872" y="374" font-size="15" font-weight="700" fill="#e2e8f0">GitHub Copilot</text><text x="872" y="394" font-size="12" fill="#94a3b8">instruções; o CI cobra</text></g>
+<path d="M780 155 L860 155" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M780 275 L860 275" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M780 395 L860 395" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<g><rect x="40" y="490" width="540" height="110" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="52" y="514" font-size="15" font-weight="700" fill="#e2e8f0">aidlc-init</text><text x="52" y="534" font-size="12" fill="#94a3b8">cria o esqueleto do projeto</text><text x="52" y="551" font-size="12" fill="#94a3b8">--check: reprova se uma cópia divergiu</text><text x="52" y="568" font-size="12" fill="#94a3b8">--sync: regenera as cópias a partir do AGENTS.md</text></g>
+<g><rect x="620" y="490" width="540" height="110" rx="9" fill="#33250a" stroke="#fbbf24" stroke-width="1.4"/><text x="632" y="514" font-size="15" font-weight="700" fill="#e2e8f0">No CI (aidlc-gate.yml)</text><text x="632" y="534" font-size="12" fill="#94a3b8">roda aidlc-init --check e aidlc-gate</text><text x="632" y="551" font-size="12" fill="#94a3b8">é isso que cobra em Kiro e Copilot,</text><text x="632" y="568" font-size="12" fill="#94a3b8">onde não existe hook bloqueante</text></g>
+</svg>

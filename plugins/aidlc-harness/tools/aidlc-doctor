@@ -1,0 +1,397 @@
+#!/usr/bin/env node
+/*
+ * aidlc-doctor: pontua um repo contra o padrao do kit e diz exatamente o que falta.
+ *
+ * A regra que ele existe pra impedir: um repo "parecer" pronto porque ninguem mediu.
+ * Item que so roda em outra plataforma sai marcado como tal, nunca como verde.
+ *
+ *   aidlc-doctor                  # diretorio atual
+ *   aidlc-doctor ../outro-repo
+ *   aidlc-doctor --json
+ */
+
+import { existsSync, readFileSync, readdirSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { join } from 'node:path'
+import { detectTech, repoRoot, platformAllows, platformLabel } from '../lib/detect.mjs'
+import { temQuickstart, capaDoReadme } from '../lib/readme-check.mjs'
+import { checksDeRepoAberto } from '../lib/repo-aberto.mjs'
+
+const argv = process.argv.slice(2)
+const JSON_OUT = argv.includes('--json')
+const target = argv.find((a) => !a.startsWith('--')) ?? process.cwd()
+const root = repoRoot(target)
+
+const C = process.stdout.isTTY && !JSON_OUT
+const c = {
+  dim: (s) => (C ? `\x1b[2m${s}\x1b[0m` : s),
+  bold: (s) => (C ? `\x1b[1m${s}\x1b[0m` : s),
+  green: (s) => (C ? `\x1b[32m${s}\x1b[0m` : s),
+  red: (s) => (C ? `\x1b[31m${s}\x1b[0m` : s),
+  yellow: (s) => (C ? `\x1b[33m${s}\x1b[0m` : s),
+}
+
+const has = (rel) => existsSync(join(root, rel))
+const read = (rel) => {
+  try {
+    return readFileSync(join(root, rel), 'utf8')
+  } catch {
+    return ''
+  }
+}
+const anyIn = (dir, pred) => {
+  try {
+    return readdirSync(join(root, dir)).some(pred)
+  } catch {
+    return false
+  }
+}
+
+const manifest = detectTech(root)
+const checks = []
+
+function check(id, label, weight, ok, fix, note) {
+  checks.push({ id, label, weight, ok, fix, note })
+}
+
+// --- Identidade e documentacao -------------------------------------------------
+
+const readme = read('README.md')
+check('readme', 'README.md existe', 8, has('README.md'), 'criar a partir do template do kit')
+check(
+  'readme-quickstart',
+  'README diz como comecar',
+  6,
+  // A regra e os tres falsos negativos que ela ja teve moram em lib/readme-check.mjs, com
+  // teste em lib/lib.test.mjs: mede a secao, nao a formatacao do titulo.
+  temQuickstart(readme),
+  'adicionar a secao de quickstart do template',
+)
+/*
+ * Repo de app mostra o que ele e: a vitrine e o README. A regra e os casos que a criaram
+ * moram em lib/readme-check.mjs, com teste.
+ */
+if (manifest && ['app'].includes(manifest.tech)) {
+  const capa = capaDoReadme(readme, (rel) => {
+    try {
+      return readFileSync(join(root, rel))
+    } catch {
+      return null
+    }
+  })
+  check(
+    'readme-capa',
+    'README mostra o que o repo e (uma imagem do repo que abre)',
+    4,
+    capa.ok,
+    'por um print do app (ou um diagrama) em docs/ e no topo do README',
+    capa.ok ? capa.imagem : capa.motivo,
+  )
+}
+check('claude-md', 'CLAUDE.md existe', 10, has('CLAUDE.md'), 'criar o CLAUDE.md fino apontando pro plugin')
+check(
+  'claude-md-thin',
+  'CLAUDE.md abaixo de 8 KB (e sempre-on)',
+  8,
+  has('CLAUDE.md') && read('CLAUDE.md').length < 8192,
+  'mover detalhe pra rules com paths: ou pro plugin',
+  has('CLAUDE.md') ? `${(read('CLAUDE.md').length / 1024).toFixed(1)} KB` : null,
+)
+check('changelog', 'CHANGELOG.md existe', 4, has('CHANGELOG.md'), 'adotar keep-a-changelog')
+/*
+ * O que se exige e documentacao de usuario, nao uma pasta com um nome. Num repo de dados
+ * como o catalogo de containers, a documentacao E o README, com arquitetura, comparativo e
+ * FAQ. Reprovar por falta de `docs/` ali mediria o nome do diretorio em vez do que importa,
+ * e a saida seria criar uma pasta vazia pra ficar verde, que e pior que estar vermelho.
+ */
+const docsElsewhere = readme.length > 4096 && (readme.match(/^#{2,3}\s/gm) ?? []).length >= 5
+check(
+  'docs',
+  'Documentacao de usuario existe',
+  4,
+  has('docs') || docsElsewhere,
+  'criar docs/ com pt-BR e en-US, ou tornar o README a documentacao completa',
+  has('docs') ? null : docsElsewhere ? 'no proprio README' : null,
+)
+
+// --- Harness --------------------------------------------------------------------
+
+const settings = read('.claude/settings.json')
+check('claude-dir', '.claude/ existe', 8, has('.claude'), 'criar o .claude/ do repo')
+
+/*
+ * Antes, esta checagem era `/aidlc-harness/.test(settings)`, substring no arquivo
+ * inteiro. Havia TRES formatos incompativeis da mesma chave espalhados pelos
+ * repos, e os tres marcavam os 12 pontos igual, resolvendo ou nao. Doctor 100/100 num repo
+ * que nao carregava o plugin e pior que doctor nenhum: ele afirma o contrario do que existe.
+ *
+ * Agora le como JSON e confere as duas pontas: o plugin habilitado E o marketplace que o
+ * serve declarado por nome. Habilitar `aidlc-harness@aidlc` sem declarar o marketplace
+ * `aidlc` e a falha que instala em silencio e entrega nada.
+ */
+function pluginWiring(raw) {
+  let cfg
+  try {
+    cfg = JSON.parse(raw || '{}')
+  } catch {
+    return { ok: false, why: 'settings.json nao e JSON valido' }
+  }
+
+  const en = cfg.enabledPlugins
+  const habilitado = Array.isArray(en)
+    ? en.some((e) => (typeof e === 'string' ? e.startsWith('aidlc-harness@') : e?.plugin === 'aidlc-harness'))
+    : en && typeof en === 'object'
+      ? Object.entries(en).some(([k, v]) => k.startsWith('aidlc-harness@') && v !== false)
+      : false
+  if (!habilitado) return { ok: false, why: 'enabledPlugins nao habilita aidlc-harness@aidlc' }
+
+  const mk = cfg.extraKnownMarketplaces
+  const declarado = Array.isArray(mk)
+    ? mk.some((m) => m?.name === 'aidlc' || /aidlc-harness/.test(m?.repo ?? m?.path ?? ''))
+    : mk && typeof mk === 'object'
+      ? Object.keys(mk).includes('aidlc')
+      : false
+  if (!declarado) return { ok: false, why: 'o marketplace aidlc nao esta declarado em extraKnownMarketplaces' }
+
+  return { ok: true, why: null }
+}
+
+const wiring = pluginWiring(settings)
+check(
+  'plugin-enabled',
+  'aidlc-harness habilitado no settings.json',
+  12,
+  wiring.ok,
+  wiring.why ?? 'declarar extraKnownMarketplaces.aidlc e enabledPlugins["aidlc-harness@aidlc"]',
+)
+check(
+  'permissions',
+  'Allowlist de permissao declarada',
+  6,
+  /"allow"\s*:/.test(settings),
+  'declarar permissions.allow com os comandos da stack',
+)
+check('loop', '.claude/loop.md existe', 5, has('.claude/loop.md'), 'escrever a rotina de manutencao da stack')
+
+// --- Qualidade ------------------------------------------------------------------
+
+check(
+  'tech-detected',
+  'Tecnologia reconhecida pelo kit',
+  12,
+  Boolean(manifest),
+  'adicionar um manifesto em plugins/aidlc-harness/quality/',
+  manifest ? manifest.label : null,
+)
+
+/*
+ * A REDE E LOCAL, NAO E A ESTEIRA. Decisao de projeto.
+ *
+ * Pontuar a existencia de um workflow de CI premia um check que pode nunca ter aprovado nem
+ * reprovado nada de verdade (falta de segredo, runner indisponivel, permissao). O que conta e o
+ * gancho de `pre-push`, que roda na maquina antes do push sair e tem instalacao e verificacao
+ * (`scripts/install-git-hooks.mjs --check`). A esteira pode existir; ela so nao vale nota.
+ */
+/*
+ * ⚠️ SAO QUATRO ENDERECOS, NAO DOIS.
+ *
+ * Um repo que usa `core.hooksPath` (o jeito versionavel de ter hook) guarda o gancho fora de
+ * `.git/hooks/`. A ordem segue o que o git de fato consulta: `core.hooksPath` vence tudo;
+ * sem ele, husky (que aponta o hooksPath para `.husky/_`); e por ultimo o `.git/hooks/`
+ * padrao.
+ */
+const hooksPath = (() => {
+  const r = spawnSync('git', ['config', '--get', 'core.hooksPath'], { cwd: root, encoding: 'utf8' })
+  return r.status === 0 ? r.stdout.trim() : ''
+})()
+let hookPrePush =
+  [hooksPath && join(hooksPath, 'pre-push'), '.githooks/pre-push', '.husky/pre-push', '.git/hooks/pre-push']
+    .filter(Boolean)
+    .find((p) => has(p)) || null
+/*
+ * ⚠️ O ARQUIVO DO HUSKY EM `.husky/_/` E UM DESPACHANTE, NAO O GANCHO.
+ *
+ * O husky aponta o `core.hooksPath` para `.husky/_` e poe la um `pre-push` que
+ * so chama `.husky/pre-push`. Sem esse segundo arquivo, o gancho existe no disco,
+ * o git o executa, e ele nao faz absolutamente nada. Dar nota so pelo
+ * despachante e falso VERDE: ele esta la e o gancho de verdade nao.
+ */
+if (hookPrePush && /(^|\/)\.husky\/_\//.test(hookPrePush)) {
+  hookPrePush = has('.husky/pre-push') ? '.husky/pre-push' : null
+}
+check(
+  'gate-local',
+  'Gancho de pre-push instalado',
+  10,
+  Boolean(hookPrePush),
+  'rodar node scripts/install-git-hooks.mjs no aidlc-harness',
+  hookPrePush,
+)
+check(
+  'gate-local-roda-gate',
+  'O pre-push roda o gate, nao so o formatador',
+  7,
+  /*
+   * ⚠️ A LISTA E DE EXECUTORES DE TESTE, NAO DE NOMES DE SCRIPT.
+   *
+   * Uma lista so de nomes de script reprovaria um pre-push que roda
+   * `yarn jest --changedSince`: teste de verdade, so que chamado pelo executor em vez de por
+   * um script. O reflexo errado seria renomear o comando para caber no regex; o certo e o
+   * regex conhecer `jest` e `vitest`, que e o que de fato roda teste.
+   */
+  Boolean(hookPrePush) &&
+    /aidlc-gate|test:unit|test:ci|yarn test|npm test|\b(jest|vitest)\b/.test(
+      read(hookPrePush),
+    ),
+  'chamar aidlc-gate (ou o script de teste da stack) no pre-push, alem do format:check',
+)
+
+// --- Higiene --------------------------------------------------------------------
+
+check('gitignore', '.gitignore existe', 3, has('.gitignore'), 'adicionar .gitignore')
+const gi = read('.gitignore')
+/*
+ * Quem decide se um arquivo esta ignorado e o git, nao a nossa regex. A versao anterior
+ * so aceitava uma linha comecando com `.env`, entao um repo que ignora com `*.env` (que
+ * e o padrao do projeto, porque tambem pega `producao.env`) era reprovado apesar de
+ * estar correto. Pergunta ao git, e so cai na regex se o git nao responder.
+ */
+const envIgnorado = () => {
+  if (!has('.env')) return true
+  const r = spawnSync('git', ['check-ignore', '-q', '.env'], { cwd: root, stdio: 'ignore' })
+  // 0 = ignorado, 1 = nao ignorado, 128 = nao e repo git (ai vale a leitura do arquivo)
+  if (r.status === 0) return true
+  if (r.status === 1) return false
+  return /^\*?\.env/m.test(gi)
+}
+check(
+  'no-secrets',
+  'Segredo nao versionado',
+  10,
+  envIgnorado(),
+  'mover o segredo pro cofre e ignorar o .env',
+  envIgnorado() ? null : '.env presente e NAO ignorado',
+)
+
+// --- Repo aberto ----------------------------------------------------------------
+
+/*
+ * So entra quem declara licenca de codigo aberto (LICENSE ou package.json). As regras, o
+ * motivo e o teste moram em lib/repo-aberto.mjs. Repo fechado nao ganha nem perde ponto
+ * aqui: o total e a soma dos itens que se aplicam.
+ */
+const pkgLicense = (() => {
+  try {
+    const l = JSON.parse(read('package.json') || '{}').license
+    return typeof l === 'string' ? l : null
+  } catch {
+    return null
+  }
+})()
+const workflows = (() => {
+  try {
+    return readdirSync(join(root, '.github', 'workflows'))
+      .filter((f) => /\.ya?ml$/.test(f))
+      .map((nome) => ({ nome, texto: read(join('.github', 'workflows', nome)) }))
+  } catch {
+    return []
+  }
+})()
+// O DCO é declarado pelo projeto: `"dco": true` em .aidlc/config.json, ou o workflow dco.yml
+// que o aplicar-repo-aberto --dco escreve.
+const dco = (() => {
+  try {
+    if (JSON.parse(read(join('.aidlc', 'config.json')) || '{}').dco === true) return true
+  } catch {
+    /* config ilegivel: cai no workflow */
+  }
+  return has(join('.github', 'workflows', 'dco.yml'))
+})()
+const aberto = checksDeRepoAberto({ has, read, workflows, dco, pkgLicense })
+for (const k of aberto.checks) check(k.id, k.label, k.weight, k.ok, k.fix, k.note)
+
+// --- Ciclo ----------------------------------------------------------------------
+
+/*
+ * O ciclo e medido, nao estimado . A partir
+ * do kit 2.13.0 o dod-check grava cada decisao em .claude/audit/<dia>.jsonl; um repo em que
+ * nenhuma entrega passou pelo gate nos ultimos 30 dias nao tem painel, e o doctor diz isso
+ * em vez de dar 100 a um repo que ninguem entregou. Peso baixo de proposito: e a diferenca
+ * entre 100 e 97, nao entre passar e reprovar.
+ */
+const auditDir = join(root, '.claude', 'audit')
+let registrosRecentes = 0
+try {
+  const corte = Date.now() - 30 * 864e5
+  for (const f of readdirSync(auditDir).filter((x) => x.endsWith('.jsonl'))) {
+    for (const line of readFileSync(join(auditDir, f), 'utf8').split('\n')) {
+      if (!line.trim()) continue
+      try {
+        const r = JSON.parse(line)
+        if (r.hook === 'dod-check' && new Date(r.at).getTime() >= corte) registrosRecentes++
+      } catch {
+        /* linha quebrada nao conta */
+      }
+    }
+  }
+} catch {
+  /* sem diretorio: zero registros */
+}
+check(
+  'cycle-record',
+  'O gate deixou registro nos ultimos 30 dias (aidlc-cycle tem o que medir)',
+  3,
+  registrosRecentes > 0,
+  'entregar com o kit ligado: o dod-check grava em .claude/audit/ a partir de 2.13.0; aidlc-cycle le de la',
+  registrosRecentes > 0 ? `${registrosRecentes} decisao(oes) do gate no periodo` : 'nenhum registro em .claude/audit/',
+)
+
+// --- Resultado ------------------------------------------------------------------
+
+const total = checks.reduce((s, k) => s + k.weight, 0)
+const earned = checks.reduce((s, k) => s + (k.ok ? k.weight : 0), 0)
+const score = Math.round((earned / total) * 100)
+
+const platformNotes = []
+if (manifest) {
+  const blocked = (manifest.gates ?? []).filter((g) => !platformAllows(g.platform ?? manifest.platform ?? 'any'))
+  if (blocked.length) {
+    platformNotes.push(
+      `${blocked.length} de ${manifest.gates.length} gates so rodam em ${manifest.platform === 'darwin' ? 'macOS' : manifest.platform}, esta maquina e ${platformLabel()}`,
+    )
+  }
+}
+
+if (JSON_OUT) {
+  console.log(
+    JSON.stringify({
+      ok: score >= 90,
+      dir: root,
+      score,
+      tech: manifest?.tech ?? null,
+      licenca: aberto.licenca,
+      platform: process.platform,
+      platformNotes,
+      checks: checks.map(({ id, label, ok, weight, fix, note }) => ({ id, label, ok, weight, fix, note })),
+    }),
+  )
+  process.exit(0)
+}
+
+const badge = score >= 90 ? c.green(`${score}`) : score >= 70 ? c.yellow(`${score}`) : c.red(`${score}`)
+console.log(`\n${c.bold('aidlc-doctor')}  ${c.dim(root)}`)
+console.log(`${c.bold(badge)}${c.dim('/100')}   ${manifest ? manifest.label : c.red('tecnologia nao reconhecida')}\n`)
+
+for (const k of checks) {
+  const mark = k.ok ? c.green('ok  ') : c.red('nao ')
+  const note = k.note ? c.dim(`  (${k.note})`) : ''
+  console.log(`  ${mark} ${k.label}${note}`)
+  if (!k.ok) console.log(`       ${c.dim(`-> ${k.fix}`)}`)
+}
+
+if (platformNotes.length) {
+  console.log(`\n  ${c.yellow('Plataforma')}`)
+  for (const n of platformNotes) console.log(`    ${c.dim(n)}`)
+  console.log(`    ${c.dim('estes gates nao sao verdes nem vermelhos aqui, sao pendentes de maquina.')}`)
+}
+console.log('')

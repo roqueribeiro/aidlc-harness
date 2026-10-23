@@ -1,0 +1,37 @@
+{
+  "$comment": "Camada org: o que vale para TODA stack mora aqui uma vez, e o loadManifests injeta em cada manifesto que casa o `when`. Copiar o mesmo gate em varios arquivos é o jeito mais rápido de divergir calado. Um manifesto pode recusar a herança com `inherits: false` (declarado, nunca por omissão) e pode sobrescrever um gate herdado declarando outro com o mesmo id. Este arquivo não é uma tecnologia: não tem detect, não tem repos, e o check-quality-manifests o valida com regra própria. A camada também carrega `evidence` (com `when`, aceitando `todas: true`).",
+  "gates": [
+    {
+      "id": "lockfile",
+      "label": "Dependencia declarada esta no lockfile e o lockfile acompanha o package.json",
+      "cmd": "aidlc-lockcheck",
+      "blocking": true,
+      "platform": "any",
+      "when": {
+        "pkgManager": [
+          "yarn",
+          "npm"
+        ]
+      },
+      "$why": "O kit varre CVE (aidlc-secscan), mas nada conferia o outro lado do supply chain: o pacote que o agente cita e que nunca foi instalado. Modelos geram nomes de pacote inexistentes e repetem os mesmos nomes, então alguém pode registrar o nome antes. Sem lockfile regenerado no mesmo diff, esse nome entra calado."
+    }
+  ],
+  "evidence": [
+    {
+      "id": "fechamento-limpeza",
+      "label": "Fechamento de unidade de trabalho: aidlc-limpeza sem nada sobrando (o HEAD na branch principal do remoto, nenhum worktree, branch ou container de sobra)",
+      "markers": [
+        "aidlc-limpeza: nada sobrando"
+      ],
+      "whenSays": [
+        "(unidade|bolt|entrega)\\s*\\d*[^\\n.]{0,60}\\b(fechad|conclu[ií]d|entregue|pronto)",
+        "\\b(fechei|conclu[ií]|terminei|entreguei)\\b[^\\n.]{0,30}\\b(unidades?|bolts?|entregas?)\\b",
+        "todas as (unidades|entregas)[^\\n.]{0,30}(fechad|conclu[ií]d|entregues|prontas)"
+      ],
+      "when": {
+        "todas": true
+      },
+      "$why": "Trabalho que termina sem arrumar a bancada deixa worktrees velhos, branches locais e containers parados, e a pior consequência é uma branch à frente da principal que ninguém integrou. A linha final do aidlc-limpeza só sai com o HEAD contido na principal do remoto e nada de sobra."
+    }
+  ]
+}

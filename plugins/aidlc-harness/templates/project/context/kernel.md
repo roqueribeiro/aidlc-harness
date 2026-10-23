@@ -1,0 +1,1 @@
+{{NOME}}: {{DESCRICAO}} O método é AI-DLC: a IA propõe, a equipe valida, "pronto" exige a saída do gate colada no chat. Contexto do produto e decisões já tomadas moram em context/product.md, lido sob demanda pela skill aidlc-context.

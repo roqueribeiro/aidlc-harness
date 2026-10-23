@@ -1,0 +1,57 @@
+#!/usr/bin/env node
+/**
+ * aidlc-phase: o estado das fases do AI-DLC, conferido e não declarado.
+ *
+ *   aidlc-phase status                 # as duas fases, uma linha cada (sai 0, é informativo)
+ *   aidlc-phase check inception        # sai 1 se a Inception estiver incompleta
+ *   aidlc-phase check construction     # exige a Inception completa E os arquivos da Construction
+ *   aidlc-phase ... --json
+ */
+import { resolve } from 'node:path'
+import { FASES, conferirFase, temAidlc } from '../lib/phase.mjs'
+
+const argv = process.argv.slice(2)
+const JSON_OUT = argv.includes('--json')
+const pos = argv.filter((a) => !a.startsWith('--'))
+const [cmd = 'status', fase] = pos
+const raiz = resolve(process.cwd())
+
+if (!temAidlc(raiz)) {
+  const msg = 'sem pasta aidlc/ aqui: rode aidlc-init para criar os artefatos do ciclo'
+  if (JSON_OUT) console.log(JSON.stringify({ ok: false, reason: 'no-aidlc', dir: raiz }))
+  else console.log(`aidlc-phase: ${msg}`)
+  process.exit(cmd === 'status' ? 0 : 1)
+}
+
+const estados = Object.keys(FASES).map((f) => conferirFase(raiz, f))
+
+if (cmd === 'status') {
+  if (JSON_OUT) console.log(JSON.stringify({ ok: true, fases: estados }))
+  else {
+    console.log('\naidlc-phase')
+    for (const e of estados) {
+      const quanto = e.ok ? 'completa' : e.bloqueadaPor.length ? `bloqueada por ${e.bloqueadaPor.join(', ')}` : `${e.problemas.length} pendencia(s)`
+      console.log(`  ${e.fase.padEnd(13)} ${quanto}`)
+    }
+  }
+  process.exit(0)
+}
+
+if (cmd === 'check') {
+  if (!fase || !FASES[fase]) {
+    console.error(`uso: aidlc-phase check <${Object.keys(FASES).join('|')}>`)
+    process.exit(2)
+  }
+  const e = estados.find((x) => x.fase === fase)
+  if (JSON_OUT) console.log(JSON.stringify(e))
+  else {
+    console.log(`\naidlc-phase check ${fase}`)
+    for (const d of e.bloqueadaPor) console.log(`  bloqueada: a fase ${d} nao esta completa`)
+    for (const p of e.problemas) console.log(`  ${p}`)
+    console.log(e.ok ? `\naidlc-phase: ${fase} completa` : `\naidlc-phase: ${fase} INCOMPLETA`)
+  }
+  process.exit(e.ok ? 0 : 1)
+}
+
+console.error('uso: aidlc-phase status | check <fase> [--json]')
+process.exit(2)

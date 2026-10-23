@@ -1,0 +1,296 @@
+#!/usr/bin/env node
+/*
+ * aidlc-gate: roda o criterio de aceite da tecnologia detectada e imprime o relatorio.
+ *
+ * O ponto do comando e que "esta pronto" deixe de ser opiniao. Ele detecta a stack pelo
+ * conteudo do diretorio, executa os gates declarados em quality/<tech>.json na ordem,
+ * pula com honestidade o que a plataforma atual nao consegue rodar (um gate que so roda
+ * em outro sistema nao vira verde, vira "pulado"), e sai 1 se qualquer gate bloqueante reprovou.
+ *
+ *   aidlc-gate                 # roda no diretorio atual
+ *   aidlc-gate ../outro-repo
+ *   aidlc-gate --only lint,unit
+ *   aidlc-gate --list          # mostra as tecnologias conhecidas
+ *   aidlc-gate --dry-run       # so mostra o que rodaria
+ *   aidlc-gate --json          # saida pra hook e CI
+ */
+
+import { spawnSync } from 'node:child_process'
+import { readFileSync, existsSync } from 'node:fs'
+import { createHash } from 'node:crypto'
+import { join, dirname, delimiter } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { loadManifests, detectTech, repoRoot, platformAllows, platformLabel, manifestosDoProjeto } from '../lib/detect.mjs'
+import { homedir } from 'node:os'
+
+/*
+ * Os gates chamam os proprios executaveis do kit (aidlc-scan, aidlc-lockcheck, aidlc-secscan). No
+ * computador de quem instalou o kit eles estao no PATH, mas num runner de CI limpo nao estao: o
+ * gate dava "command not found" (exit 127) e reprovava por um defeito que nao era do projeto.
+ * A pasta dos executaveis entra na frente do PATH so para os comandos dos gates.
+ */
+const PASTA_DOS_EXECUTAVEIS = dirname(fileURLToPath(import.meta.url))
+const ENV_DOS_GATES = { ...process.env, PATH: `${PASTA_DOS_EXECUTAVEIS}${delimiter}${process.env.PATH ?? ''}` }
+
+/*
+ * Configuracao congelada por execucao.
+ *
+ * Duas rodadas do gate com criterios diferentes eram indistinguiveis depois: o JSON dizia
+ * `ok` e `tech`, e nada dizia QUAL manifesto e QUAL versao do kit autorizaram a entrega.
+ * Emprestado do Collaborative AI-DLC (aws-samples, 2026): a politica sob a qual uma run
+ * correu e carimbada na propria run. Aqui e o hash do manifesto mais a versao do plugin,
+ * e o dod-check grava os dois no registro de auditoria do repo.
+ */
+const KIT_DIR = join(fileURLToPath(new URL('.', import.meta.url)), '..')
+export function kitVersion() {
+  try {
+    return JSON.parse(readFileSync(join(KIT_DIR, '.claude-plugin/plugin.json'), 'utf8')).version ?? null
+  } catch {
+    return null
+  }
+}
+export function manifestHash(m) {
+  try {
+    return createHash('sha256').update(Buffer.concat([readFileSync(join(KIT_DIR, 'quality', `${m.tech}.json`)), existsSync(join(KIT_DIR, 'quality', '_org.json')) ? readFileSync(join(KIT_DIR, 'quality', '_org.json')) : Buffer.alloc(0)])).digest('hex').slice(0, 12)
+  } catch {
+    return null
+  }
+}
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const val = (n) => {
+  const i = argv.indexOf(n)
+  return i >= 0 ? argv[i + 1] : null
+}
+const JSON_OUT = flag('--json')
+const DRY = flag('--dry-run')
+const ONLY = (val('--only') ?? '').split(',').filter(Boolean)
+const target = argv.find((a) => !a.startsWith('--') && a !== val('--only')) ?? process.cwd()
+
+const C = process.stdout.isTTY && !JSON_OUT
+const c = {
+  dim: (s) => (C ? `\x1b[2m${s}\x1b[0m` : s),
+  bold: (s) => (C ? `\x1b[1m${s}\x1b[0m` : s),
+  green: (s) => (C ? `\x1b[32m${s}\x1b[0m` : s),
+  red: (s) => (C ? `\x1b[31m${s}\x1b[0m` : s),
+  yellow: (s) => (C ? `\x1b[33m${s}\x1b[0m` : s),
+}
+
+if (flag('--list')) {
+  const rows = loadManifests().map((m) => ({
+    tech: m.tech,
+    label: m.label,
+    status: m.status ?? 'active',
+    platform: m.platform ?? 'any',
+    repos: m.repos,
+    gates: m.gates.length,
+    autonomy: m.autonomy ?? 'approve',
+    gateAutonomy: Object.fromEntries(m.gates.filter((g) => g.autonomy).map((g) => [g.id, g.autonomy])),
+    security: m.security ?? {},
+    inherited: m.gates.filter((g) => g.inherited).map((g) => g.id),
+  }))
+  if (JSON_OUT) console.log(JSON.stringify({ ok: true, manifests: rows }))
+  else {
+    console.log(c.bold('Tecnologias conhecidas pelo aidlc-harness\n'))
+    for (const r of rows) {
+      const tag = r.status === 'archived' ? c.dim(' [arquivada]') : ''
+      const plat = r.platform === 'any' ? '' : c.yellow(` [${r.platform}]`)
+      console.log(`  ${c.bold(r.tech.padEnd(16))} ${r.label}${tag}${plat}`)
+      const overrides = Object.entries(r.gateAutonomy).map(([id, a]) => `${id}=${a}`).join(' ')
+      console.log(`  ${''.padEnd(16)} ${c.dim(`${r.gates} gates · autonomia ${r.autonomy}${overrides ? ` (${overrides})` : ''} · ${r.repos.join(', ')}`)}`)
+      const sec = Object.entries(r.security).map(([k, v]) => `${k}=${v}`).join(' ')
+      console.log(`  ${''.padEnd(16)} ${c.dim(`seguranca: ${sec || 'nenhuma barreira declarada'}${r.inherited.length ? ` · herdado de _org: ${r.inherited.join(', ')}` : ''}`)}`)
+    }
+  }
+  process.exit(0)
+}
+
+
+const root = repoRoot(target)
+const manifest = detectTech(root)
+for (const e of manifestosDoProjeto(root).erros) console.error(c.yellow(`manifesto do projeto ignorado: ${e}`))
+
+if (!manifest) {
+  const msg = `nenhuma tecnologia reconhecida em ${root}`
+  if (JSON_OUT) console.log(JSON.stringify({ ok: false, reason: 'no-tech', dir: root }))
+  else console.error(c.red(msg) + `\n${c.dim('aidlc-gate --list mostra o que o kit sabe reconhecer.')}`)
+  process.exit(2)
+}
+
+if ((manifest.status ?? 'active') === 'archived') {
+  const msg = `${manifest.label}: stack arquivada, sem gate por decisao registrada.`
+  if (JSON_OUT) console.log(JSON.stringify({ ok: true, archived: true, tech: manifest.tech }))
+  else console.log(c.dim(msg))
+  process.exit(0)
+}
+
+const gates = manifest.gates.filter((g) => !ONLY.length || ONLY.includes(g.id))
+const results = []
+
+if (!JSON_OUT) {
+  console.log(`\n${c.bold(manifest.label)}  ${c.dim(`(${manifest.tech})`)}`)
+  console.log(c.dim(root))
+  console.log(c.dim(`kit ${kitVersion() ?? '?'} · manifesto ${manifestHash(manifest) ?? '?'} · autonomia ${manifest.autonomy ?? 'approve'}`))
+  console.log('')
+}
+
+for (const g of gates) {
+  const wantPlatform = g.platform ?? manifest.platform ?? 'any'
+
+  if (!platformAllows(wantPlatform)) {
+    results.push({ ...g, status: 'skipped', reason: `exige ${wantPlatform}, aqui e ${process.platform}` })
+    if (!JSON_OUT) {
+      console.log(`  ${c.yellow('PULADO')}  ${g.label}`)
+      console.log(`          ${c.dim(`so roda em ${wantPlatform}, esta maquina e ${platformLabel()}`)}`)
+    }
+    continue
+  }
+
+  if (g.agent) {
+    /*
+     * Gate do tipo agent nao roda aqui: quem o dispara e a sessao, com o tiering de modelo.
+     *
+     * Antes ele saia em `dim` e sumia da conta: `failedBlocking` filtra
+     * `status === 'fail'`, entao um gate agent com `blocking: true` era ESTRUTURALMENTE
+     * incapaz de reprovar, e o `--json` publicava `ok: true` com a revisao nunca feita.
+     * A CI le exatamente esse `.ok`. Agora ele aparece como PENDENTE, entra em `pending` no
+     * JSON, e `okStrict` distingue "nenhum comando falhou" de "nada ficou por fazer".
+     */
+    results.push({ ...g, status: 'agent', reason: `invocar o subagente ${g.agent} (${g.model ?? 'inherit'})` })
+    if (!JSON_OUT) {
+      const marca = g.blocking ? c.yellow('PENDENTE') : c.dim('AGENTE  ')
+      console.log(`  ${marca}  ${g.label}`)
+      console.log(`          ${c.dim(`rodar o subagente ${g.agent} no nivel ${g.model ?? 'inherit'}${g.blocking ? ', e BLOQUEANTE' : ''}`)}`)
+    }
+    continue
+  }
+
+  if (DRY) {
+    results.push({ ...g, status: 'dry' })
+    if (!JSON_OUT) console.log(`  ${c.dim('SECO')}    ${g.label}  ${c.dim(g.cmd)}`)
+    continue
+  }
+
+  const started = Date.now()
+  const r = spawnSync(g.cmd, {
+    cwd: root,
+    shell: true,
+    encoding: 'utf8',
+    env: ENV_DOS_GATES,
+    timeout: g.timeoutMs ?? 600000,
+    maxBuffer: 32 * 1024 * 1024,
+  })
+  const ms = Date.now() - started
+  const out = `${r.stdout ?? ''}${r.stderr ?? ''}`
+
+  let ok = r.status === 0
+  let why = ok ? null : `exit ${r.status ?? 'timeout'}`
+  if (ok && g.expect && !out.includes(g.expect)) {
+    ok = false
+    why = `saida nao contem "${g.expect}"`
+  }
+  /*
+   * `m` para que `^` ancore em INICIO DE LINHA, nao so no inicio da saida.
+   *
+   * Sem isso um `reject` so consegue ser substring solta contra o log inteiro, e substring
+   * solta colide com o proprio conteudo dos testes: um teste que se chama "collects a FAILING
+   * item without aborting the rest", ou o aviso do Jest "a worker process has FAILED to exit
+   * gracefully", reprovariam uma suite toda verde.
+   *
+   * Falso vermelho e pior que vermelho comum: manda consertar o que nao esta quebrado, e
+   * ensina a ignorar o gate. Com a ancora, o padrao mira a LINHA DE RESUMO do runner.
+   */
+  if (ok && g.reject && new RegExp(g.reject, 'im').test(out)) {
+    ok = false
+    why = `saida contem "${g.reject}"`
+  }
+
+  results.push({
+    id: g.id,
+    label: g.label,
+    blocking: g.blocking,
+    status: ok ? 'pass' : 'fail',
+    ms,
+    reason: why,
+    tail: ok ? undefined : out.trim().split('\n').slice(-12).join('\n'),
+  })
+
+  if (!JSON_OUT) {
+    const badge = ok ? c.green('PASSOU') : g.blocking ? c.red('FALHOU') : c.yellow('AVISO ')
+    console.log(`  ${badge}  ${g.label}  ${c.dim(`${(ms / 1000).toFixed(1)}s`)}`)
+    if (!ok) {
+      console.log(`          ${c.dim(why)}`)
+      for (const line of (results.at(-1).tail ?? '').split('\n').filter(Boolean).slice(-6)) {
+        console.log(`          ${c.dim(line.slice(0, 160))}`)
+      }
+    }
+  }
+}
+
+const failedBlocking = results.filter((r) => r.status === 'fail' && r.blocking)
+const skipped = results.filter((r) => r.status === 'skipped')
+const pending = results.filter((r) => r.status === 'agent')
+const pendingBlocking = pending.filter((r) => r.blocking)
+
+if (JSON_OUT) {
+  console.log(
+    JSON.stringify({
+      ok: failedBlocking.length === 0,
+      /*
+       * `ok` continua sendo sobre COMANDO, porque e o que a CI consegue executar: runner nao
+       * dispara subagente. `okStrict` e a verdade da sessao, onde o revisor pode rodar.
+       * Quem le `.ok` e ignora `pendingBlocking` esta dizendo verde sobre revisao que nao houve.
+       */
+      okStrict: failedBlocking.length === 0 && pendingBlocking.length === 0,
+      pending: pending.map((p) => ({ id: p.id, label: p.label, agent: p.agent, model: p.model ?? 'inherit', blocking: !!p.blocking })),
+      pendingBlocking: pendingBlocking.length,
+      tech: manifest.tech,
+      kitVersion: kitVersion(),
+      manifestHash: manifestHash(manifest),
+      autonomy: manifest.autonomy ?? 'approve',
+      dir: root,
+      platform: process.platform,
+      results,
+      evidence: manifest.evidence.map((e) => ({ id: e.id, label: e.label, whenTouches: e.whenTouches ?? null })),
+    }),
+  )
+} else {
+  console.log('')
+  const pass = results.filter((r) => r.status === 'pass').length
+  const parts = [c.green(`${pass} passaram`)]
+  if (failedBlocking.length) parts.push(c.red(`${failedBlocking.length} bloqueantes falharam`))
+  if (skipped.length) parts.push(c.yellow(`${skipped.length} pulados por plataforma`))
+  if (pendingBlocking.length) parts.push(c.yellow(`${pendingBlocking.length} bloqueantes PENDENTES de revisor`))
+  const pendingSoft = pending.length - pendingBlocking.length
+  if (pendingSoft) parts.push(c.dim(`${pendingSoft} para a sessao rodar`))
+  console.log(`  ${parts.join(c.dim(' · '))}`)
+
+  if (pendingBlocking.length) {
+    console.log(`\n  ${c.yellow('Falta rodar o revisor da stack:')} o Stop cobra o veredito colado no chat.`)
+    for (const p of pendingBlocking) console.log(`    ${c.dim('·')} ${p.agent} ${c.dim(`(${p.model ?? 'inherit'})`)}  ${p.label}`)
+  }
+
+  if (failedBlocking.length === 0) {
+    console.log(`\n  ${c.bold('Falta a evidencia no chat antes de declarar pronto:')}`)
+    for (const e of manifest.evidence) {
+      const cond = e.whenTouches ? c.dim(` (so se tocou ${e.whenTouches[0]}...)`) : ''
+      console.log(`    ${c.dim('·')} ${e.label}${cond}`)
+    }
+  }
+  console.log('')
+}
+
+/*
+ * O codigo de saida e sobre COMANDO, e so.
+ *
+ * Houve uma versao com `--strict-agents`, que saia 1 sempre que a stack declarasse um gate
+ * de revisor bloqueante. Era insatisfazivel: este binario nao le transcript, entao rodar o
+ * subagente e colar o veredito nao mudava o codigo de saida. Trava que nao da pra satisfazer
+ * ensina a passar por cima dela, que e o oposto do que este harness quer.
+ *
+ * Quem sabe se o revisor rodou e o `dod-check.mjs`, no Stop, pela evidencia `stack-review`
+ * de cada manifesto: ele le o transcript e casa o marcador. Aqui fica a VISIBILIDADE, que
+ * era o que faltava: o gate pendente aparece, entra no JSON e para de sair verde calado.
+ */
+process.exit(failedBlocking.length ? 1 : 0)

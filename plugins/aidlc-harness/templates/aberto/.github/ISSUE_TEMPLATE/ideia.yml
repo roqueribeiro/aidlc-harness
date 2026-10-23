@@ -1,0 +1,27 @@
+name: Ideia ou melhoria / Idea or improvement
+description: Algo que faria isto ficar melhor. / Something that would make this better.
+labels: [ideia]
+body:
+  - type: textarea
+    id: problema
+    attributes:
+      label: Que problema isto resolve / What problem does this solve
+      description: Comece pelo problema, não pela solução. / Start with the problem, not the solution.
+    validations:
+      required: true
+  - type: textarea
+    id: proposta
+    attributes:
+      label: O que você propõe / What you propose
+    validations:
+      required: true
+  - type: textarea
+    id: alternativas
+    attributes:
+      label: Alternativas que você considerou / Alternatives you considered
+  - type: checkboxes
+    id: ajuda
+    attributes:
+      label: Participação / Participation
+      options:
+        - label: Posso abrir o pull request. / I can open the pull request.

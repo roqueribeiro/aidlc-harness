@@ -1,0 +1,8 @@
+{
+  "coverage_complete": true,
+  "scanners_ran": ["semgrep", "trivy"],
+  "findings": [
+    { "key": "sqli-001", "severity": "high", "title": "Consulta SQL montada por concatenacao", "location": "src/db/usuarios.js:41" },
+    { "key": "baixo-001", "severity": "low", "title": "Cabecalho X-Powered-By exposto", "location": "src/app.js:12" }
+  ]
+}

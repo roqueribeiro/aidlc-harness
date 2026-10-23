@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" width="1200" height="650" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="Como o Stop decide">
+<rect width="1200" height="650" fill="#ffffff"/>
+<defs><marker id="ponta-ambar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#b45309"/></marker></defs>
+<defs><marker id="ponta-suave" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#475569"/></marker></defs>
+<text x="32" y="44" font-size="22" font-weight="700" fill="#0f172a">Como o Stop decide: pronto exige evidência</text>
+<text x="32" y="68" font-size="13" fill="#475569">dod-check lê a árvore, o manifesto e o transcript. Nunca prende: tem saída em todo caminho.</text>
+<g><rect x="40" y="120" width="220" height="80" rx="9" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/><text x="52" y="144" font-size="15" font-weight="700" fill="#0f172a">Agente quer parar</text><text x="52" y="164" font-size="12" fill="#475569">fim do turno</text></g>
+<g><rect x="310" y="120" width="240" height="80" rx="9" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/><text x="322" y="144" font-size="15" font-weight="700" fill="#0f172a">Árvore mudou?</text><text x="322" y="164" font-size="12" fill="#475569">git status do projeto</text></g>
+<g><rect x="600" y="120" width="240" height="80" rx="9" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/><text x="612" y="144" font-size="15" font-weight="700" fill="#0f172a">Tecnologia conhecida?</text><text x="612" y="164" font-size="12" fill="#475569">detecção pelo conteúdo</text></g>
+<g><rect x="890" y="120" width="270" height="80" rx="9" fill="#dbeafe" stroke="#2563eb" stroke-width="1.4"/><text x="902" y="144" font-size="15" font-weight="700" fill="#0f172a">Evidência no chat?</text><text x="902" y="164" font-size="12" fill="#475569">markers do manifesto</text></g>
+<path d="M260 160 L310 160" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M550 160 L600 160" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="560" y="151" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="575" y="164" font-size="11" text-anchor="middle" fill="#475569">sim</text>
+<path d="M840 160 L890 160" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="850" y="151" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="865" y="164" font-size="11" text-anchor="middle" fill="#475569">sim</text>
+<g><rect x="310" y="260" width="240" height="74" rx="9" fill="#dcfce7" stroke="#15803d" stroke-width="1.4"/><text x="322" y="284" font-size="15" font-weight="700" fill="#0f172a">Libera</text><text x="322" y="304" font-size="12" fill="#475569">não houve entrega a provar</text></g>
+<g><rect x="600" y="260" width="240" height="74" rx="9" fill="#dcfce7" stroke="#15803d" stroke-width="1.4"/><text x="612" y="284" font-size="15" font-weight="700" fill="#0f172a">Libera</text><text x="612" y="304" font-size="12" fill="#475569">sem critério, sem cobrança</text></g>
+<g><rect x="890" y="260" width="270" height="74" rx="9" fill="#dcfce7" stroke="#15803d" stroke-width="1.4"/><text x="902" y="284" font-size="15" font-weight="700" fill="#0f172a">Libera</text><text x="902" y="304" font-size="12" fill="#475569">o gate foi colado</text></g>
+<path d="M430 200 L430 260" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="415" y="221" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="430" y="234" font-size="11" text-anchor="middle" fill="#475569">não</text>
+<path d="M720 200 L720 260" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="705" y="221" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="720" y="234" font-size="11" text-anchor="middle" fill="#475569">não</text>
+<path d="M1025 200 L1025 260" fill="none" stroke="#475569" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="1010" y="221" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="1025" y="234" font-size="11" text-anchor="middle" fill="#475569">sim</text>
+<g><rect x="890" y="380" width="270" height="100" rx="9" fill="#fef3c7" stroke="#b45309" stroke-width="1.4"/><text x="902" y="404" font-size="15" font-weight="700" fill="#0f172a">Recusa o fim do turno</text><text x="902" y="424" font-size="12" fill="#475569">lista o que falta: saída do</text><text x="902" y="441" font-size="12" fill="#475569">gate, print, veredito do revisor</text></g>
+<path d="M1160 160 L1180 160 L1180 430 L1160 430" fill="none" stroke="#b45309" stroke-width="1.6" marker-end="url(#ponta-ambar)"/>
+<rect x="1165" y="286" width="30" height="18" rx="4" fill="#ffffff" opacity="0.92"/><text x="1180" y="299" font-size="11" text-anchor="middle" fill="#475569">não</text>
+<g><rect x="40" y="380" width="800" height="100" rx="9" fill="#f8fafc" stroke="#cbd5e1" stroke-width="1.4"/><text x="52" y="404" font-size="15" font-weight="700" fill="#0f172a">Salvaguardas para nunca virar prisão</text><text x="52" y="424" font-size="12" fill="#475569">3 recusas na mesma sessão: vira aviso e libera</text><text x="52" y="441" font-size="12" fill="#475569">AIDLC_GATE=0 desliga; gate_mode aceita block, warn e off</text><text x="52" y="458" font-size="12" fill="#475569">falha ao gravar o registro de auditoria nunca segura o Stop</text></g>
+<g><rect x="40" y="530" width="1120" height="90" rx="9" fill="#ede9fe" stroke="#6d28d9" stroke-width="1.4"/><text x="52" y="554" font-size="15" font-weight="700" fill="#0f172a">Por que isso importa</text><text x="52" y="574" font-size="12" fill="#475569">Um gate que prende é desligado na primeira semana. O desenho aposta em cobrar pouco, sempre, e deixar saída.</text></g>
+</svg>

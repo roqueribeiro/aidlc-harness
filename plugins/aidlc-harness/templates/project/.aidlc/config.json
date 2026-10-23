@@ -1,0 +1,6 @@
+{
+  "$comment": "Configuração do aidlc-harness neste projeto. Todas as chaves são opcionais.",
+  "tools": {{FERRAMENTAS}},
+  "language": "pt-BR",
+  "scratchDir": null
+}

@@ -1,0 +1,210 @@
+#!/usr/bin/env node
+/*
+ * aidlc-lockcheck: dependencia nova so entra com lockfile, e so se o lockfile a conhece.
+ *
+ * POR QUE ELE EXISTE: o `secscan` pega CVE com correcao publicada, mas nada cobria o outro
+ * lado do problema de supply chain: o agente edita o package.json, cita um pacote que nao
+ * existe ou que existe com um nome parecido do que queria, e o lockfile fica para tras ou
+ * nunca foi regenerado. Modelos de linguagem citam pacotes inexistentes e repetem os mesmos
+ * nomes entre execucoes, entao alguem pode registrar o nome antes. O `npm audit` nao ve isso
+ * porque o pacote falso nao tem CVE: ele tem dono.
+ *
+ * O QUE ELE CONFERE, determinista e sem rede:
+ *   1. o lockfile do gerenciador declarado existe (yarn.lock, package-lock.json ou
+ *      npm-shrinkwrap.json);
+ *   2. toda dependencia de dependencies/devDependencies/optionalDependencies do package.json
+ *      aparece no lockfile, ou seja, foi instalada de verdade pelo menos uma vez;
+ *   3. se as dependencias do package.json mudaram desde HEAD (ou desde --since), o lockfile
+ *      mudou junto. Conta o que mexe no lockfile (lib/lockcheck.mjs): as listas de dependencia,
+ *      resolutions, overrides e workspaces. Mudar so um script, o nome ou a versao nao pede
+ *      lockfile novo, porque o gerenciador nao regeneraria.
+ *
+ * O que ele NAO faz, de proposito: nao consulta o registry, nao mede idade nem downloads.
+ * Isso e trabalho do supply-chain-reviewer, que e revisor e nao gate,
+ * porque julgamento de reputacao nao e determinista.
+ *
+ *   aidlc-lockcheck                # confere o diretorio atual
+ *   aidlc-lockcheck ../outro-repo
+ *   aidlc-lockcheck --since HEAD~3 # compara o diff contra outra base
+ *   aidlc-lockcheck --json
+ */
+
+import { readFileSync, existsSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { join, resolve } from 'node:path'
+import { dependenciasMudaram } from '../lib/lockcheck.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const val = (n) => {
+  const i = argv.indexOf(n)
+  return i >= 0 ? argv[i + 1] : null
+}
+const JSON_OUT = flag('--json')
+const SINCE = val('--since') ?? 'HEAD'
+const target = argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--since') ?? process.cwd()
+const ROOT = resolve(target)
+
+const LOCKS = ['yarn.lock', 'package-lock.json', 'npm-shrinkwrap.json']
+
+function lerPackage() {
+  const p = join(ROOT, 'package.json')
+  if (!existsSync(p)) return null
+  return JSON.parse(readFileSync(p, 'utf8'))
+}
+
+function lockfilePresente() {
+  return LOCKS.find((l) => existsSync(join(ROOT, l))) ?? null
+}
+
+/*
+ * Nomes que o lockfile conhece.
+ *
+ * yarn.lock (v1): cada bloco comeca com `"nome@range", "nome@range2":` ou `nome@range:`.
+ * package-lock (v2/v3): chaves de `packages` sao `node_modules/nome` ou aninhadas
+ * `node_modules/a/node_modules/nome`; a v1 usa `dependencies` com o nome direto.
+ * Escopo (@org/nome) e preservado nos dois formatos.
+ */
+function nomesDoLock(lock) {
+  const texto = readFileSync(join(ROOT, lock), 'utf8')
+  const nomes = new Set()
+  if (lock === 'yarn.lock') {
+    for (const linha of texto.split('\n')) {
+      if (!linha || linha.startsWith(' ') || linha.startsWith('#')) continue
+      for (const parte of linha.replace(/:\s*$/, '').split(',')) {
+        const m = parte.trim().replace(/^"|"$/g, '').match(/^(@?[^@]+)@/)
+        if (m) nomes.add(m[1])
+      }
+    }
+    return nomes
+  }
+  let json
+  try {
+    json = JSON.parse(texto)
+  } catch {
+    return nomes
+  }
+  for (const chave of Object.keys(json.packages ?? {})) {
+    const m = chave.match(/node_modules\/(@?[^/]+(?:\/[^/]+)?)$/)
+    if (m) nomes.add(m[1])
+  }
+  const andar = (deps) => {
+    for (const [nome, info] of Object.entries(deps ?? {})) {
+      nomes.add(nome)
+      if (info && typeof info === 'object') andar(info.dependencies)
+    }
+  }
+  andar(json.dependencies)
+  return nomes
+}
+
+function mudouDesde(arquivo) {
+  try {
+    const out = execFileSync('git', ['diff', '--name-only', SINCE, '--', arquivo], { cwd: ROOT, encoding: 'utf8' })
+    if (out.trim()) return true
+    const untracked = execFileSync('git', ['ls-files', '--others', '--exclude-standard', '--', arquivo], { cwd: ROOT, encoding: 'utf8' })
+    return Boolean(untracked.trim())
+  } catch {
+    // Sem git nao ha "desde": a regra 3 nao se aplica, e as duas primeiras seguram sozinhas.
+    return null
+  }
+}
+
+const pkg = lerPackage()
+if (!pkg) {
+  const msg = `sem package.json em ${ROOT}: nada a conferir`
+  if (JSON_OUT) console.log(JSON.stringify({ ok: true, skipped: true, reason: msg }))
+  else console.log(msg)
+  process.exit(0)
+}
+
+const problemas = []
+const lock = lockfilePresente()
+
+const declaradas = new Set()
+for (const campo of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+  for (const nome of Object.keys(pkg[campo] ?? {})) declaradas.add(nome)
+}
+
+// Sem dependencia declarada (e sem resolutions, overrides ou workspaces) nao ha o que travar:
+// exigir lockfile ai seria falso vermelho, e o kit mesmo e um repo assim.
+const temOQueTravar =
+  declaradas.size > 0 ||
+  Object.keys(pkg.resolutions ?? {}).length > 0 ||
+  Object.keys(pkg.overrides ?? {}).length > 0 ||
+  (Array.isArray(pkg.workspaces) ? pkg.workspaces.length > 0 : Boolean(pkg.workspaces))
+
+if (!lock && temOQueTravar) {
+  problemas.push({ regra: 'lockfile-ausente', msg: `nenhum lockfile (${LOCKS.join(', ')}) ao lado do package.json` })
+}
+
+// Dependencias locais (file:, link:, workspace:) nao passam pelo registry e nao entram no lockfile
+// de forma uniforme. Nao e supply chain, e ruido.
+const local = (nome) => {
+  for (const campo of ['dependencies', 'devDependencies', 'optionalDependencies']) {
+    const v = pkg[campo]?.[nome]
+    if (typeof v === 'string' && /^(file:|link:|workspace:)/.test(v)) return true
+  }
+  return false
+}
+
+let foraDoLock = []
+if (lock) {
+  const conhecidas = nomesDoLock(lock)
+  foraDoLock = [...declaradas].filter((n) => !local(n) && !conhecidas.has(n))
+  for (const n of foraDoLock) {
+    problemas.push({ regra: 'dependencia-sem-lock', msg: `"${n}" esta no package.json e nao aparece em ${lock}: nunca foi instalada, ou o lockfile ficou para tras` })
+  }
+}
+
+/*
+ * O arquivo mudou (git) E o que ele manda instalar mudou. Sem o package.json em SINCE (arquivo
+ * novo), tudo que ele declara e novo: conta como mudanca.
+ */
+function dependenciasMudaramDesde() {
+  const tocado = mudouDesde('package.json')
+  if (tocado !== true) return tocado
+  let antes
+  try {
+    const texto = execFileSync('git', ['show', `${SINCE}:./package.json`], {
+      cwd: ROOT,
+      encoding: 'utf8',
+      stdio: ['ignore', 'pipe', 'ignore'],
+    })
+    antes = JSON.parse(texto)
+  } catch {
+    return true
+  }
+  return dependenciasMudaram(antes, pkg, lock ?? 'yarn.lock')
+}
+
+const pkgMudou = dependenciasMudaramDesde()
+const lockMudou = lock ? mudouDesde(lock) : null
+if (pkgMudou === true && lock && lockMudou === false) {
+  problemas.push({ regra: 'lock-para-tras', msg: `as dependencias do package.json mudaram desde ${SINCE} e ${lock} nao: regenere o lockfile no mesmo commit` })
+}
+
+if (JSON_OUT) {
+  console.log(JSON.stringify({
+    ok: problemas.length === 0,
+    dir: ROOT,
+    lockfile: lock,
+    declaradas: declaradas.size,
+    foraDoLock,
+    packageJsonMudou: pkgMudou,
+    lockfileMudou: lockMudou,
+    since: SINCE,
+    problemas,
+  }))
+  process.exit(problemas.length ? 1 : 0)
+}
+
+console.log(`\nroqueos-lockcheck  ${ROOT}`)
+console.log(`  lockfile: ${lock ?? 'nenhum'}  ·  ${declaradas.size} dependencia(s) declarada(s)  ·  base: ${SINCE}`)
+if (problemas.length) {
+  console.log('')
+  for (const p of problemas) console.log(`  [${p.regra}] ${p.msg}`)
+  console.error(`\nreprovado: ${problemas.length} problema(s). Dependencia nova entra com lockfile regenerado no mesmo diff, e nome que o lockfile nao conhece e nome que nunca foi instalado.\n`)
+  process.exit(1)
+}
+console.log('ok, toda dependencia declarada esta no lockfile e o lockfile acompanha o package.json.\n')

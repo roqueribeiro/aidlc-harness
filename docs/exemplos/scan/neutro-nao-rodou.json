@@ -1,0 +1,5 @@
+{
+  "coverage_complete": false,
+  "scanners_ran": ["semgrep"],
+  "findings": []
+}

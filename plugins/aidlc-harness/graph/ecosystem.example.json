@@ -1,0 +1,24 @@
+{
+  "version": 1,
+  "updated": "2026-10-23",
+  "note": "Exemplo minimo do mapa de contratos entre repos. Copie para .aidlc/graph.json no seu projeto (ou aponte AIDLC_GRAPH para outro arquivo) e descreva os seus. Contrato e o arquivo que dois repos precisam concordar: quando ele muda, o grafo diz o que mais muda e em que ordem.",
+  "nodes": [
+    { "id": "api", "kind": "repo", "label": "API de pedidos", "tech": "node-yarn", "status": "active" },
+    { "id": "web", "kind": "repo", "label": "Aplicacao web", "tech": "node-yarn", "status": "active" },
+    { "id": "app", "kind": "repo", "label": "Aplicativo mobile", "tech": "node-npm", "status": "active" },
+    {
+      "id": "contract:api-schema",
+      "kind": "contract",
+      "label": "Contrato OpenAPI da API de pedidos",
+      "owner": "api",
+      "files": ["openapi/**", "src/dto/**"],
+      "why": "A API e a produtora: web e app consomem o que o schema declara, e um campo renomeado quebra os dois em silencio.",
+      "shape": "fan-out"
+    }
+  ],
+  "edges": [
+    { "from": "api", "to": "contract:api-schema", "rel": "provides" },
+    { "from": "web", "to": "contract:api-schema", "rel": "consumes", "order": 1, "todo": "atualizar o cliente gerado e os tipos da tela de pedidos" },
+    { "from": "app", "to": "contract:api-schema", "rel": "consumes", "order": 2, "todo": "atualizar o cliente do aplicativo depois que a web estiver publicada" }
+  ]
+}

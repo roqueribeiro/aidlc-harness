@@ -1,0 +1,7 @@
+{
+  "coverage_complete": true,
+  "scanners_ran": ["semgrep", "trivy"],
+  "findings": [
+    { "key": "baixo-001", "severity": "low", "title": "Cabecalho X-Powered-By exposto", "location": "src/app.js:12" }
+  ]
+}

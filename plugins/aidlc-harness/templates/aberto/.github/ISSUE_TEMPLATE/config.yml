@@ -1,0 +1,5 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Vulnerabilidade de segurança / Security vulnerability
+    url: https://github.com/{{ORG}}/{{REPO}}/security/advisories/new
+    about: Não abra issue pública para falha de segurança; use o relato privado. / Do not open a public issue for a security flaw; use the private report.

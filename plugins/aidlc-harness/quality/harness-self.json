@@ -1,0 +1,121 @@
+{
+  "tech": "harness-self",
+  "label": "O proprio aidlc-harness",
+  "status": "active",
+  "repos": [
+    "aidlc-harness"
+  ],
+  "pkgManager": "yarn",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "plugins/aidlc-harness",
+      "OPERATING-MODEL.md"
+    ],
+    "priority": 90
+  },
+  "gates": [
+    {
+      "id": "test",
+      "label": "node --test",
+      "cmd": "node --test",
+      "blocking": true,
+      "reject": "^(#|ℹ)\\s*fail [1-9]"
+    },
+    {
+      "id": "syntax",
+      "label": "Todo .mjs parseia",
+      "cmd": "for f in $(find . -name '*.mjs' -not -path './node_modules/*' -not -path './.git/*'); do node --check \"$f\" || exit 1; done && echo 'sintaxe ok'",
+      "blocking": true
+    },
+    {
+      "id": "quality-manifests",
+      "label": "Manifestos batem com o schema",
+      "cmd": "node scripts/check-quality-manifests.mjs",
+      "blocking": true
+    },
+    {
+      "id": "plugin",
+      "label": "Plugin integro: hooks registrados, agentes referenciados",
+      "cmd": "node scripts/check-plugin.mjs",
+      "blocking": true
+    },
+    {
+      "id": "docs",
+      "label": "Documentação bate com o disco",
+      "cmd": "node scripts/check-docs-consistency.mjs --strict",
+      "blocking": true
+    },
+    {
+      "id": "prompts",
+      "label": "docs/PROMPTS.md acompanha os comandos",
+      "cmd": "node scripts/gerar-prompts.mjs --check",
+      "blocking": true
+    },
+    {
+      "id": "diagramas",
+      "label": "Os diagramas SVG acompanham o código",
+      "cmd": "node scripts/gerar-diagramas.mjs --check",
+      "blocking": true,
+      "platform": "any",
+      "$why": "Um diagrama desenhado à mão diz oito hooks quando o kit tem nove, e ninguém percebe até alguém agir em cima. Os SVG são gerados do código e do inventário do disco; o check reprova o SVG velho, o apagado e o que sobrou."
+    },
+    {
+      "id": "referencia",
+      "label": "A referência cobre tudo o que existe e a prosa não cita comando fantasma",
+      "cmd": "node scripts/check-reference.mjs",
+      "blocking": true,
+      "platform": "any",
+      "$why": "Um diagrama e um documento descreveram, com detalhes, um subcomando que nunca existiu (aidlc-phase approve). Documentação grande envelhece calada; o check cobra a referência contra o disco e cada comando citado contra os executáveis reais."
+    },
+    {
+      "id": "links",
+      "label": "Todo link relativo dos documentos resolve (arquivo e âncora)",
+      "cmd": "node scripts/check-links.mjs",
+      "blocking": true,
+      "platform": "any",
+      "$why": "Arquivo renomeia, título muda, e o índice continua apontando para o lugar antigo. Com dezenas de documentos e âncoras, só um check mecânico percebe."
+    },
+    {
+      "id": "identity",
+      "label": "Nenhum dado pessoal ou de infraestrutura",
+      "cmd": "node plugins/aidlc-harness/tools/aidlc-identity",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "pinning": "lockfile"
+  },
+  "strategy": {
+    "always": [],
+    "paths": [
+      {
+        "when": [
+          "plugins/aidlc-harness/hooks/**"
+        ],
+        "read": [],
+        "why": "hook novo entra em hooks.json E em hooks.test.mjs, senao nasce sem prova de que dispara"
+      },
+      {
+        "when": [
+          "plugins/aidlc-harness/quality/**"
+        ],
+        "read": [],
+        "why": "manifesto e o criterio de aceite de todo repo que o usa"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "node --test",
+        "# pass \\d+",
+        "sintaxe ok"
+      ]
+    }
+  ],
+  "notes": "O gate deste repositorio. A deteccao exige a pasta do plugin E o OPERATING-MODEL.md, para um projeto alheio nunca herdar estes gates."
+}

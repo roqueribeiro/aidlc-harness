@@ -1,0 +1,1 @@
+Este projeto segue o método do aidlc-harness: o critério de aceite é dado (quality/<tecnologia>.json), "pronto" exige evidência colada no chat (a saída do gate, não um resumo dela), e toda regra nova precisa dizer qual hook, gate ou manifesto a executa. Contexto do produto e decisões já tomadas moram em context/product.md do projeto, lido sob demanda pela skill aidlc-context.

@@ -1,0 +1,39 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-settings.json",
+  "extraKnownMarketplaces": {
+    "aidlc": {
+      "source": {
+        "source": "github",
+        "repo": "roqueribeiro/aidlc-harness"
+      }
+    }
+  },
+  "enabledPlugins": {
+    "aidlc-harness@aidlc": true
+  },
+  "permissions": {
+    "allow": [
+      "Bash(aidlc-gate*)",
+      "Bash(aidlc-doctor*)",
+      "Bash(aidlc-graph*)",
+      "Bash(aidlc-harness*)",
+      "Bash(aidlc-identity*)",
+      "Bash(aidlc-phase*)",
+      "Bash(aidlc-secrets status*)",
+      "Bash(aidlc-secrets exec*)",
+      "Bash(yarn verificar*)",
+      "Bash(yarn test*)",
+      "Bash(git status*)",
+      "Bash(git log*)",
+      "Bash(git diff*)",
+      "Bash(git show*)",
+      "Bash(git branch*)"
+    ],
+    "deny": [
+      "Bash(printenv)",
+      "Bash(env)",
+      "Bash(rm -rf /*)"
+    ]
+  },
+  "$comment": "Quem registra o marketplace de verdade e o `claude plugin marketplace add`, uma vez por maquina; veja docs/COMECAR.md."
+}

@@ -1,0 +1,61 @@
+# CI do próprio aidlc-harness. Roda em pull_request e push na principal, só com leitura,
+# sem segredo e sem dependência instalada (o kit não tem nenhuma).
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [20, 22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Testes
+        run: node --test
+      - name: Todo .mjs parseia
+        run: |
+          find . -name '*.mjs' -not -path './node_modules/*' -not -path './.git/*' -print0 \
+            | xargs -0 -n1 node --check
+      - name: Manifestos batem com o schema
+        run: node scripts/check-quality-manifests.mjs
+      - name: Plugin íntegro
+        run: node scripts/check-plugin.mjs
+      - name: Documentação consistente
+        run: node scripts/check-docs-consistency.mjs
+      - name: docs/PROMPTS.md em dia
+        run: node scripts/gerar-prompts.mjs --check
+      - name: Diagramas em dia
+        run: node scripts/gerar-diagramas.mjs --check
+      - name: Referência cobre o que existe
+        run: node scripts/check-reference.mjs
+      - name: Links dos documentos resolvem
+        run: node scripts/check-links.mjs
+      - name: Nenhum dado pessoal ou de infraestrutura
+        run: node plugins/aidlc-harness/tools/aidlc-identity
+
+  plugin-oficial:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: claude plugin validate
+        run: |
+          npm install --global @anthropic-ai/claude-code
+          claude plugin validate ./plugins/aidlc-harness --strict
+          claude plugin validate . --strict

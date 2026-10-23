@@ -1,0 +1,192 @@
+#!/usr/bin/env node
+/**
+ * aidlc-secscan: a varredura de vulnerabilidades como gate, e nao como ato manual.
+ *
+ * POR QUE ELE EXISTE: um scan de CI que roda com `continue-on-error: true` e `exit-code: 0`,
+ * so na imagem construida e com `ignore-unfixed`, nunca reprova nada e nunca olha os manifestos
+ * de dependencia que ficam fora da imagem. Este gate varre o repositorio e reprova de verdade.
+ *
+ * POR QUE ELE NAO FLAPA, que e o motivo bom de o outro ser advisory:
+ * so reprova CVE que (a) esta em manifesto NOSSO, (b) tem versao de correcao
+ * publicada, e (c) nao esta no allowlist com data valida. CVE de imagem base sem
+ * correcao nao e acionavel, entao nao bloqueia — aparece no relatorio e pronto.
+ *
+ * ALLOWLIST com prazo, no desenho de um arquivo de ignore com validade:
+ * cada bloco precisa de `# expira: AAAA-MM-DD` antes dos ids que cobre. Aceitar um
+ * achado e decisao com prazo, nao arquivamento. Entrada vencida volta a reprovar.
+ *
+ *   aidlc-secscan                 # varre o diretorio atual
+ *   aidlc-secscan --json          # para encadear
+ *   aidlc-secscan --report        # imprime tudo, inclusive o que nao bloqueia
+ */
+import { execFileSync } from 'node:child_process'
+import { existsSync, readFileSync, mkdtempSync, rmSync } from 'node:fs'
+import { join } from 'node:path'
+import { tmpdir } from 'node:os'
+
+const ARGS = process.argv.slice(2)
+const JSON_OUT = ARGS.includes('--json')
+const REPORT = ARGS.includes('--report')
+const RAIZ = process.cwd()
+const ALLOW = join(RAIZ, '.secscan-allow')
+
+// Caminhos que NAO sao codigo nosso. Achado aqui e de terceiro: entra no relatorio,
+// nunca no bloqueio. Manter curto de proposito — cada entrada e um lugar onde a
+// varredura para de olhar, e foi assim que sidecars/ ficou sete meses sem scanner.
+const DE_TERCEIRO = [
+  /(^|\/)node_modules\//,
+  /(^|\/)\.venv\//,
+  /(^|\/)vendor\//,
+  /(^|\/)dist\//,
+  /(^|\/)build\//,
+  // Saida de build do Xcode e checkout de pacote SPM: codigo de terceiro. O Gemfile de teste
+  // dentro de um SDK de terceiro reprovaria o push com CVEs que nao vao para o app.
+  /(^|\/)\.derived\//,
+  /(^|\/)DerivedData\//,
+  /(^|\/)SourcePackages\/checkouts\//,
+]
+const ehNosso = (p) => !DE_TERCEIRO.some((re) => re.test(p))
+
+function lerAllowlist() {
+  // Devolve Map<id, {expira: Date, motivo: string}>. Bloco = comentarios seguidos
+  // de ids; a data do bloco vale para os ids que vem logo depois.
+  const mapa = new Map()
+  if (!existsSync(ALLOW)) return mapa
+  let expira = null
+  let motivo = []
+  for (const bruta of readFileSync(ALLOW, 'utf8').split('\n')) {
+    const linha = bruta.trim()
+    if (!linha) continue
+    if (linha.startsWith('#')) {
+      const m = linha.match(/expira:\s*(\d{4}-\d{2}-\d{2})/i)
+      if (m) expira = m[1]
+      else motivo.push(linha.replace(/^#\s?/, ''))
+      continue
+    }
+    mapa.set(linha, { expira, motivo: motivo.join(' ') })
+    // Um comentario NOVO depois de ids comeca outro bloco.
+    if (motivo.length || expira) { /* mantem ate o proximo comentario */ }
+  }
+  return mapa
+}
+
+function rodarTrivy() {
+  const dir = mkdtempSync(join(tmpdir(), 'secscan-'))
+  const saida = join(dir, 'r.json')
+  try {
+    execFileSync(
+      'trivy',
+      ['fs', '--scanners', 'vuln,misconfig,secret', '--severity', 'HIGH,CRITICAL',
+       '--format', 'json', '--output', saida, '--quiet', '--exit-code', '0', RAIZ],
+      { stdio: ['ignore', 'ignore', 'pipe'], timeout: 600_000 },
+    )
+    return JSON.parse(readFileSync(saida, 'utf8'))
+  } finally {
+    rmSync(dir, { recursive: true, force: true })
+  }
+}
+
+function achados(rel) {
+  const saida = []
+  for (const r of rel.Results ?? []) {
+    const alvo = r.Target ?? '?'
+    for (const v of r.Vulnerabilities ?? []) {
+      saida.push({
+        tipo: 'cve', id: v.VulnerabilityID, sev: v.Severity, alvo,
+        onde: `${v.PkgName} ${v.InstalledVersion ?? ''}`.trim(),
+        // Sem versao de correcao publicada nao ha acao possivel: nao bloqueia.
+        corrige: v.FixedVersion || null,
+      })
+    }
+    for (const m of r.Misconfigurations ?? []) {
+      saida.push({ tipo: 'config', id: m.ID, sev: m.Severity, alvo, onde: m.Title ?? '', corrige: m.Resolution || 'ver o titulo' })
+    }
+    for (const s of r.Secrets ?? []) {
+      saida.push({ tipo: 'segredo', id: s.RuleID, sev: s.Severity, alvo: `${alvo}:${s.StartLine}`, onde: s.Title ?? '', corrige: 'remover e rotacionar' })
+    }
+  }
+  return saida
+}
+
+const hoje = new Date().toISOString().slice(0, 10)
+
+let rel
+try {
+  rel = rodarTrivy()
+} catch (e) {
+  // Scanner que nao roda NAO pode virar "nada encontrado": e o contrato do silencio
+  // do proprio o scanner, e vale para quem o chama tambem.
+  const msg = `trivy nao rodou: ${String(e.message).slice(0, 200)}`
+  if (JSON_OUT) console.log(JSON.stringify({ ok: false, erro: msg }))
+  else console.error(`\n  ${msg}\n  Zero achados aqui significaria "nao rodou", nao "limpo".\n`)
+  process.exit(2)
+}
+
+const allow = lerAllowlist()
+const todos = achados(rel)
+const nossos = todos.filter((a) => ehNosso(a.alvo))
+
+const bloqueiam = []
+const perdoados = []
+const vencidos = []
+for (const a of nossos) {
+  if (!a.corrige) continue
+  const perdao = allow.get(a.id)
+  if (!perdao) { bloqueiam.push(a); continue }
+  if (!perdao.expira) { vencidos.push({ ...a, porque: 'sem `# expira:` no bloco' }); continue }
+  if (perdao.expira < hoje) { vencidos.push({ ...a, porque: `venceu em ${perdao.expira}` }); continue }
+  perdoados.push({ ...a, ate: perdao.expira })
+}
+
+const problemas = [...bloqueiam, ...vencidos]
+
+if (JSON_OUT) {
+  console.log(JSON.stringify({
+    ok: problemas.length === 0,
+    total: todos.length, nossos: nossos.length,
+    bloqueiam: bloqueiam.length, vencidos: vencidos.length, perdoados: perdoados.length,
+    problemas,
+  }))
+  process.exit(problemas.length ? 1 : 0)
+}
+
+const linha = (a) => `  [${a.sev.padEnd(8)}] ${a.tipo.padEnd(7)} ${String(a.id).padEnd(20)} ${a.onde.slice(0, 40).padEnd(40)} ${a.corrige ? '-> ' + String(a.corrige).slice(0, 22) : ''}  ${a.alvo.replace(RAIZ + '/', '')}`
+
+console.log(`\nroqueos-secscan  ${RAIZ}`)
+console.log(`  ${todos.length} achado(s) HIGH/CRITICAL, ${nossos.length} em codigo nosso\n`)
+
+if (bloqueiam.length) {
+  console.log(`BLOQUEIAM — tem correcao publicada e nao estao no allowlist (${bloqueiam.length}):`)
+  for (const a of bloqueiam) console.log(linha(a))
+  console.log()
+}
+if (vencidos.length) {
+  console.log(`ALLOWLIST VENCIDO — chegou a hora de olhar de novo (${vencidos.length}):`)
+  for (const a of vencidos) console.log(`${linha(a)}   [${a.porque}]`)
+  console.log()
+}
+if (REPORT) {
+  if (perdoados.length) {
+    console.log(`aceitos com prazo (${perdoados.length}):`)
+    for (const a of perdoados) console.log(`${linha(a)}   [ate ${a.ate}]`)
+    console.log()
+  }
+  const semCorrecao = nossos.filter((a) => !a.corrige)
+  if (semCorrecao.length) {
+    console.log(`sem correcao publicada, nao acionavel, nao bloqueia (${semCorrecao.length}):`)
+    for (const a of semCorrecao) console.log(linha(a))
+    console.log()
+  }
+  const terceiros = todos.length - nossos.length
+  if (terceiros) console.log(`${terceiros} achado(s) em codigo de terceiro (node_modules, .venv, vendor, dist, build) — fora do bloqueio.\n`)
+}
+
+if (problemas.length) {
+  console.error(`reprovado: ${problemas.length} achado(s) acionavel(is).`)
+  console.error(`Conserte, ou aceite com prazo em .secscan-allow:\n`)
+  console.error(`  # por que aceitar, e o que precisa acontecer para sair daqui`)
+  console.error(`  # expira: ${new Date(Date.now() + 90 * 864e5).toISOString().slice(0, 10)}`)
+  console.error(`  ${problemas[0].id}\n`)
+  process.exit(1)
+}
+console.log('ok, nenhum achado acionavel sem prazo.')

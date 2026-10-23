@@ -1,0 +1,31 @@
+name: aidlc-gate
+
+on: [push, pull_request]
+
+permissions:
+  contents: read
+
+jobs:
+  gate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      # Fixe AIDLC_REF numa tag ou commit do kit que você revisou. "main" aceitaria, a cada execução,
+      # qualquer código novo do kit dentro do seu CI.
+      - name: Instalar o aidlc-harness
+        env:
+          AIDLC_REF: v0.1.0
+        run: |
+          git clone https://github.com/roqueribeiro/aidlc-harness "$RUNNER_TEMP/aidlc"
+          git -C "$RUNNER_TEMP/aidlc" checkout --detach "$AIDLC_REF"
+      - name: Identidade (IP, e-mail, caminho de home, hostname interno)
+        run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-identity" .
+      - name: Instruções das ferramentas não divergem do AGENTS.md
+        run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-init" --check
+      - name: Fases AI-DLC (informativo)
+        run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-phase" status
+      - name: Gate da tecnologia
+        run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-gate"

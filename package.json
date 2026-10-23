@@ -1,0 +1,22 @@
+{
+  "name": "aidlc-harness",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Kit de qualidade para desenvolvimento com agentes de IA no ciclo AI-DLC.",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20.19"
+  },
+  "scripts": {
+    "test": "node --test",
+    "check:plugin": "node scripts/check-plugin.mjs",
+    "check:manifestos": "node scripts/check-quality-manifests.mjs",
+    "check:docs": "node scripts/check-docs-consistency.mjs",
+    "check:prompts": "node scripts/gerar-prompts.mjs --check",
+    "check:diagramas": "node scripts/gerar-diagramas.mjs --check",
+    "check:referencia": "node scripts/check-reference.mjs",
+    "check:links": "node scripts/check-links.mjs",
+    "check:identidade": "node plugins/aidlc-harness/tools/aidlc-identity",
+    "verificar": "yarn test && yarn check:plugin && yarn check:manifestos && yarn check:docs && yarn check:prompts && yarn check:diagramas && yarn check:referencia && yarn check:links && yarn check:identidade"
+  }
+}

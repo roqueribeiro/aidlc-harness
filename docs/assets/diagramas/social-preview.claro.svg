@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 640" width="1280" height="640" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="aidlc-harness: kit de qualidade para desenvolver com agentes de IA">
+<rect width="1280" height="640" fill="#ffffff"/>
+<rect width="1280" height="640" fill="#ffffff"/>
+<g><circle cx="220" cy="320" r="130" fill="#dbeafe" stroke="#2563eb" stroke-width="9.100000000000001"/><path d="M160.2 385 L160.2 307 A59.800000000000004 59.800000000000004 0 0 1 279.8 307 L279.8 385" fill="none" stroke="#2563eb" stroke-width="11.7" stroke-linecap="round" stroke-linejoin="round"/><path d="M194 335.6 L214.8 356.4 L251.2 304.4" fill="none" stroke="#15803d" stroke-width="13" stroke-linecap="round" stroke-linejoin="round"/></g>
+<text x="400" y="290" font-size="72" text-anchor="start" fill="#0f172a" font-weight="700">aidlc-harness</text>
+<text x="402" y="345" font-size="28" text-anchor="start" fill="#475569">Pronto exige evidência. Regra sem mecanismo é decoração.</text>
+<rect x="402" y="392" width="89" height="22" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/><text x="411" y="407" font-size="11" fill="#0f172a">Claude Code</text>
+<rect x="501" y="392" width="44" height="22" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/><text x="510" y="407" font-size="11" fill="#0f172a">Kiro</text>
+<rect x="555" y="392" width="108" height="22" rx="11" fill="#dbeafe" stroke="#2563eb" stroke-width="1"/><text x="564" y="407" font-size="11" fill="#0f172a">GitHub Copilot</text>
+<rect x="402" y="428" width="57" height="22" rx="11" fill="#dcfce7" stroke="#15803d" stroke-width="1"/><text x="411" y="443" font-size="11" fill="#0f172a">AI-DLC</text>
+<rect x="469" y="428" width="223" height="22" rx="11" fill="#dcfce7" stroke="#15803d" stroke-width="1"/><text x="478" y="443" font-size="11" fill="#0f172a">qualquer plataforma de segurança</text>
+<text x="402" y="520" font-size="20" text-anchor="start" fill="#475569">Kit de qualidade de código aberto (MIT) para desenvolver com agentes de IA</text>
+</svg>

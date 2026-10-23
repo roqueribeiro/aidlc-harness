@@ -1,0 +1,32 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
+  "name": "aidlc-harness",
+  "displayName": "AI-DLC Harness",
+  "version": "0.1.0",
+  "description": "Harness de qualidade para criar software com agentes de IA seguindo o ciclo AI-DLC: critério de aceite executável por tecnologia, contexto e regra certa entregues no momento em que o código é escrito, gate de evidência, fases com aprovação humana e scanner de identidade. Funciona com Claude Code e gera instruções para Kiro e GitHub Copilot.",
+  "author": {
+    "name": "Contribuidores do aidlc-harness"
+  },
+  "homepage": "https://github.com/roqueribeiro/aidlc-harness",
+  "repository": "https://github.com/roqueribeiro/aidlc-harness",
+  "license": "MIT",
+  "keywords": [
+    "aidlc",
+    "ai-dlc",
+    "quality-gate",
+    "evidence",
+    "claude-code",
+    "kiro",
+    "copilot",
+    "governance"
+  ],
+  "userConfig": {
+    "gate_mode": {
+      "type": "string",
+      "title": "Modo do gate de qualidade",
+      "description": "block: barra o encerramento sem evidência. warn: só avisa. off: desligado. Vale para os hooks de Stop (dod-check, promise-check).",
+      "default": "block",
+      "required": false
+    }
+  }
+}

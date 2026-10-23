@@ -1,0 +1,119 @@
+{
+  "tech": "node-yarn",
+  "label": "Node (yarn) com gate de segurança por relatório",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-node-com-yarn.lock"
+  ],
+  "pkgManager": "yarn",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "package.json",
+      "yarn.lock"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "test",
+      "label": "Testes",
+      "cmd": "yarn test",
+      "blocking": true,
+      "reject": "(^|\\s)(# fail [1-9]|\\d+ failed|FAIL )"
+    },
+    {
+      "id": "lint",
+      "label": "Lint",
+      "cmd": "yarn run lint",
+      "blocking": false
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "cmd": "yarn run build",
+      "blocking": false
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true,
+      "$why": "secscan acha CVE e lockcheck acha o que nao foi instalado; nenhum dos dois julga se o pacote e o pacote certo. Codigo gerado por IA cita pacote que nao existe, e quem registra esse nome antes passa a ser o dono do seu build (slopsquatting)."
+    },
+    {
+      "id": "scan",
+      "label": "Relatório de segurança da plataforma: limpo e com cobertura completa",
+      "cmd": "aidlc-scan reports/seguranca.json --fail-on high --require-scanners semgrep,trivy",
+      "blocking": true,
+      "$why": "Qualquer plataforma que exporte SARIF, o bundle do RoqueShield ou o formato neutro. Sai 2 quando o scan não rodou, e isso nunca conta como limpo. Troque os scanners exigidos pelos da sua plataforma."
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "pinning": "lockfile",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/**",
+          "lib/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "package.json",
+          "yarn.lock"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com lockfile regenerado no mesmo diff e com o pacote conferido no registry antes do merge: nome parecido, idade, dono, script de instalacao",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "# pass \\d+",
+        "Tests?:\\s+\\d+ passed",
+        "\\d+ passing",
+        "Test Suites:",
+        "\\d+ passed"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "package.json",
+        "yarn.lock",
+        "package-lock.json"
+      ]
+    }
+  ],
+  "notes": "Modelo: copie para .aidlc/quality/ do seu projeto (o mesmo tech sobrescreve o do kit) e ajuste o caminho do relatório e os scanners exigidos. O relatório é produzido pelo CI ou pela plataforma antes do gate."
+}

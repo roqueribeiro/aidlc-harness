@@ -1,0 +1,69 @@
+{
+  "tech": "python-uv",
+  "label": "Python (uv)",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-python-com-uv"
+  ],
+  "pkgManager": "none",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "pyproject.toml",
+      "uv.lock"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "lint",
+      "label": "ruff check",
+      "cmd": "uv run ruff check .",
+      "blocking": true
+    },
+    {
+      "id": "format",
+      "label": "ruff format --check",
+      "cmd": "uv run ruff format --check .",
+      "blocking": true
+    },
+    {
+      "id": "lockfile",
+      "label": "Lockfile em dia (uv)",
+      "cmd": "uv lock --check",
+      "blocking": true
+    },
+    {
+      "id": "segredo",
+      "label": "Segredo no repo (gitleaks)",
+      "cmd": "gitleaks detect --source . --no-banner --redact",
+      "blocking": true
+    },
+    {
+      "id": "unit",
+      "label": "pytest",
+      "cmd": "uv run pytest",
+      "blocking": true,
+      "reject": "^\\s*\\d+ failed"
+    }
+  ],
+  "security": {
+    "pinning": "lockfile"
+  },
+  "strategy": {
+    "always": [],
+    "paths": []
+  },
+  "evidence": [
+    {
+      "id": "gate-verde",
+      "label": "Saida do gate colada, sem resumo",
+      "markers": [
+        "\\d+ passed",
+        "All checks passed"
+      ]
+    }
+  ],
+  "notes": "Manifesto de partida para Python com uv. Ajuste os alvos do ruff e acrescente cobertura minima quando o time decidir o piso."
+}

@@ -1,0 +1,58 @@
+#!/usr/bin/env node
+/**
+ * aidlc-init: prepara um projeto para o AI-DLC com o aidlc-harness.
+ *
+ *   aidlc-init [diretorio]                       # cria o que falta; nunca sobrescreve
+ *   aidlc-init --name "Meu Projeto" --desc "uma frase"
+ *   aidlc-init --tools claude,copilot            # padrao: claude,kiro,copilot
+ *   aidlc-init --dry-run                         # mostra o que faria
+ *   aidlc-init --force                           # sobrescreve o que já existe
+ *   aidlc-init --check                           # confere que as instruções das ferramentas não divergem
+ *   aidlc-init --sync                            # regrava as cópias do Copilot e do Kiro a partir do AGENTS.md
+ */
+import { mkdirSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { FERRAMENTAS, aplicar, conferirSincronia, eDiretorio, nomePadrao, planejar, sincronizar } from '../lib/init.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const val = (n) => {
+  const i = argv.indexOf(n)
+  return i >= 0 ? argv[i + 1] : undefined
+}
+const valoresDeFlag = new Set(['--name', '--desc', '--tools'])
+const posicional = argv.find((a, i) => !a.startsWith('--') && !valoresDeFlag.has(argv[i - 1]))
+const raiz = resolve(posicional ?? process.cwd())
+
+if (flag('--check')) {
+  const erros = conferirSincronia(raiz)
+  for (const e of erros) console.log(`  ${e}`)
+  console.log(erros.length ? `\naidlc-init --check: ${erros.length} divergencia(s)` : '\naidlc-init --check: instrucoes em sincronia')
+  process.exit(erros.length ? 1 : 0)
+}
+
+if (flag('--sync')) {
+  const feitos = sincronizar(raiz)
+  console.log(feitos.length ? feitos.map((f) => `  regravado ${f}`).join('\n') : '  nada para sincronizar')
+  process.exit(0)
+}
+
+if (!eDiretorio(raiz)) mkdirSync(raiz, { recursive: true })
+const ferramentas = (val('--tools') ?? FERRAMENTAS.join(',')).split(',').map((s) => s.trim()).filter(Boolean)
+let plano
+try {
+  plano = planejar({
+    nome: val('--name') ?? nomePadrao(raiz),
+    descricao: val('--desc') ?? 'Descreva aqui, em uma frase, o que este projeto e e para quem.',
+    ferramentas,
+  })
+} catch (e) {
+  console.error(`aidlc-init: ${e.message}`)
+  process.exit(2)
+}
+const r = aplicar(raiz, plano, { force: flag('--force'), dryRun: flag('--dry-run') })
+console.log(`\naidlc-init  ${raiz}${flag('--dry-run') ? '  (dry-run: nada foi gravado)' : ''}`)
+for (const f of r.criados) console.log(`  criado       ${f}`)
+for (const f of r.sobrescritos) console.log(`  sobrescrito  ${f}`)
+for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
+console.log('\nProximo passo: peca a IA para conduzir a Inception (aidlc/README.md), ou leia docs/COMECAR.md do kit.')

@@ -1,0 +1,112 @@
+{
+  "tech": "node-npm",
+  "label": "Node (npm)",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-node-com-package-lock.json"
+  ],
+  "pkgManager": "npm",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "package.json",
+      "package-lock.json"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "test",
+      "label": "Testes",
+      "cmd": "npm test",
+      "blocking": true,
+      "reject": "(^|\\s)(# fail [1-9]|\\d+ failed|FAIL )"
+    },
+    {
+      "id": "lint",
+      "label": "Lint",
+      "cmd": "npm run lint",
+      "blocking": false
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "cmd": "npm run build",
+      "blocking": false
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true,
+      "$why": "secscan acha CVE e lockcheck acha o que nao foi instalado; nenhum dos dois julga se o pacote e o pacote certo. Codigo gerado por IA cita pacote que nao existe, e quem registra esse nome antes passa a ser o dono do seu build (slopsquatting)."
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "pinning": "lockfile",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/**",
+          "lib/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "package.json",
+          "package-lock.json"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com lockfile regenerado no mesmo diff e com o pacote conferido no registry antes do merge: nome parecido, idade, dono, script de instalacao",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "# pass \\d+",
+        "Tests?:\\s+\\d+ passed",
+        "\\d+ passing",
+        "Test Suites:",
+        "\\d+ passed"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "package.json",
+        "yarn.lock",
+        "package-lock.json"
+      ]
+    }
+  ],
+  "notes": "Manifesto de partida para um projeto Node que usa npm. Copie para quality/ do seu repo, ajuste os comandos aos scripts que existem e acrescente os gates do seu time. O gate de lockfile vem da camada _org.json."
+}

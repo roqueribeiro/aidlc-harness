@@ -1,0 +1,101 @@
+#!/usr/bin/env node
+/*
+ * aidlc-mutation: teste que passa nao prova que o teste testa. Mutacao prova.
+ *
+ * POR QUE ELE EXISTE: dois manifestos
+ * declaravam `coverage.criticalPaths` e nenhum gate media se os testes desses caminhos
+ * pegam um defeito de verdade. Cobertura diz que a linha rodou; mutacao diz se o teste
+ * reclama quando a linha muda. Mutation testing e o controle de feedback do harness: o spec-driven
+ * e o feedforward, a mutacao e quem confere que o teste reclama.
+ *
+ * O QUE ELE FAZ: le o manifesto da stack, pega `coverage.criticalPaths` e o `pkgManager`,
+ * confere se o Stryker esta instalado no repo, roda so sobre os caminhos criticos, e devolve
+ * o score. Sem Stryker instalado ele SAI 1 dizendo isso: gate amarelo e honesto, verde fingido
+ * nao. O manifesto declara este gate como `blocking: false` ate a taxa ficar estavel por tres
+ * entregas seguidas; virar bloqueante e edicao do manifesto, nunca decisao de sessao.
+ *
+ *   aidlc-mutation                 # no repo atual
+ *   aidlc-mutation --json
+ *   aidlc-mutation --min 60        # exit 1 abaixo deste score (padrao: so relata)
+ */
+
+import { readFileSync, existsSync } from 'node:fs'
+import { spawnSync } from 'node:child_process'
+import { join, resolve } from 'node:path'
+import { detectTech, repoRoot } from '../lib/detect.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const val = (n) => {
+  const i = argv.indexOf(n)
+  return i >= 0 ? argv[i + 1] : null
+}
+const JSON_OUT = flag('--json')
+const MIN = val('--min') != null ? Number(val('--min')) : null
+const target = argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--min') ?? process.cwd()
+const ROOT = repoRoot(resolve(target))
+
+function out(obj, code) {
+  if (JSON_OUT) console.log(JSON.stringify(obj))
+  else {
+    console.log(`\nroqueos-mutation  ${ROOT}`)
+    for (const [k, v] of Object.entries(obj)) if (k !== 'ok') console.log(`  ${k}: ${Array.isArray(v) ? v.join(', ') : v}`)
+    console.log('')
+  }
+  process.exit(code)
+}
+
+const manifest = detectTech(ROOT)
+if (!manifest) out({ ok: false, reason: 'tecnologia nao reconhecida' }, 2)
+
+const paths = manifest.coverage?.criticalPaths ?? []
+if (!paths.length) out({ ok: true, skipped: true, tech: manifest.tech, reason: 'manifesto sem coverage.criticalPaths: nada declarado como critico, nada a mutar' }, 0)
+
+const pkgPath = join(ROOT, 'package.json')
+const pkg = existsSync(pkgPath) ? JSON.parse(readFileSync(pkgPath, 'utf8')) : {}
+const deps = { ...(pkg.dependencies ?? {}), ...(pkg.devDependencies ?? {}) }
+const stryker = Object.keys(deps).find((d) => d === '@stryker-mutator/core')
+if (!stryker) {
+  out({ ok: false, tech: manifest.tech, criticalPaths: paths, reason: 'Stryker nao esta instalado neste repo (@stryker-mutator/core). Sem ele este gate nao mede nada, e nao vai fingir que mediu.' }, 1)
+}
+
+const pm = manifest.pkgManager ?? 'yarn'
+const runner = pm === 'npm' ? ['npx', ['stryker', 'run']] : ['yarn', ['stryker', 'run']]
+const mutate = paths.map((p) => (/\.[a-z]+$/.test(p) || /\*\.[{a-z]/.test(p) ? p : `${p.replace(/\/\*\*$/, '').replace(/\/$/, '')}/**/*.{js,ts,mjs,vue}`))
+const args = [...runner[1], '--mutate', mutate.join(','), '--reporters', 'json,progress']
+const r = spawnSync(runner[0], args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 30 * 60 * 1000 })
+
+let score = null
+const reportPath = join(ROOT, 'reports', 'mutation', 'mutation.json')
+if (existsSync(reportPath)) {
+  try {
+    const rep = JSON.parse(readFileSync(reportPath, 'utf8'))
+    let killed = 0
+    let total = 0
+    for (const f of Object.values(rep.files ?? {})) {
+      for (const m of f.mutants ?? []) {
+        total++
+        if (['Killed', 'Timeout'].includes(m.status)) killed++
+      }
+    }
+    score = total ? Math.round((killed / total) * 1000) / 10 : null
+  } catch {
+    /* relatorio ilegivel: score fica null e a saida diz isso */
+  }
+}
+if (score == null) {
+  const m = (r.stdout ?? '').match(/mutation score[^0-9]*([0-9]+(?:\.[0-9]+)?)/i)
+  if (m) score = Number(m[1])
+}
+
+const result = {
+  ok: r.status === 0 && score != null && (MIN == null || score >= MIN),
+  tech: manifest.tech,
+  criticalPaths: paths,
+  mutate,
+  score,
+  min: MIN,
+  exit: r.status,
+  tail: r.status === 0 ? undefined : (r.stdout + r.stderr).trim().split('\n').slice(-8).join('\n'),
+}
+out(result, result.ok ? 0 : 1)

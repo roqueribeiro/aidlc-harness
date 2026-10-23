@@ -1,0 +1,65 @@
+#!/usr/bin/env node
+/**
+ * aidlc-identity: nenhum IP, MAC, e-mail, caminho de home ou hostname interno sai no repositório.
+ *
+ *   aidlc-identity [diretorio]            # varre (padrao: o diretorio atual)
+ *   aidlc-identity --json                 # para encadear
+ *   aidlc-identity --terms arquivo.txt    # termos proibidos do projeto (um por linha)
+ *
+ * Sai com 1 se achar algo ou se a allowlist (.aidlc/identity.json) tiver entrada sem motivo.
+ *
+ * O que ele NAO faz, dito na saida para ninguem confundir "nada achado" com "limpo": nome de
+ * pessoa, de cliente ou de sistema interno nao tem formato. Esses so são pegos se estiverem na
+ * lista de termos, que mora fora do repo (AIDLC_IDENTITY_TERMS ou ~/.config/aidlc/identity-terms.txt).
+ */
+import { existsSync, readFileSync } from 'node:fs'
+import { resolve } from 'node:path'
+import { varrer, carregarTermos, CATEGORIAS } from '../lib/identity.mjs'
+
+const argv = process.argv.slice(2)
+const JSON_OUT = argv.includes('--json')
+const iT = argv.indexOf('--terms')
+const arquivoTermos = iT >= 0 ? argv[iT + 1] : null
+const alvo = resolve(argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--terms') ?? process.cwd())
+
+if (!existsSync(alvo)) {
+  console.error(`aidlc-identity: ${alvo} nao existe`)
+  process.exit(2)
+}
+
+let termos
+let origem
+if (arquivoTermos) {
+  if (!existsSync(arquivoTermos)) {
+    console.error(`aidlc-identity: --terms ${arquivoTermos} nao existe`)
+    process.exit(2)
+  }
+  termos = readFileSync(arquivoTermos, 'utf8').split('\n').map((l) => l.trim()).filter((l) => l && !l.startsWith('#'))
+  origem = arquivoTermos
+} else {
+  const t = carregarTermos()
+  termos = t.termos
+  origem = t.arquivo
+}
+
+const r = varrer(alvo, { termos })
+const porCategoria = Object.fromEntries(CATEGORIAS.map((c) => [c, r.achados.filter((a) => a.categoria === c).length]))
+const ok = r.achados.length === 0 && r.erros.length === 0
+
+if (JSON_OUT) {
+  console.log(JSON.stringify({ ok, alvo, arquivos: r.arquivos, achados: r.achados, aceitos: r.aceitos, erros: r.erros, termos: termos.length, termosOrigem: origem, porCategoria }))
+  process.exit(ok ? 0 : 1)
+}
+
+console.log(`\naidlc-identity  ${alvo}`)
+console.log(`  ${r.arquivos} arquivos varridos, ${r.aceitos} achado(s) aceito(s) pela allowlist`)
+for (const e of r.erros) console.log(`  ERRO  ${e}`)
+for (const a of r.achados) console.log(`  ${a.categoria.padEnd(12)} ${a.arquivo}:${a.linha}  ${a.valor}`)
+if (termos.length === 0) {
+  console.log('  AVISO: nenhuma lista de termos carregada. Nome de pessoa, cliente ou sistema interno NAO foi verificado.')
+  console.log('         Crie ~/.config/aidlc/identity-terms.txt (um termo por linha) ou use --terms.')
+} else {
+  console.log(`  ${termos.length} termo(s) proibido(s) verificados (${origem})`)
+}
+console.log(ok ? '\naidlc-identity: nada achado nos formatos cobertos' : `\naidlc-identity: ${r.achados.length} achado(s), ${r.erros.length} erro(s)`)
+process.exit(ok ? 0 : 1)

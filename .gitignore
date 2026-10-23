@@ -1,0 +1,13 @@
+# OS / editor
+.DS_Store
+Thumbs.db
+*.log
+node_modules/
+_to_delete/
+
+# Preenchimento em lote do cofre: transitorio, e nunca versionado.
+# O `aidlc-secrets import` recusa arquivo versionado, mas a rede de baixo
+# precisa existir para o arquivo nunca chegar la.
+*.env
+!*.env.example
+aidlc.env

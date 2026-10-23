@@ -1,0 +1,97 @@
+#!/usr/bin/env node
+/**
+ * aidlc-scan: o gate de qualquer plataforma de seguranca, sobre o relatorio dela.
+ *
+ * O kit nao embute um scanner: ele cobra o RESULTADO de um. Qualquer plataforma que exporte um
+ * relatorio JSON entra aqui: o RoqueShield (AI Fix Bundle), qualquer ferramenta que fale SARIF
+ * (Semgrep, CodeQL, Trivy, Snyk, SonarQube e outras), ou o formato neutro do kit.
+ *
+ * A regra: um scan que nao rodou nao e um scan limpo.
+ *
+ *   0  limpo      cobertura completa e nenhum achado no limite
+ *   1  reprovado  achado no limite ou acima
+ *   2  nao rodou  cobertura incompleta, desconhecida, relatorio ilegivel ou scanner exigido ausente
+ *
+ *   aidlc-scan relatorio.json
+ *   aidlc-scan relatorio.sarif --format sarif --fail-on high
+ *   aidlc-scan depois.json --baseline antes.json          # mostra resolvidos, restantes e novos
+ *   aidlc-scan bundle.json --require-scanners semgrep,trivy
+ *   aidlc-scan relatorio.json --json
+ *
+ * Contrato do formato neutro e dos outros: docs/INTEGRACOES.md.
+ */
+import { readFileSync } from 'node:fs'
+import { lerRelatorio, avalia, ErroDeRelatorio, SEVERIDADES } from '../lib/scan.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (nome) => argv.includes(nome)
+const valor = (nome) => {
+  const i = argv.indexOf(nome)
+  return i >= 0 ? argv[i + 1] : undefined
+}
+const posicionais = argv.filter((a, i) => !a.startsWith('--') && !['--format', '--fail-on', '--baseline', '--require-scanners'].includes(argv[i - 1]))
+
+const JSON_OUT = flag('--json')
+const ajuda = () => {
+  console.log(
+    [
+      'aidlc-scan <relatorio.json> [opcoes]',
+      '',
+      '  --format auto|neutro|sarif|roqueshield   (padrao: auto)',
+      `  --fail-on ${SEVERIDADES.join('|')}              (padrao: high)`,
+      '  --baseline <relatorio-anterior.json>     compara por chave estavel',
+      '  --require-scanners a,b                   reprova com 2 se algum nao rodou',
+      '  --json                                   saida para encadear',
+      '',
+      'Saida: 0 limpo, 1 reprovado, 2 nao rodou (cobertura incompleta ou relatorio ilegivel).',
+    ].join('\n'),
+  )
+}
+
+function sai(codigo, payload, texto) {
+  if (JSON_OUT) console.log(JSON.stringify({ codigo, ...payload }))
+  else (codigo === 0 ? console.log : console.error)(texto)
+  process.exit(codigo)
+}
+
+if (flag('--help') || flag('-h') || posicionais.length === 0) {
+  ajuda()
+  process.exit(posicionais.length === 0 && !flag('--help') && !flag('-h') ? 2 : 0)
+}
+
+try {
+  const le = (caminho) => lerRelatorio(readFileSync(caminho, 'utf8'), caminho === posicionais[0] ? (valor('--format') ?? 'auto') : 'auto')
+  const relatorio = le(posicionais[0])
+  const baselinePath = valor('--baseline')
+  const baseline = baselinePath ? lerRelatorio(readFileSync(baselinePath, 'utf8'), 'auto') : undefined
+  const r = avalia(relatorio, {
+    falhaEm: valor('--fail-on'),
+    exigeScanners: (valor('--require-scanners') ?? '').split(',').map((s) => s.trim()).filter(Boolean),
+    baseline,
+  })
+
+  const linhas = [`aidlc-scan  ${posicionais[0]}  (${relatorio.formato}; scanners: ${relatorio.scanners.join(', ') || 'nenhum declarado'})`]
+  if (r.codigo === 2) linhas.push(`NAO RODOU: ${r.motivo}`)
+  else if (r.codigo === 1) {
+    linhas.push(`REPROVADO: ${r.motivo}`)
+    for (const { severidade, titulo, local: onde } of r.bloqueantes.slice(0, 20)) linhas.push(`  [${severidade}] ${titulo}${onde ? '  ' + onde : ''}`)
+    if (r.bloqueantes.length > 20) linhas.push(`  ... e mais ${r.bloqueantes.length - 20}`)
+  } else linhas.push(`LIMPO: cobertura completa, ${relatorio.achados.length} achado(s) abaixo do limite`)
+  if (baseline && r.codigo !== 2) linhas.push(`  baseline: ${r.resolvidos.length} resolvido(s), ${r.restantes.length} restante(s), ${r.novos.length} novo(s)`)
+
+  sai(r.codigo, {
+    formato: relatorio.formato,
+    scanners: relatorio.scanners,
+    motivo: r.motivo,
+    achados: relatorio.achados.length,
+    bloqueantes: r.bloqueantes,
+    resolvidos: r.resolvidos.length,
+    restantes: r.restantes.length,
+    novos: r.novos.length,
+  }, linhas.join('\n'))
+} catch (e) {
+  if (e instanceof ErroDeRelatorio || e?.code === 'ENOENT') {
+    sai(2, { motivo: e.code === 'ENOENT' ? `arquivo nao encontrado: ${e.path}` : e.message }, `NAO RODOU: ${e.code === 'ENOENT' ? `arquivo nao encontrado: ${e.path}` : e.message}`)
+  }
+  throw e
+}

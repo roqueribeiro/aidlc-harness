@@ -1,0 +1,322 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://example.com/aidlc/schemas/quality-manifest.json",
+  "title": "aidlc-harness quality manifest",
+  "description": "O criterio de aceite de uma tecnologia, como dado. aidlc-gate executa, o hook de Stop confere a evidencia.",
+  "type": "object",
+  "required": [
+    "tech",
+    "label",
+    "repos",
+    "detect",
+    "gates",
+    "evidence"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "tech": {
+      "type": "string",
+      "pattern": "^[a-z0-9-]+$",
+      "description": "Identificador kebab-case, igual ao nome do arquivo sem extensao."
+    },
+    "label": {
+      "type": "string",
+      "description": "Nome legivel da tecnologia."
+    },
+    "status": {
+      "enum": [
+        "active",
+        "archived"
+      ],
+      "default": "active",
+      "description": "archived nao tem gate, nao entra no loop e nao conta no doctor."
+    },
+    "repos": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "minItems": 1,
+      "description": "Repos do projeto que rodam nesta tecnologia."
+    },
+    "pkgManager": {
+      "enum": [
+        "yarn",
+        "npm",
+        "gradle",
+        "spm",
+        "none"
+      ],
+      "description": "Fonte da verdade do guard de gerenciador de pacote. O kit não presume um gerenciador: cada manifesto declara o seu."
+    },
+    "platform": {
+      "enum": [
+        "any",
+        "darwin",
+        "win32"
+      ],
+      "default": "any",
+      "description": "Onde o gate consegue rodar de verdade. darwin significa que so o MacBook executa."
+    },
+    "autonomy": {
+      "enum": [
+        "observe",
+        "advise",
+        "approve",
+        "breaker"
+      ],
+      "default": "approve",
+      "description": "Nivel de autonomia declarado como dado, nao como convencao (quatro degraus): observe = so le e relata; advise = recomenda e o humano executa; approve = propoe, o humano aprova, entao executa (o gate e o Stop vivem aqui); breaker = executa sozinho e o humano interrompe. O que nao declara herda approve. Um gate pode declarar o seu e sobrescrever o da stack."
+    },
+    "detect": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Como reconhecer que um diretorio e desta tecnologia. allFiles e AND, anyFiles e OR.",
+      "properties": {
+        "allFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "anyFiles": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        },
+        "packageDeps": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Chaves que precisam existir em dependencies ou devDependencies do package.json."
+        },
+        "priority": {
+          "type": "integer",
+          "default": 50,
+          "description": "Maior ganha quando mais de um manifesto casa. node-esm e o fallback com prioridade baixa."
+        }
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "global": {
+          "type": "number"
+        },
+        "critical": {
+          "type": "number"
+        },
+        "criticalPaths": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "security": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "O que esta stack tem de barreira de seguranca declarada como dado, para o aidlc-gate --list e o painel do ciclo. Cada campo diz QUAL gate cumpre o papel; ausente significa que nao ha barreira, nao que ela e implicita.",
+      "properties": {
+        "sca": {
+          "type": "string",
+          "description": "id do gate que varre dependencia por CVE (ex.: secscan)."
+        },
+        "sast": {
+          "type": "string",
+          "description": "id do gate de analise estatica de codigo (ex.: lint com regras de seguranca, semgrep)."
+        },
+        "pinning": {
+          "type": "string",
+          "description": "id do gate que exige lockfile e pin de imagem (ex.: lockfile)."
+        },
+        "review": {
+          "type": "string",
+          "description": "id do gate de revisor de cadeia de suprimento (ex.: supply-chain)."
+        }
+      }
+    },
+    "gates": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "blocking"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "cmd": {
+            "type": "string",
+            "description": "Comando de shell. Exclusivo com agent."
+          },
+          "agent": {
+            "type": "string",
+            "description": "Nome de um subagente revisor. Exclusivo com cmd."
+          },
+          "model": {
+            "enum": [
+              "haiku",
+              "sonnet",
+              "fable",
+              "inherit"
+            ],
+            "default": "inherit",
+            "description": "Nivel do tiering para gates do tipo agent. Varredura mecanica e haiku."
+          },
+          "blocking": {
+            "type": "boolean"
+          },
+          "expect": {
+            "type": "string",
+            "description": "Substring que a saida precisa conter para passar."
+          },
+          "reject": {
+            "type": "string",
+            "description": "Substring que reprova o gate se aparecer."
+          },
+          "platform": {
+            "enum": [
+              "any",
+              "darwin",
+              "win32"
+            ]
+          },
+          "autonomy": {
+            "enum": [
+              "observe",
+              "advise",
+              "approve",
+              "breaker"
+            ],
+            "description": "Sobrescreve o nivel da stack so para este gate."
+          },
+          "timeoutMs": {
+            "type": "integer",
+            "default": 600000
+          },
+          "$why": {
+            "type": "string",
+            "minLength": 40,
+            "description": "Que defeito real fez este gate existir. Opcional, mas quando presente precisa contar o caso — gate sem motivo escrito e o primeiro que alguem remove quando incomoda, porque ninguem lembra o que ele evitava."
+          }
+        }
+      }
+    },
+    "strategy": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "O que precisa ser LIDO antes de escrever, por caminho tocado. O hook de UserPromptSubmit entrega o resumo e o de PostToolUse entrega o recorte do arquivo que acabou de mudar. Sem isto a rule existe e ninguem a abre.",
+      "properties": {
+        "always": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Ponteiros de leitura validos para qualquer arquivo desta tecnologia. Prefixo @kit/ resolve na raiz do aidlc-harness, onde quer que ele esteja: um caminho relativo fixo acerta um layout de pastas e quebra o outro calado. Sem o prefixo, e relativo a raiz do repo que roda a stack."
+        },
+        "paths": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "when",
+              "why"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "when": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "minItems": 1,
+                "description": "Globs do caminho tocado. Mesmo dialeto do whenTouches da evidencia."
+              },
+              "read": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Rules ou docs a abrir antes de escrever, com o mesmo prefixo @kit/ do always. Vazio quando o porque basta."
+              },
+              "why": {
+                "type": "string",
+                "description": "Uma linha dizendo o que quebra se ignorar. Ponteiro sem motivo nao e lido."
+              },
+              "reviewer": {
+                "type": "string",
+                "description": "Subagente que precisa revisar antes do Stop. Precisa existir em agents/ e casar um gate do tipo agent."
+              }
+            }
+          }
+        }
+      }
+    },
+    "evidence": {
+      "type": "array",
+      "minItems": 1,
+      "description": "O que precisa aparecer no chat antes de declarar pronto. O hook de Stop procura estes marcadores no transcript.",
+      "items": {
+        "type": "object",
+        "required": [
+          "id",
+          "label",
+          "markers"
+        ],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z0-9-]+$"
+          },
+          "label": {
+            "type": "string"
+          },
+          "markers": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "Regexes. Qualquer um casando satisfaz esta evidencia."
+          },
+          "whenTouches": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "Globs. A evidencia so e exigida quando a sessao tocou um arquivo que casa."
+          },
+          "whenSays": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "minItems": 1,
+            "description": "Regexes contra a ultima mensagem do turno. A evidencia so e exigida quando ela afirma o que casa (ex.: fechar uma unidade de trabalho), e e cobrada mesmo com a arvore limpa."
+          },
+          "$why": {
+            "type": "string"
+          }
+        }
+      }
+    },
+    "notes": {
+      "type": "string"
+    }
+  }
+}

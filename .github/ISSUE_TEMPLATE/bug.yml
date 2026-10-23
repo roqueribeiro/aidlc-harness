@@ -1,0 +1,44 @@
+name: Algo quebrou / Something broke
+description: O que você viu não é o que devia acontecer. / What you saw is not what should happen.
+labels: [bug]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Obrigado por reportar. Vulnerabilidade de segurança NÃO entra aqui: use o link de segurança da tela anterior.
+        Thanks for reporting. Security issues do NOT go here: use the security link on the previous screen.
+  - type: textarea
+    id: aconteceu
+    attributes:
+      label: O que aconteceu / What happened
+      description: Uma frase sobre o que deu errado, e o print se tiver. / One sentence, plus a screenshot if you have one.
+    validations:
+      required: true
+  - type: textarea
+    id: passos
+    attributes:
+      label: Como reproduzir / How to reproduce
+      placeholder: |
+        1. Abra ... / Open ...
+        2. Clique em ... / Click ...
+        3. Veja ... / See ...
+    validations:
+      required: true
+  - type: textarea
+    id: esperado
+    attributes:
+      label: O que você esperava / What you expected
+    validations:
+      required: true
+  - type: input
+    id: onde
+    attributes:
+      label: Onde / Where
+      description: Navegador e aparelho (Chrome no Windows, Safari no iPhone...). / Browser and device.
+    validations:
+      required: true
+  - type: input
+    id: versao
+    attributes:
+      label: Versão / Version
+      description: A tag ou o commit, se souber. / The tag or commit, if you know it.

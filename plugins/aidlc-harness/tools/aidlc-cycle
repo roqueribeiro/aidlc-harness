@@ -1,0 +1,171 @@
+#!/usr/bin/env node
+/*
+ * aidlc-cycle: o painel do ciclo, derivado do que o kit ja registra.
+ *
+ * POR QUE ELE EXISTE: o numero mais facil de medir (custo de contexto) e insumo, e nada dizia se o
+ * ciclo esta melhorando. O dod-check grava cada decisao em `.claude/audit/<dia>.jsonl`, e os
+ * artefatos do AI-DLC vivem em `aidlc/`. Este executavel le os dois mais o `git log` e imprime:
+ *
+ *   taxa de bloqueio  decisoes `blocked` sobre o total de decisoes do gate de evidencia
+ *   bloqueios/sessao  quantas vezes o Stop segurou antes de liberar, por sessao
+ *   tempo em gate     do primeiro `blocked` ao `released` da mesma sessao (o agente
+ *                     produzindo evidencia); NAO e "tempo esperando uma pessoa", que so
+ *                     existe fora do repo (PR aberto -> mergeado) e fica declarado como
+ *                     nao medido quando o gh nao responde
+ *   evidencias        as que mais faltaram, por id, para saber onde o gate morde
+ *   fases             do primeiro commit de `aidlc/inception/requirements.md` ao de
+ *                     `units-of-work.md` e ao de `aidlc/construction/design.md`
+ *   frequencia        commits na branch principal por semana, no periodo
+ *
+ * Numero aqui vem de registro, com a data ao lado. O que nao ha registro para medir sai como
+ * "nao medido", nunca como zero.
+ *
+ *   aidlc-cycle                  # ultimos 30 dias, no repo atual
+ *   aidlc-cycle --since 90d
+ *   aidlc-cycle --json
+ */
+
+import { readFileSync, readdirSync, existsSync } from 'node:fs'
+import { execFileSync } from 'node:child_process'
+import { join, resolve } from 'node:path'
+import { repoRoot } from '../lib/detect.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const val = (n) => {
+  const i = argv.indexOf(n)
+  return i >= 0 ? argv[i + 1] : null
+}
+const JSON_OUT = flag('--json')
+const SINCE = val('--since') ?? '30d'
+const target = argv.find((a, i) => !a.startsWith('--') && argv[i - 1] !== '--since') ?? process.cwd()
+const ROOT = repoRoot(resolve(target))
+const dias = Number(String(SINCE).replace(/d$/, '')) || 30
+const agora = new Date()
+const corte = new Date(agora - dias * 864e5)
+
+function git(args) {
+  try {
+    return execFileSync('git', args, { cwd: ROOT, encoding: 'utf8', maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] })
+  } catch {
+    return null
+  }
+}
+
+// ---- auditoria do gate ---------------------------------------------------------------
+const auditDir = join(ROOT, '.claude', 'audit')
+const registros = []
+if (existsSync(auditDir)) {
+  for (const f of readdirSync(auditDir).filter((x) => x.endsWith('.jsonl')).sort()) {
+    for (const line of readFileSync(join(auditDir, f), 'utf8').split('\n')) {
+      if (!line.trim()) continue
+      try {
+        const r = JSON.parse(line)
+        if (r.hook === 'dod-check' && r.at && new Date(r.at) >= corte) registros.push(r)
+      } catch {
+        /* linha quebrada: registro e append-only, uma linha ruim nao invalida as outras */
+      }
+    }
+  }
+}
+const decisoes = registros.length
+const bloqueios = registros.filter((r) => r.decision === 'blocked').length
+const liberadas = registros.filter((r) => r.decision === 'released').length
+const liberadasNoTeto = registros.filter((r) => r.decision === 'released-after-cap').length
+
+const porSessao = new Map()
+for (const r of registros) {
+  const k = r.session ?? 'sem-sessao'
+  if (!porSessao.has(k)) porSessao.set(k, [])
+  porSessao.get(k).push(r)
+}
+const sessoes = [...porSessao.values()]
+const bloqueiosPorSessao = sessoes.length ? Math.round((bloqueios / sessoes.length) * 100) / 100 : null
+const temposEmGate = []
+for (const rs of sessoes) {
+  const primeiroBloqueio = rs.find((r) => r.decision === 'blocked')
+  const liberacao = rs.find((r) => r.decision.startsWith('released') && primeiroBloqueio && r.at > primeiroBloqueio.at)
+  if (primeiroBloqueio && liberacao) temposEmGate.push((new Date(liberacao.at) - new Date(primeiroBloqueio.at)) / 60000)
+}
+const mediana = (xs) => {
+  if (!xs.length) return null
+  const s = [...xs].sort((a, b) => a - b)
+  const m = Math.floor(s.length / 2)
+  return s.length % 2 ? s[m] : (s[m - 1] + s[m]) / 2
+}
+const faltas = new Map()
+for (const r of registros) for (const id of r.missing ?? []) faltas.set(id, (faltas.get(id) ?? 0) + 1)
+const evidenciasQueMaisFaltam = [...faltas.entries()].sort((a, b) => b[1] - a[1]).slice(0, 5)
+
+// ---- fases do AI-DLC, pelo git ------------------------------------------------------------
+const primeiroCommit = (rel) => git(['log', '--diff-filter=A', '--format=%cI', '--', rel])?.trim().split('\n').filter(Boolean).at(-1) || null
+const horas = (a, b) => (a && b ? Math.round(((new Date(b) - new Date(a)) / 36e5) * 10) / 10 : null)
+const marcos = {
+  requisitos: primeiroCommit('aidlc/inception/requirements.md'),
+  unidades: primeiroCommit('aidlc/inception/units-of-work.md'),
+  desenho: primeiroCommit('aidlc/construction/design.md'),
+}
+const fases = {
+  ...marcos,
+  requisitosParaUnidadesH: horas(marcos.requisitos, marcos.unidades),
+  requisitosParaDesenhoH: horas(marcos.requisitos, marcos.desenho),
+}
+
+// ---- frequencia de entrega ----------------------------------------------------------------
+const principal =
+  git(['symbolic-ref', '--short', 'refs/remotes/origin/HEAD'])?.trim().replace(/^origin\//, '') ||
+  ['main', 'master'].find((b) => git(['rev-parse', '--verify', '--quiet', b]) != null) ||
+  'main'
+const commits = git(['rev-list', '--count', `--since=${dias} days ago`, principal])
+const commitsNoPeriodo = commits != null ? Number(commits.trim()) : null
+const porSemana = commitsNoPeriodo != null ? Math.round((commitsNoPeriodo / (dias / 7)) * 10) / 10 : null
+
+// ---- tempo esperando revisao humana (fora do repo) --------------------------------------------
+let esperaHumana = { medido: false, motivo: 'exige gh e PRs; nao consultado' }
+try {
+  const raw = execFileSync('gh', ['pr', 'list', '--state', 'merged', '--limit', '50', '--json', 'createdAt,mergedAt'], { cwd: ROOT, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'], timeout: 30_000 })
+  const prs = JSON.parse(raw || '[]').filter((p) => p.mergedAt && new Date(p.mergedAt) >= corte)
+  const horas = prs.map((p) => (new Date(p.mergedAt) - new Date(p.createdAt)) / 36e5)
+  esperaHumana = { medido: true, prs: prs.length, medianaHoras: horas.length ? Math.round(mediana(horas) * 10) / 10 : null }
+} catch {
+  esperaHumana = { medido: false, motivo: 'gh nao respondeu (sem auth, sem rede, ou repo sem PR)' }
+}
+
+const painel = {
+  repo: ROOT,
+  periodo: { dias, desde: corte.toISOString().slice(0, 10), ate: agora.toISOString().slice(0, 10) },
+  gate: {
+    decisoes,
+    bloqueios,
+    liberadas,
+    liberadasNoTeto,
+    taxaBloqueio: decisoes ? Math.round((bloqueios / decisoes) * 1000) / 10 : null,
+    sessoes: sessoes.length,
+    bloqueiosPorSessao,
+    tempoEmGateMinMediana: temposEmGate.length ? Math.round(mediana(temposEmGate) * 10) / 10 : null,
+    evidenciasQueMaisFaltam,
+  },
+  fases,
+  entrega: { branch: principal, commitsNoPeriodo, porSemana },
+  esperaHumana,
+}
+
+if (JSON_OUT) {
+  console.log(JSON.stringify(painel))
+  process.exit(0)
+}
+const n = (v, un = '') => (v == null ? 'nao medido' : `${v}${un}`)
+console.log(`\naidlc-cycle  ${ROOT}\n  ultimos ${dias} dias (${painel.periodo.desde} a ${painel.periodo.ate})\n`)
+console.log('  GATE DE EVIDENCIA (fonte: .claude/audit/*.jsonl)')
+console.log(`    decisoes ${decisoes} · bloqueios ${bloqueios} · liberadas ${liberadas} · no teto ${liberadasNoTeto}`)
+console.log(`    taxa de bloqueio ${n(painel.gate.taxaBloqueio, '%')} · bloqueios por sessao ${n(bloqueiosPorSessao)} · tempo em gate (mediana) ${n(painel.gate.tempoEmGateMinMediana, ' min')}`)
+if (evidenciasQueMaisFaltam.length) console.log(`    evidencias que mais faltaram: ${evidenciasQueMaisFaltam.map(([id, c]) => `${id} (${c})`).join(', ')}`)
+if (!decisoes) console.log('    nenhum registro no periodo: o dod-check grava so quando ha entrega a provar')
+console.log('\n  FASES DO AI-DLC (fonte: git log em aidlc/)')
+console.log(`    requisitos para unidades de trabalho ${n(fases.requisitosParaUnidadesH, ' h')} · requisitos para desenho ${n(fases.requisitosParaDesenhoH, ' h')}`)
+if (!marcos.requisitos) console.log('    sem aidlc/inception/requirements.md no historico: rode aidlc-init e comite os artefatos')
+console.log(`\n  ENTREGA (fonte: git rev-list em ${principal})`)
+console.log(`    commits ${n(commitsNoPeriodo)} · por semana ${n(porSemana)}`)
+console.log('\n  ESPERA por revisao humana (fonte: gh pr list, fora do repo)')
+console.log(esperaHumana.medido ? `    PRs mergeados ${esperaHumana.prs} · abertura ate merge (mediana) ${n(esperaHumana.medianaHoras, ' h')}` : `    nao medido: ${esperaHumana.motivo}`)
+console.log('')

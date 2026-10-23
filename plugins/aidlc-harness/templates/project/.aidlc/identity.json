@@ -1,0 +1,4 @@
+{
+  "$comment": "Achados do aidlc-identity que são legítimos. Cada entrada precisa de file (glob) e de um why que explique. Sem why, a entrada é recusada e o achado continua.",
+  "allow": []
+}

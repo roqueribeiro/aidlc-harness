@@ -1,0 +1,131 @@
+#!/usr/bin/env node
+/*
+ * aidlc-limpeza: a bancada arrumada no fim de cada unidade de trabalho.
+ *
+ * Regra: nada de lixo na maquina nem nos servidores. Este comando
+ * lista o que sobrou e, com --apagar, tira so o que o remoto ja guarda (o lixo). O que perderia
+ * trabalho (worktree sujo, commit sem remoto) sai em "decidir" e nunca e apagado daqui.
+ *
+ *   aidlc-limpeza                     # o repo atual
+ *   aidlc-limpeza --todos <pasta>     # todo repo git direto dentro da pasta
+ *   aidlc-limpeza --frota             # mais os servidores ativos do fleet/servers.json (opcional, do projeto)
+ *   aidlc-limpeza --host servidor-1 # mais um alvo ssh avulso (repetivel)
+ *   aidlc-limpeza --apagar            # apaga o lixo e confere de novo
+ *   aidlc-limpeza --json
+ *
+ * Sai 0 com "aidlc-limpeza: nada sobrando" e 1 enquanto houver lixo ou decisao pendente. A
+ * linha final e a evidencia que o Stop cobra no fechamento de unidade.
+ */
+import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
+import { execFileSync, spawnSync } from 'node:child_process'
+import { join, resolve } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { inventarioRepo, apagarRepo, SONDA_DOCKER, limpaDocker, parseSonda, lixoNoServidor, DE_UNIDADE } from '../lib/limpeza.mjs'
+
+const KIT = join(fileURLToPath(new URL('.', import.meta.url)), '..')
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const vals = (n) => argv.flatMap((a, i) => (a === n && argv[i + 1] ? [argv[i + 1]] : []))
+const APAGAR = flag('--apagar')
+const JSON_OUT = flag('--json')
+
+function raiz(dir) {
+  try {
+    return execFileSync('git', ['rev-parse', '--show-toplevel'], { cwd: dir, encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim()
+  } catch {
+    return null
+  }
+}
+
+function repos() {
+  const todos = vals('--todos')
+  if (!todos.length) {
+    const r = raiz(process.cwd())
+    return r ? [r] : []
+  }
+  const out = []
+  for (const base of todos.map((t) => resolve(t))) {
+    for (const nome of readdirSync(base)) {
+      const p = join(base, nome)
+      // So o clone principal: worktree tem .git como arquivo e e inventariado pelo dono.
+      if (statSync(p).isDirectory() && existsSync(join(p, '.git')) && statSync(join(p, '.git')).isDirectory()) out.push(p)
+    }
+  }
+  return out
+}
+
+function alvosSsh() {
+  const alvos = vals('--host')
+  if (flag('--frota')) {
+    try {
+      const fleet = JSON.parse(readFileSync(join(KIT, 'fleet', 'servers.json'), 'utf8'))
+      for (const s of fleet.servers ?? []) if ((s.status ?? 'active') === 'active' && s.ssh) alvos.push(s.ssh)
+    } catch {
+      /* sem manifesto de frota: so os --host */
+    }
+  }
+  return [...new Set(alvos)]
+}
+
+function ssh(alvo, cmd) {
+  const r = spawnSync('ssh', ['-o', 'BatchMode=yes', '-o', 'ConnectTimeout=10', alvo, cmd], { encoding: 'utf8', timeout: 600000 })
+  return { ok: r.status === 0, out: r.stdout ?? '', err: (r.stderr ?? '').trim().split('\n')[0] }
+}
+
+function inventario() {
+  const r = { lixo: [], decidir: [], servidores: [] }
+  for (const repo of repos()) {
+    const i = inventarioRepo(repo)
+    r.lixo.push(...i.lixo)
+    r.decidir.push(...i.decidir)
+  }
+  for (const alvo of alvosSsh()) {
+    const s = ssh(alvo, SONDA_DOCKER)
+    if (!s.ok) {
+      r.servidores.push({ alvo, alcancado: false, motivo: s.err || 'sem resposta' })
+      continue
+    }
+    const sonda = parseSonda(s.out)
+    r.servidores.push({ alvo, alcancado: true, ...sonda, lixo: lixoNoServidor(sonda) })
+  }
+  return r
+}
+
+let r = inventario()
+if (APAGAR) {
+  const feitos = apagarRepo(r.lixo)
+  for (const s of r.servidores.filter((x) => x.alcancado)) ssh(s.alvo, limpaDocker(s.parados, s.antigas))
+  if (!JSON_OUT) console.log(`apagado: ${feitos.length} item(ns) local(is), docker podado em ${r.servidores.filter((x) => x.alcancado).length} servidor(es)`)
+  r = inventario()
+}
+
+const sujos = r.servidores.filter((s) => s.alcancado && s.lixo)
+const fora = r.servidores.filter((s) => !s.alcancado)
+const limpo = r.lixo.length === 0 && r.decidir.length === 0 && sujos.length === 0
+if (JSON_OUT) {
+  console.log(JSON.stringify({ ok: limpo, ...r }))
+  process.exit(limpo ? 0 : 1)
+}
+if (r.lixo.length) {
+  console.log(`\nlixo local (${r.lixo.length}), sai com --apagar:`)
+  for (const i of r.lixo) console.log(`  [${i.tipo}] ${i.alvo}  (${i.motivo})`)
+}
+if (r.decidir.length) {
+  console.log(`\npara decidir (${r.decidir.length}), nunca apagado daqui:`)
+  for (const i of r.decidir) console.log(`  [${i.tipo}] ${i.alvo}  (${i.repo}: ${i.motivo})`)
+}
+for (const s of sujos) {
+  console.log(`\nservidor ${s.alvo}: ${s.parados.filter((n) => DE_UNIDADE.test(n)).length} container(es) de unidade parado(s), ${s.orfas} imagem(ns) orfa(s), ${(s.antigas ?? []).length} release(s) antiga(s) sem uso, cache de build ${s.recuperavel['Build Cache'] ?? '?'}`)
+}
+for (const s of r.servidores.filter((x) => x.alcancado)) {
+  const outros = s.parados.filter((n) => !DE_UNIDADE.test(n))
+  if (outros.length) console.log(`\nservidor ${s.alvo}: parado(s) que nao sao de unidade, so relato (pode ser app do usuario): ${outros.join(', ')}`)
+  if (!APAGAR) console.log(`servidor ${s.alvo}: cache de build ${s.recuperavel['Build Cache'] ?? '?'} (o de mais de 24 h sai com --apagar)`)
+}
+for (const s of fora) console.log(`\nservidor ${s.alvo}: nao alcancado (${s.motivo}); nao conferido`)
+if (limpo) {
+  console.log(`aidlc-limpeza: nada sobrando${fora.length ? ` (${fora.length} servidor(es) fora do alcance, nao conferidos)` : ''}`)
+  process.exit(0)
+}
+console.log(`\nroqueos-limpeza: ${r.lixo.length} item(ns) de lixo, ${r.decidir.length} para decidir, ${sujos.length} servidor(es) com lixo`)
+process.exit(1)

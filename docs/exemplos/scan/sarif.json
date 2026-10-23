@@ -1,0 +1,23 @@
+{
+  "version": "2.1.0",
+  "runs": [
+    {
+      "tool": {
+        "driver": {
+          "name": "semgrep",
+          "rules": [
+            { "id": "js.sqli", "properties": { "security-severity": "8.1" } }
+          ]
+        }
+      },
+      "invocations": [{ "executionSuccessful": true }],
+      "results": [
+        {
+          "ruleId": "js.sqli",
+          "message": { "text": "Consulta SQL montada por concatenacao" },
+          "locations": [{ "physicalLocation": { "artifactLocation": { "uri": "src/db/usuarios.js" }, "region": { "startLine": 41 } } }]
+        }
+      ]
+    }
+  ]
+}

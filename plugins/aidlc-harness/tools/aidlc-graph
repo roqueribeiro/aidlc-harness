@@ -1,0 +1,192 @@
+#!/usr/bin/env node
+/*
+ * aidlc-graph: o mapa de dependencias entre repos como consulta, nao como prosa.
+ *
+ * A ordem de mudanca cross-repo costuma viver em texto no README e em tabelas espalhadas.
+ * Isso funciona enquanto alguem lembra de ler, e falha em silencio quando nao lembra: um
+ * schema muda, o consumidor nao acompanha, e o defeito aparece dias depois sem ninguem ligar
+ * as duas coisas.
+ *
+ *   aidlc-graph blast src/css/aidlc/tokens.scss   # o que mais precisa mudar, em ordem
+ *   aidlc-graph blast app-exemplo                # tudo que sai desse repo
+ *   aidlc-graph diagram                             # mermaid, pra embutir em README e docs
+ *   aidlc-graph validate                            # integridade, roda no CI
+ *   aidlc-graph list                                # nos e contratos
+ */
+
+import { blast, loadGraph } from '../lib/graph.mjs'
+
+const g = loadGraph()
+
+const argv = process.argv.slice(2)
+const cmd = argv[0] ?? 'help'
+const arg = argv.find((a, i) => i > 0 && !a.startsWith('--'))
+const JSON_OUT = argv.includes('--json')
+
+const C = process.stdout.isTTY && !JSON_OUT
+const c = {
+  dim: (s) => (C ? `\x1b[2m${s}\x1b[0m` : s),
+  bold: (s) => (C ? `\x1b[1m${s}\x1b[0m` : s),
+  green: (s) => (C ? `\x1b[32m${s}\x1b[0m` : s),
+  red: (s) => (C ? `\x1b[31m${s}\x1b[0m` : s),
+  yellow: (s) => (C ? `\x1b[33m${s}\x1b[0m` : s),
+}
+
+const nodes = new Map(g.nodes.map((n) => [n.id, n]))
+const contracts = g.nodes.filter((n) => n.kind === 'contract')
+
+/**
+ * Quais contratos um alvo toca.
+ * Alvo pode ser um caminho de arquivo (casa contra os globs do contrato) ou um id de repo
+ * (todos os contratos que aquele repo provê).
+ */
+// ---------------------------------------------------------------------------
+
+if (cmd === 'blast') {
+  if (!arg) {
+    console.error('uso: aidlc-graph blast <caminho|repo|contrato>')
+    process.exit(2)
+  }
+  const result = blast(arg)
+
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ ok: true, target: arg, contracts: result }))
+    process.exit(0)
+  }
+
+  if (!result.length) {
+    console.log(`\n  ${c.green('sem raio de impacto')}  ${c.dim(arg)}`)
+    console.log(`  ${c.dim('nenhum contrato cross-repo casa este alvo, entao a mudanca fica no repo.')}\n`)
+    process.exit(0)
+  }
+
+  console.log(`\n${c.bold('RAIO DE IMPACTO')}  ${c.dim(arg)}`)
+  for (const r of result) {
+    console.log(`\n  ${c.yellow(r.label)}  ${c.dim(`(fonte: ${r.owner})`)}`)
+    console.log(`  ${c.dim(r.why)}`)
+    if (!r.downstream.length) {
+      console.log(`  ${c.dim('ninguem a jusante.')}`)
+      continue
+    }
+    let lastOrder = null
+    for (const d of r.downstream) {
+      if (d.order !== lastOrder) {
+        console.log(`  ${c.bold(`  onda ${d.order}`)}`)
+        lastOrder = d.order
+      }
+      console.log(`      ${c.bold(d.repo)}  ${c.dim(`(${d.rel})`)}`)
+      if (d.todo) console.log(`        ${c.dim(d.todo)}`)
+    }
+  }
+  console.log(`\n  ${c.dim('Tudo da mesma onda sai no mesmo ciclo. Onda seguinte depende da anterior.')}\n`)
+  process.exit(0)
+}
+
+if (cmd === 'diagram') {
+  const lines = ['graph LR']
+  for (const ct of contracts) {
+    const id = ct.id.replace(/[^a-zA-Z0-9]/g, '_')
+    lines.push(`  ${id}{{"${ct.label}"}}`)
+    for (const e of g.edges.filter((x) => x.to === ct.id)) {
+      const from = e.from.replace(/[^a-zA-Z0-9]/g, '_')
+      const n = nodes.get(e.from)
+      lines.push(`  ${from}["${n?.label ?? e.from}"]`)
+      if (e.rel === 'provides') lines.push(`  ${from} ==> ${id}`)
+      else if (e.rel === 'mirrors') lines.push(`  ${id} -. espelha .-> ${from}`)
+      else if (e.rel === 'documents') lines.push(`  ${id} -. documenta .-> ${from}`)
+      else lines.push(`  ${id} --> ${from}`)
+    }
+  }
+  const out = ['```mermaid', ...lines, '```'].join('\n')
+  if (JSON_OUT) console.log(JSON.stringify({ ok: true, mermaid: out }))
+  else console.log(out)
+  process.exit(0)
+}
+
+if (cmd === 'list') {
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ ok: true, nodes: g.nodes, edgeCount: g.edges.length }))
+    process.exit(0)
+  }
+  for (const kind of ['repo', 'app', 'contract']) {
+    const set = g.nodes.filter((n) => n.kind === kind)
+    console.log(`\n  ${c.bold(kind.toUpperCase())}  ${c.dim(`(${set.length})`)}`)
+    for (const n of set) {
+      const st = n.status && n.status !== 'active' ? c.dim(` [${n.status}]`) : ''
+      console.log(`    ${n.id.padEnd(26)} ${n.label}${st}`)
+    }
+  }
+  console.log(`\n  ${g.edges.length} arestas\n`)
+  process.exit(0)
+}
+
+if (cmd === 'validate') {
+  const problems = []
+  const ids = new Set(g.nodes.map((n) => n.id))
+
+  for (const n of g.nodes) {
+    if (!n.id || !n.kind || !n.label) problems.push(`no incompleto: ${JSON.stringify(n).slice(0, 60)}`)
+    if (n.kind === 'contract' && !n.owner) problems.push(`contrato ${n.id} sem owner`)
+    if (n.kind === 'contract' && !(n.files ?? []).length) problems.push(`contrato ${n.id} sem files, blast nunca vai casar um caminho`)
+    if (n.kind === 'contract' && !n.why) problems.push(`contrato ${n.id} sem why, o blast sai sem explicar a ordem`)
+  }
+
+  for (const e of g.edges) {
+    if (!ids.has(e.from)) problems.push(`aresta aponta pra no inexistente: ${e.from}`)
+    if (!ids.has(e.to)) problems.push(`aresta aponta pra no inexistente: ${e.to}`)
+  }
+
+  /*
+   * Todo contrato precisa de exatamente UMA fonte, senao "quem muda primeiro" fica ambiguo.
+   * Qual aresta e a fonte depende da forma: fan-out tem um provedor e N consumidores,
+   * fan-in tem um definidor e N provedores.
+   */
+  for (const ct of contracts) {
+    const shape = ct.shape ?? 'fan-out'
+    if (!['fan-out', 'fan-in'].includes(shape)) problems.push(`contrato ${ct.id} com shape invalido: ${shape}`)
+    const sourceRel = shape === 'fan-in' ? 'defines' : 'provides'
+    const sources = g.edges.filter((e) => e.to === ct.id && e.rel === sourceRel)
+    if (sources.length !== 1) problems.push(`contrato ${ct.id} (${shape}) tem ${sources.length} arestas ${sourceRel}, precisa de exatamente 1`)
+    else if (sources[0].from !== ct.owner) problems.push(`contrato ${ct.id}: owner e ${ct.owner} mas quem ${sourceRel} e ${sources[0].from}`)
+
+    const downstream = g.edges.filter((e) => e.to === ct.id && e.rel !== sourceRel)
+    if (!downstream.length) problems.push(`contrato ${ct.id} nao tem ninguem a jusante, entao nao e contrato cross-repo`)
+    for (const e of downstream) {
+      if (!e.todo) problems.push(`aresta ${e.from} -> ${e.to} sem todo, o blast sai sem dizer o que fazer`)
+      if (e.order == null) problems.push(`aresta ${e.from} -> ${e.to} sem order, a ordem de mudanca fica indefinida`)
+    }
+  }
+
+  // Repo descontinuado nao pode estar numa cadeia viva.
+  for (const e of g.edges) {
+    for (const side of [e.from, e.to]) {
+      if (nodes.get(side)?.status === 'discontinued') problems.push(`${side} esta descontinuado e ainda aparece numa aresta`)
+    }
+  }
+
+  if (JSON_OUT) {
+    console.log(JSON.stringify({ ok: problems.length === 0, nodes: g.nodes.length, edges: g.edges.length, problems }))
+    process.exit(problems.length ? 1 : 0)
+  }
+  if (problems.length) {
+    console.error(`grafo com ${problems.length} problema(s):\n`)
+    for (const p of problems) console.error(`  ${p}`)
+    process.exit(1)
+  }
+  console.log(`ok, grafo integro: ${g.nodes.length} nos, ${g.edges.length} arestas, ${contracts.length} contratos.`)
+  process.exit(0)
+}
+
+console.log(
+  [
+    'aidlc-graph, o mapa de dependencias entre repos como consulta',
+    '',
+    '  blast <caminho|repo|contrato>   o que mais precisa mudar, e em que ordem',
+    '  diagram                         mermaid pra embutir em README e docs',
+    '  validate                        integridade do grafo (roda no CI)',
+    '  list                            nos e contratos',
+    '',
+    '  --json em qualquer um pra saida legivel por maquina',
+    '',
+  ].join('\n'),
+)

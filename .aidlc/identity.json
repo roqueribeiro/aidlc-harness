@@ -1,0 +1,72 @@
+{
+  "$comment": "Achados legítimos deste repo. Cada entrada precisa de file (glob), categoria e um why.",
+  "allow": [
+    {
+      "file": "plugins/aidlc-harness/lib/lib.test.mjs",
+      "categoria": "segredo",
+      "why": "fixtures de teste do scrub: valores sintéticos (AAAA..., BBBB...) que precisam ter o formato de um segredo para provar que o scrub os mascara"
+    },
+    {
+      "file": ".github/ISSUE_TEMPLATE/config.yml",
+      "categoria": "termo",
+      "why": "URL do relato privado de segurança deste próprio repositório: o dono do repo faz parte do endereço"
+    },
+    {
+      "file": "CODE_OF_CONDUCT.md",
+      "categoria": "termo",
+      "why": "o modelo preenche o nome do dono do repo; aqui o dono é o do próprio repositório público"
+    },
+    {
+      "file": "plugins/aidlc-harness/hooks/hooks.test.mjs",
+      "categoria": "home",
+      "why": "caminhos de home fictícios usados como fixtures do scratch-guard"
+    },
+    {
+      "file": "scripts/definir-dono.test.mjs",
+      "categoria": "email",
+      "why": "e-mail fictício usado como fixture do teste de definir-dono"
+    },
+    {
+      "file": "**",
+      "categoria": "termo",
+      "valor": "RoqueShield",
+      "why": "a plataforma de segurança de código aberto que o kit sabe ler é citada pelo nome de propósito, por decisão explícita do mantenedor de tornar a ligação pública"
+    },
+    {
+      "file": "docs/ROQUESHIELD.md",
+      "categoria": "termo",
+      "valor": "roqueos",
+      "why": "parte do endereço público do repositório do RoqueShield citado no documento"
+    },
+    {
+      "file": "docs/ROQUESHIELD.md",
+      "categoria": "termo",
+      "valor": "roqueribeiro",
+      "why": "dono do repositório público do RoqueShield, parte do endereço citado no documento"
+    },
+    {
+      "file": "**",
+      "categoria": "termo",
+      "valor": "roqueribeiro",
+      "why": "dono do repositório público no GitHub: parte de URLs, CODEOWNERS e do marketplace"
+    },
+    {
+      "file": "SECURITY.md",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "domínio do e-mail de contato do mantenedor, escolhido por ele para relatos"
+    },
+    {
+      "file": "SECURITY.md",
+      "categoria": "email",
+      "valor": "contato@levelhard.com.br",
+      "why": "e-mail de contato do mantenedor, escolhido por ele para relatos de segurança"
+    },
+    {
+      "file": "CODE_OF_CONDUCT.md",
+      "categoria": "email",
+      "valor": "contato@levelhard.com.br",
+      "why": "e-mail de contato do mantenedor para denúncias de conduta, escolhido por ele"
+    }
+  ]
+}

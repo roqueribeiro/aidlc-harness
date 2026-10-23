@@ -1,0 +1,264 @@
+#!/usr/bin/env node
+/*
+ * aidlc-harness: mede o custo de contexto de QUALQUER repo.
+ *
+ * Dois numeros importam,
+ * e o segundo e o que costuma passar batido:
+ *
+ *   (a) BASELINE SEMPRE-ON. Pago em toda sessao E de novo em cada subagente spawnado.
+ *       Enxugar aqui rende multiplicado pelo numero de agentes que o fluxo dispara.
+ *
+ *   (b) CUSTO POR ARQUIVO TOCADO. Baseline + as rules que o glob puxa quando voce abre
+ *       um arquivo. Otimizar so o baseline da falsa sensacao de dieta: da pra ter baseline
+ *       otimo e mesmo assim pagar 170 KB pra ler um componente, porque uma rule gorda usa
+ *       um glob seco tipo `src/components/**`.
+ *
+ * A regra que decide se uma rule esta cara e TAMANHO x FREQUENCIA DE DISPARO. Uma rule de
+ * 86 KB num glob de 571 arquivos e infinitamente pior que uma de 30 KB num glob de 3.
+ *
+ *   aidlc-harness                    # mede o repo atual
+ *   aidlc-harness ../outro-repo
+ *   aidlc-harness --save             # grava .claude/harness-baseline.json
+ *   aidlc-harness --check            # exit 1 se o baseline cresceu mais que a tolerancia
+ *   aidlc-harness --json
+ */
+
+import { readFileSync, existsSync, readdirSync, statSync, writeFileSync } from 'node:fs'
+import { join, relative, sep } from 'node:path'
+import { homedir } from 'node:os'
+import { repoRoot, globMatch } from '../lib/detect.mjs'
+
+const argv = process.argv.slice(2)
+const flag = (n) => argv.includes(n)
+const JSON_OUT = flag('--json')
+const SAVE = flag('--save')
+const CHECK = flag('--check')
+const TOLERANCE = 0.02 // 2%: absorve edicao normal de rule, pega regressao de verdade
+
+const target = argv.find((a) => !a.startsWith('--')) ?? process.cwd()
+const ROOT = repoRoot(target)
+const RULES_DIR = join(ROOT, '.claude/rules')
+const BASELINE_FILE = join(ROOT, '.claude/harness-baseline.json')
+
+const C = process.stdout.isTTY && !JSON_OUT
+const c = {
+  dim: (s) => (C ? `\x1b[2m${s}\x1b[0m` : s),
+  bold: (s) => (C ? `\x1b[1m${s}\x1b[0m` : s),
+  green: (s) => (C ? `\x1b[32m${s}\x1b[0m` : s),
+  red: (s) => (C ? `\x1b[31m${s}\x1b[0m` : s),
+  yellow: (s) => (C ? `\x1b[33m${s}\x1b[0m` : s),
+}
+
+const size = (p) => (existsSync(p) ? statSync(p).size : null)
+const tok = (b) => Math.round(b / 4) // aproximacao suficiente pra comparar, nao pra faturar
+
+/** Frontmatter `paths:` de uma rule, ou null quando ela e sempre-on. */
+function rulePaths(file) {
+  const text = readFileSync(file, 'utf8')
+  const fm = text.match(/^---\n([\s\S]*?)\n---/)
+  if (!fm) return null
+  const block = fm[1]
+  if (!/^paths:/m.test(block)) return null
+  const out = []
+  let inPaths = false
+  for (const line of block.split('\n')) {
+    if (/^paths:/.test(line)) {
+      inPaths = true
+      const inline = line.replace(/^paths:\s*/, '').trim()
+      if (inline && inline !== '') out.push(...inline.replace(/^\[|\]$/g, '').split(',').map((s) => s.trim().replace(/^['"]|['"]$/g, '')).filter(Boolean))
+      continue
+    }
+    if (inPaths) {
+      const m = line.match(/^\s*-\s*(.+)$/)
+      if (m) out.push(m[1].trim().replace(/^['"]|['"]$/g, ''))
+      else if (/^\S/.test(line)) inPaths = false
+    }
+  }
+  return out
+}
+
+function listRules() {
+  if (!existsSync(RULES_DIR)) return []
+  return readdirSync(RULES_DIR)
+    .filter((f) => f.endsWith('.md'))
+    .map((f) => {
+      const full = join(RULES_DIR, f)
+      return { name: f, bytes: statSync(full).size, paths: rulePaths(full) }
+    })
+}
+
+const rules = listRules()
+const alwaysOn = rules.filter((r) => r.paths === null)
+const scoped = rules.filter((r) => r.paths !== null)
+
+/*
+ * Rule PUBLICADA fora de `.claude/rules/`, que e o caso do aidlc-harness: as rules
+ * dele moram em `rules/` na raiz, sem frontmatter, porque plugin nao serve `.claude/rules/`.
+ *
+ * Elas NAO entram no baseline, e isso esta certo: nada as auto-carrega, sao leitura sob
+ * demanda. O que estava errado era o relatorio dizer `ruleCount: 0` e deixar parecer que o
+ * repo nao tem rule nenhuma. O numero passa a vir acompanhado do que ele nao conta.
+ */
+function countPublished() {
+  const dir = join(ROOT, 'rules')
+  if (!existsSync(dir)) return 0
+  let n = 0
+  const walk = (d, depth = 0) => {
+    if (depth > 3) return
+    for (const e of readdirSync(d, { withFileTypes: true })) {
+      if (e.name.startsWith('.')) continue
+      const full = join(d, e.name)
+      if (e.isDirectory()) walk(full, depth + 1)
+      else if (e.name.endsWith('.md')) n++
+    }
+  }
+  try {
+    walk(dir)
+  } catch {
+    return 0
+  }
+  return n
+}
+const publishedRules = countPublished()
+
+/* O sempre-on: o que entra em toda sessao antes de qualquer trabalho. */
+const baselineParts = [
+  { name: '~/.claude/CLAUDE.md', bytes: size(join(homedir(), '.claude/CLAUDE.md')) },
+  { name: 'CLAUDE.md', bytes: size(join(ROOT, 'CLAUDE.md')) },
+  ...alwaysOn.map((r) => ({ name: `rules/${r.name}`, bytes: r.bytes })),
+  { name: 'memory/MEMORY.md', bytes: size(join(ROOT, '.claude/memory/MEMORY.md')) },
+]
+
+/* Arquivos que o CLAUDE.md puxa com @caminho entram no baseline tambem. */
+const claudeMd = existsSync(join(ROOT, 'CLAUDE.md')) ? readFileSync(join(ROOT, 'CLAUDE.md'), 'utf8') : ''
+for (const m of claudeMd.matchAll(/^@(\S+)$/gm)) {
+  baselineParts.push({ name: m[1], bytes: size(join(ROOT, m[1])) })
+}
+
+const baselineBytes = baselineParts.reduce((s, p) => s + (p.bytes ?? 0), 0)
+
+/* Cenarios: arquivos representativos, e quanto custa abrir cada um. */
+const SCENARIOS = [
+  { label: 'componente compartilhado', globs: ['src/components/**/*.vue', 'Sources/**/*.swift', 'src/modules/**/*.ts'] },
+  { label: 'store ou estado', globs: ['src/stores/**/*.js', 'src/stores/**/*.ts'] },
+  { label: 'service de API', globs: ['src/services/**/*.js', 'src/services/**/*.ts'] },
+  { label: 'composable ou hook', globs: ['src/composables/**/*.js', 'src/hooks/**/*.ts'] },
+  { label: 'i18n', globs: ['src/i18n/**/*.js', '**/strings.xml'] },
+]
+
+function sampleFile(globs) {
+  const hits = []
+  const walk = (dir, depth = 0) => {
+    if (depth > 7 || hits.length) return
+    let entries
+    try {
+      entries = readdirSync(dir, { withFileTypes: true })
+    } catch {
+      return
+    }
+    for (const e of entries) {
+      if (e.name === 'node_modules' || e.name.startsWith('.')) continue
+      const full = join(dir, e.name)
+      const rel = relative(ROOT, full).split(sep).join('/')
+      if (e.isDirectory()) walk(full, depth + 1)
+      else if (globs.some((g) => globMatch(g, rel))) {
+        hits.push(rel)
+        return
+      }
+    }
+  }
+  walk(ROOT)
+  return hits[0] ?? null
+}
+
+const scenarios = []
+for (const sc of SCENARIOS) {
+  const file = sampleFile(sc.globs)
+  if (!file) continue
+  const pulled = scoped.filter((r) => r.paths.some((g) => globMatch(g, file)))
+  const rulesBytes = pulled.reduce((s, r) => s + r.bytes, 0)
+  scenarios.push({
+    label: sc.label,
+    file,
+    rules: pulled.map((r) => r.name),
+    rulesBytes,
+    totalBytes: baselineBytes + rulesBytes,
+  })
+}
+
+/* As rules mais caras por disparo: tamanho vezes quantos cenarios as puxam. */
+const heat = scoped
+  .map((r) => ({ name: r.name, bytes: r.bytes, hits: scenarios.filter((s) => s.rules.includes(r.name)).length }))
+  .filter((r) => r.hits > 0)
+  .sort((a, b) => b.bytes * b.hits - a.bytes * a.hits)
+  .slice(0, 5)
+
+const report = {
+  repo: ROOT,
+  baselineBytes,
+  baselineTokens: tok(baselineBytes),
+  parts: baselineParts,
+  publishedRules,
+  ruleCount: rules.length,
+  alwaysOnCount: alwaysOn.length,
+  scenarios,
+  heat,
+}
+
+// --- saidas -------------------------------------------------------------------
+
+if (SAVE) {
+  writeFileSync(
+    BASELINE_FILE,
+    JSON.stringify({ baselineBytes, ruleCount: rules.length, publishedRules, scenarios }, null, 2) + '\n',
+  )
+  if (!JSON_OUT) console.log(`baseline gravado em .claude/harness-baseline.json (${(baselineBytes / 1024).toFixed(1)} KB)`)
+}
+
+if (CHECK) {
+  if (!existsSync(BASELINE_FILE)) {
+    console.error('sem baseline gravado. rode --save primeiro.')
+    process.exit(1)
+  }
+  const prev = JSON.parse(readFileSync(BASELINE_FILE, 'utf8'))
+  const before = prev.baselineBytes ?? prev.baseline?.totalBytes
+  const growth = (baselineBytes - before) / before
+  const ok = growth <= TOLERANCE
+  if (JSON_OUT) console.log(JSON.stringify({ ok, before, after: baselineBytes, growth }))
+  else if (ok) console.log(c.green(`ok, baseline em ${(baselineBytes / 1024).toFixed(1)} KB (${(growth * 100).toFixed(1)}% vs gravado).`))
+  else console.error(c.red(`baseline cresceu ${(growth * 100).toFixed(1)}%: ${(before / 1024).toFixed(1)} KB -> ${(baselineBytes / 1024).toFixed(1)} KB.`))
+  process.exit(ok ? 0 : 1)
+}
+
+if (JSON_OUT) {
+  console.log(JSON.stringify(report))
+  process.exit(0)
+}
+
+const kb = (b) => `${(b / 1024).toFixed(1)} KB`
+const verdict = (b, good, warn) => (b < good ? c.green('saudavel') : b < warn ? c.yellow('aceitavel') : c.red('regressao'))
+
+console.log(`\n${c.bold('BASELINE SEMPRE-ON')}  ${c.dim('(toda sessao, e de novo em cada subagente)')}`)
+for (const p of baselineParts) {
+  const v = p.bytes === null ? c.dim('ausente') : `${String(p.bytes).padStart(7)} B  ~${tok(p.bytes)} tok`
+  console.log(`  ${p.name.padEnd(34)} ${v}`)
+}
+console.log(`  ${c.bold('TOTAL'.padEnd(34))} ${String(baselineBytes).padStart(7)} B  ~${tok(baselineBytes)} tok  (${kb(baselineBytes)})  ${verdict(baselineBytes, 40960, 76800)}`)
+
+if (scenarios.length) {
+  console.log(`\n${c.bold('CUSTO POR ARQUIVO TOCADO')}  ${c.dim('(baseline + as rules que o glob puxa)')}`)
+  for (const s of scenarios) {
+    console.log(`  ${s.label.padEnd(26)} ${kb(s.totalBytes).padStart(9)}  ~${tok(s.totalBytes)} tok  ${c.dim(`${s.rules.length} rules`)}  ${verdict(s.totalBytes, 61440, 112640)}`)
+    console.log(`  ${''.padEnd(26)} ${c.dim(s.file)}`)
+    if (s.rules.length) console.log(`  ${''.padEnd(26)} ${c.dim(s.rules.join(', '))}`)
+  }
+}
+
+if (heat.length) {
+  console.log(`\n${c.bold('RULES MAIS CARAS')}  ${c.dim('(tamanho x frequencia de disparo)')}`)
+  for (const h of heat) {
+    console.log(`  ${h.name.padEnd(34)} ${kb(h.bytes).padStart(8)} x ${h.hits} cenario(s) = ${kb(h.bytes * h.hits).padStart(9)}`)
+  }
+}
+
+console.log(`\n  ${rules.length} rules · ${alwaysOn.length} sempre-on · ${scoped.length} com paths:\n`)
