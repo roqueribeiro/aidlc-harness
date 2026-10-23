@@ -67,6 +67,30 @@
       "categoria": "email",
       "valor": "contato@levelhard.com.br",
       "why": "e-mail de contato do mantenedor para denúncias de conduta, escolhido por ele"
+    },
+    {
+      "file": "README.md",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "docs/assets/diagramas/banner.claro.svg",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "docs/assets/diagramas/banner.escuro.svg",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "scripts/diagramas/diagramas.mjs",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
     }
   ]
 }

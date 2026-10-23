@@ -5,14 +5,19 @@
  * Os numeros que aparecem aqui (quantos hooks, executaveis) NAO sao escritos a mao: vem de
  * `inventario`, lido do disco. Assim um diagrama nao diz 8 hooks quando o kit tem 9.
  */
-import { readdirSync, existsSync } from 'node:fs'
+import { readdirSync, existsSync, readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { largura } from './lib.mjs'
 
 export function inventario(raiz) {
   const kit = join(raiz, 'plugins/aidlc-harness')
   const lista = (dir, filtro = () => true) => (existsSync(join(kit, dir)) ? readdirSync(join(kit, dir)).filter(filtro).sort() : [])
+  let versao = '0.0.0'
+  try {
+    versao = JSON.parse(readFileSync(join(kit, '.claude-plugin/plugin.json'), 'utf8')).version
+  } catch {}
   return {
+    versao,
     hooks: lista('hooks', (f) => f.endsWith('.mjs') && !f.endsWith('.test.mjs')).map((f) => f.replace(/\.mjs$/, '')),
     tools: lista('tools'),
     skills: lista('skills', (d) => existsSync(join(kit, 'skills', d, 'SKILL.md'))),
@@ -344,6 +349,69 @@ function logo(d) {
   d.bruto(marca(128, 128, 112))
 }
 
+/**
+ * O banner do README. Cores fixas da marca (igual nos dois temas): um hero escuro funciona sobre
+ * o fundo claro e o escuro do GitHub. Os numeros vem do disco (`inv`), nunca escritos a mao.
+ */
+function banner(d, inv) {
+  const L = 1280
+  const H = 440
+  const pilula = (x, y, txt, { cor = '#93c5fd', fundo = '#ffffff', op = 0.08, tam = 14 } = {}) => {
+    const w = Math.ceil(largura(txt, tam)) + 26
+    return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="30" rx="15" fill="${fundo}" fill-opacity="${op}" stroke="${cor}" stroke-opacity="0.55"/><text x="${x + 13}" y="${y + 20}" font-size="${tam}" fill="${cor}" font-weight="600">${txt}</text>` }
+  }
+  d.bruto(() =>
+    `<defs>` +
+    `<linearGradient id="bn-fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a1128"/><stop offset="0.6" stop-color="#14246a"/><stop offset="1" stop-color="#1d3a9e"/></linearGradient>` +
+    `<radialGradient id="bn-brilho" cx="0.88" cy="0.05" r="0.6"><stop offset="0" stop-color="#60a5fa" stop-opacity="0.42"/><stop offset="1" stop-color="#60a5fa" stop-opacity="0"/></radialGradient>` +
+    `<pattern id="bn-pontos" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" fill-opacity="0.09"/></pattern>` +
+    `</defs>` +
+    `<rect width="${L}" height="${H}" fill="url(#bn-fundo)"/><rect width="${L}" height="${H}" fill="url(#bn-pontos)"/><rect width="${L}" height="${H}" fill="url(#bn-brilho)"/>`,
+  )
+  d.bruto(marca(150, 128, 74))
+  d.texto(250, 118, 'aidlc-harness', { tam: 66, cor: '#ffffff', negrito: true })
+  d.texto(252, 160, 'Pronto exige evidência. Regra sem mecanismo é decoração.', { tam: 25, cor: '#dbe7ff' })
+  d.texto(252, 194, 'Kit de qualidade de código aberto para desenvolver com agentes de IA no ciclo AI-DLC.', { tam: 17, cor: '#9fb3d9' })
+
+  let x = 252
+  let svg = ''
+  for (const [txt, cor] of [['Claude Code', '#93c5fd'], ['Kiro', '#93c5fd'], ['GitHub Copilot', '#93c5fd'], ['SARIF', '#86efac'], ['RoqueShield', '#86efac'], ['qualquer plataforma de segurança', '#86efac']]) {
+    const p = pilula(x, 214, txt, { cor })
+    svg += p.svg
+    x += p.w + 10
+  }
+  d.bruto(() => svg)
+  const aut = pilula(0, 0, 'Método: levelhard.com.br/aidlc', { cor: '#fcd34d', op: 0.1 })
+  d.bruto(() => `<g transform="translate(${L - 72 - aut.w} 44)">${aut.svg}</g>`)
+
+  // A esteira: o que o kit cobra, em ordem.
+  d.texto(72, 276, 'O QUE O KIT COBRA, EM ORDEM', { tam: 12, cor: '#7f95c4', negrito: true })
+  const passos = [
+    ['Inception', 'requisitos e unidades', '#93c5fd'],
+    ['Aprovação', 'assinada por pessoa', '#c4b5fd'],
+    ['Construction', 'bolts, teste e código', '#86efac'],
+    ['Gate', 'saída crua no chat', '#86efac'],
+    ['Scan', 'limpo ≠ não rodou', '#fcd34d'],
+  ]
+  const bw = 190
+  const gap = (L - 144 - passos.length * bw) / (passos.length - 1)
+  let esteira = ''
+  passos.forEach(([t, sub, cor], i) => {
+    const bx = 72 + i * (bw + gap)
+    esteira += `<rect x="${bx}" y="290" width="${bw}" height="78" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="${cor}" stroke-opacity="0.6"/>`
+    esteira += `<text x="${bx + 16}" y="322" font-size="19" font-weight="700" fill="#ffffff">${t}</text>`
+    esteira += `<text x="${bx + 16}" y="346" font-size="13" fill="${cor}">${sub}</text>`
+    if (i < passos.length - 1) {
+      const ax = bx + bw + 6
+      esteira += `<path d="M${ax} 329 H${ax + gap - 16}" stroke="#9fb3d9" stroke-width="2" stroke-linecap="round"/><path d="M${ax + gap - 18} 322 L${ax + gap - 8} 329 L${ax + gap - 18} 336 Z" fill="#9fb3d9"/>`
+    }
+  })
+  d.bruto(() => esteira)
+
+  const numeros = [`${inv.hooks.length} hooks`, `${inv.agentes.length} agentes`, `${inv.skills.length} skills`, `${inv.comandos.length} comandos`, `${inv.tools.length} executáveis`, `${inv.tecnologias.length} manifestos de stack`, 'MIT', `v${inv.versao}`]
+  d.texto(72, 412, numeros.join('   ·   '), { tam: 15, cor: '#c7d8ff', negrito: true })
+}
+
 function social(d) {
   d.bruto((t) => `<rect width="1280" height="640" fill="${t.fundo}"/>`)
   d.bruto(marca(220, 320, 130))
@@ -367,6 +435,7 @@ export const DIAGRAMAS = [
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
   { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo },
+  { arquivo: 'banner', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA no ciclo AI-DLC', largura: 1280, altura: 440, desenha: banner },
   { arquivo: 'social-preview', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA', largura: 1280, altura: 640, desenha: social },
   { arquivo: 'roqueshield', desc: 'RoqueShield e o kit: o laço de varredura', largura: 1200, altura: 650, desenha: roqueshield },
 ]
