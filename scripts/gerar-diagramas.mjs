@@ -3,7 +3,7 @@
  * Gera os diagramas da documentacao (SVG, tema claro e escuro) a partir do codigo em
  * scripts/diagramas/.
  *
- *   node scripts/gerar-diagramas.mjs          # escreve docs/assets/diagramas/*.svg
+ *   node scripts/gerar-diagramas.mjs          # escreve docs/assets/diagramas/*.svg (pt e en)
  *   node scripts/gerar-diagramas.mjs --check  # reprova se o SVG versionado difere do que o codigo gera
  *
  * O --check e o mecanismo: sem ele, o diagrama envelhece calado e diz "8 hooks" quando o kit
@@ -20,6 +20,8 @@ const argv = process.argv.slice(2)
 const rootArg = argv.indexOf('--root')
 const RAIZ = rootArg >= 0 ? resolve(argv[rootArg + 1]) : AQUI
 const SAIDA = join(RAIZ, 'docs/assets/diagramas')
+/** Idiomas gerados. 'pt' e o padrao (sem sufixo); os demais viram `<nome>.<idioma>.<tema>.svg`. O logo nao tem texto e so existe em 'pt'. */
+export const IDIOMAS = ['pt', 'en']
 const CHECK = argv.includes('--check')
 
 /** Todos os SVG que o codigo produz agora: { 'contexto.claro.svg': '<svg...' }. */
@@ -27,10 +29,12 @@ export function gerarTodos(raiz = RAIZ) {
   const inv = inventario(raiz)
   const out = {}
   for (const dg of DIAGRAMAS) {
-    for (const [nomeTema, tema] of Object.entries(TEMAS)) {
-      const d = new Desenho(dg.desc, dg.largura, dg.altura, tema)
-      dg.desenha(d, inv)
-      out[`${dg.arquivo}.${nomeTema}.svg`] = d.svg()
+    for (const idioma of dg.semIdioma ? ['pt'] : IDIOMAS) {
+      for (const [nomeTema, tema] of Object.entries(TEMAS)) {
+        const d = new Desenho(dg.desc, dg.largura, dg.altura, tema, idioma)
+        dg.desenha(d, inv)
+        out[`${dg.arquivo}${idioma === 'pt' ? '' : '.' + idioma}.${nomeTema}.svg`] = d.svg()
+      }
     }
   }
   return out

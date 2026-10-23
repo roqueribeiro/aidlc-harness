@@ -41,6 +41,8 @@ jobs:
         run: node scripts/gerar-diagramas.mjs --check
       - name: Referência cobre o que existe
         run: node scripts/check-reference.mjs
+      - name: Documentação em inglês acompanha o português
+        run: node scripts/check-i18n.mjs
       - name: Links dos documentos resolvem
         run: node scripts/check-links.mjs
       - name: Nenhum dado pessoal ou de infraestrutura

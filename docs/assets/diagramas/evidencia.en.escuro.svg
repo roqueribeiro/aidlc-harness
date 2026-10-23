@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 650" width="1200" height="650" font-family="system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif" role="img" aria-label="How Stop decides">
+<rect width="1200" height="650" fill="#0b1220"/>
+<defs><marker id="ponta-ambar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#fbbf24"/></marker></defs>
+<defs><marker id="ponta-suave" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#94a3b8"/></marker></defs>
+<text x="32" y="44" font-size="22" font-weight="700" fill="#e2e8f0">How Stop decides: done requires evidence</text>
+<text x="32" y="68" font-size="13" fill="#94a3b8">dod-check reads the tree, the manifest and the transcript. It never traps: every path has an exit.</text>
+<g><rect x="40" y="120" width="220" height="80" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="52" y="144" font-size="15" font-weight="700" fill="#e2e8f0">Agent wants to stop</text><text x="52" y="164" font-size="12" fill="#94a3b8">end of turn</text></g>
+<g><rect x="310" y="120" width="240" height="80" rx="9" fill="#13284d" stroke="#60a5fa" stroke-width="1.4"/><text x="322" y="144" font-size="15" font-weight="700" fill="#e2e8f0">Tree changed?</text><text x="322" y="164" font-size="12" fill="#94a3b8">git status of the project</text></g>
+<g><rect x="600" y="120" width="240" height="80" rx="9" fill="#13284d" stroke="#60a5fa" stroke-width="1.4"/><text x="612" y="144" font-size="15" font-weight="700" fill="#e2e8f0">Known technology?</text><text x="612" y="164" font-size="12" fill="#94a3b8">detection by content</text></g>
+<g><rect x="890" y="120" width="270" height="80" rx="9" fill="#13284d" stroke="#60a5fa" stroke-width="1.4"/><text x="902" y="144" font-size="15" font-weight="700" fill="#e2e8f0">Evidence in chat?</text><text x="902" y="164" font-size="12" fill="#94a3b8">manifest markers</text></g>
+<path d="M260 160 L310 160" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<path d="M550 160 L600 160" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="560" y="151" width="30" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="575" y="164" font-size="11" text-anchor="middle" fill="#94a3b8">yes</text>
+<path d="M840 160 L890 160" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="850" y="151" width="30" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="865" y="164" font-size="11" text-anchor="middle" fill="#94a3b8">yes</text>
+<g><rect x="310" y="260" width="240" height="74" rx="9" fill="#0f2a1b" stroke="#4ade80" stroke-width="1.4"/><text x="322" y="284" font-size="15" font-weight="700" fill="#e2e8f0">Lets go</text><text x="322" y="304" font-size="12" fill="#94a3b8">nothing was delivered to prove</text></g>
+<g><rect x="600" y="260" width="240" height="74" rx="9" fill="#0f2a1b" stroke="#4ade80" stroke-width="1.4"/><text x="612" y="284" font-size="15" font-weight="700" fill="#e2e8f0">Lets go</text><text x="612" y="304" font-size="12" fill="#94a3b8">no criteria, no enforcement</text></g>
+<g><rect x="890" y="260" width="270" height="74" rx="9" fill="#0f2a1b" stroke="#4ade80" stroke-width="1.4"/><text x="902" y="284" font-size="15" font-weight="700" fill="#e2e8f0">Lets go</text><text x="902" y="304" font-size="12" fill="#94a3b8">the gate was pasted</text></g>
+<path d="M430 200 L430 260" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="418.5" y="221" width="23" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="430" y="234" font-size="11" text-anchor="middle" fill="#94a3b8">no</text>
+<path d="M720 200 L720 260" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="708.5" y="221" width="23" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="720" y="234" font-size="11" text-anchor="middle" fill="#94a3b8">no</text>
+<path d="M1025 200 L1025 260" fill="none" stroke="#94a3b8" stroke-width="1.6" marker-end="url(#ponta-suave)"/>
+<rect x="1010" y="221" width="30" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="1025" y="234" font-size="11" text-anchor="middle" fill="#94a3b8">yes</text>
+<g><rect x="890" y="380" width="270" height="100" rx="9" fill="#33250a" stroke="#fbbf24" stroke-width="1.4"/><text x="902" y="404" font-size="15" font-weight="700" fill="#e2e8f0">Refuses the end of the turn</text><text x="902" y="424" font-size="12" fill="#94a3b8">lists what is missing: gate output,</text><text x="902" y="441" font-size="12" fill="#94a3b8">screenshot, reviewer verdict</text></g>
+<path d="M1160 160 L1180 160 L1180 430 L1160 430" fill="none" stroke="#fbbf24" stroke-width="1.6" marker-end="url(#ponta-ambar)"/>
+<rect x="1168.5" y="286" width="23" height="18" rx="4" fill="#0b1220" opacity="0.92"/><text x="1180" y="299" font-size="11" text-anchor="middle" fill="#94a3b8">no</text>
+<g><rect x="40" y="380" width="800" height="100" rx="9" fill="#111a2e" stroke="#334155" stroke-width="1.4"/><text x="52" y="404" font-size="15" font-weight="700" fill="#e2e8f0">Safeguards so it never becomes a trap</text><text x="52" y="424" font-size="12" fill="#94a3b8">3 refusals in one session: becomes a warning and lets go</text><text x="52" y="441" font-size="12" fill="#94a3b8">AIDLC_GATE=0 turns it off; gate_mode accepts block, warn and off</text><text x="52" y="458" font-size="12" fill="#94a3b8">a failure to write the audit log never holds Stop</text></g>
+<g><rect x="40" y="530" width="1120" height="90" rx="9" fill="#241a45" stroke="#a78bfa" stroke-width="1.4"/><text x="52" y="554" font-size="15" font-weight="700" fill="#e2e8f0">Why this matters</text><text x="52" y="574" font-size="12" fill="#94a3b8">A gate that traps gets switched off in the first week. The design bets on asking for little, always, and leaving an exit.</text></g>
+</svg>

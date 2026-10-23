@@ -10,6 +10,8 @@
  * LANCA ERRO se ele nao couber. Um diagrama com texto cortado nao e gerado.
  */
 
+import EN, { PADROES } from './en.mjs'
+
 export const TEMAS = {
   claro: {
     fundo: '#ffffff',
@@ -58,14 +60,37 @@ export const largura = (texto, tam, mono = false) => String(texto).length * tam 
 const esc = (s) => String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 const r2 = (n) => Math.round(n * 100) / 100
 
+/**
+ * Traduz uma string visivel. Em 'pt' e identidade. Em 'en': dicionario exato, depois padroes
+ * (strings com numero), depois a regra de identificador (ver cabecalho de en.mjs). Sem nada disso,
+ * LANCA ERRO com a string: traducao e obrigatoria e completa, nunca cai em portugues calado.
+ */
+export function traduzir(s, idioma = 'pt') {
+  s = String(s)
+  if (idioma === 'pt') return s
+  if (Object.hasOwn(EN, s)) return EN[s]
+  for (const [re, fn] of PADROES) {
+    const m = re.exec(s)
+    if (m) return fn(...m.slice(1))
+  }
+  if (/^\S+$/.test(s) && /[\d./_@*<>:=\-{}"'\[\]()#+%&\\]/.test(s) && !/[^\x20-\x7e·≠]/.test(s)) return s
+  throw new Error(`[en] sem traducao em scripts/diagramas/en.mjs para: ${JSON.stringify(s)}`)
+}
+
 export class Desenho {
-  constructor(nome, largura_, altura, tema) {
-    this.nome = nome
+  constructor(nome, largura_, altura, tema, idioma = 'pt') {
+    this.idioma = idioma
+    this.nome = this.tr(nome)
     this.w = largura_
     this.h = altura
     this.t = tema
     this.partes = []
     this.defs = []
+  }
+
+  /** Traduz uma string visivel para o idioma deste desenho. */
+  tr(s) {
+    return traduzir(s, this.idioma)
   }
 
   #cor(k) {
@@ -74,8 +99,8 @@ export class Desenho {
 
   /** Titulo e subtitulo do diagrama, no topo. */
   titulo(texto, sub) {
-    this.partes.push(`<text x="32" y="44" font-size="22" font-weight="700" fill="${this.t.texto}">${esc(texto)}</text>`)
-    if (sub) this.partes.push(`<text x="32" y="68" font-size="13" fill="${this.t.suave}">${esc(sub)}</text>`)
+    this.partes.push(`<text x="32" y="44" font-size="22" font-weight="700" fill="${this.t.texto}">${esc(this.tr(texto))}</text>`)
+    if (sub) this.partes.push(`<text x="32" y="68" font-size="13" fill="${this.t.suave}">${esc(this.tr(sub))}</text>`)
     return this
   }
 
@@ -84,7 +109,7 @@ export class Desenho {
     this.partes.push(
       `<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="${this.#cor(cor)}" stroke="${this.#cor(borda)}" stroke-width="1.2"${tracejado ? ' stroke-dasharray="6 5"' : ''}/>`,
     )
-    if (rotulo) this.partes.push(`<text x="${x + 14}" y="${y + 22}" font-size="12" font-weight="700" letter-spacing="0.6" fill="${this.t.suave}">${esc(rotulo.toUpperCase())}</text>`)
+    if (rotulo) this.partes.push(`<text x="${x + 14}" y="${y + 22}" font-size="12" font-weight="700" letter-spacing="0.6" fill="${this.t.suave}">${esc(this.tr(rotulo).toUpperCase())}</text>`)
     return this
   }
 
@@ -95,6 +120,8 @@ export class Desenho {
   caixa(x, y, w, h, titulo, linhas = [], { tipo = 'neutro', mono = false, tamanho = 14 } = {}) {
     const fundo = { neutro: 'caixa', destaque: 'destaqueFundo', verde: 'verdeFundo', ambar: 'ambarFundo', vermelho: 'vermelhoFundo', roxo: 'roxoFundo' }[tipo]
     const borda = { neutro: 'borda', destaque: 'destaque', verde: 'verde', ambar: 'ambar', vermelho: 'vermelho', roxo: 'roxo' }[tipo]
+    if (!mono) linhas = linhas.map((l) => this.tr(l))
+    titulo = this.tr(titulo)
     const util = w - 20
     if (largura(titulo, tamanho + 1) > util) throw new Error(`[${this.nome}] titulo "${titulo}" nao cabe em ${w}px (precisa ${Math.ceil(largura(titulo, tamanho + 1))})`)
     for (const l of linhas) {
@@ -114,7 +141,8 @@ export class Desenho {
   }
 
   /** Um rotulo solto (sem caixa). */
-  texto(x, y, conteudo, { tam = 12, cor = 'suave', negrito = false, ancora = 'start', mono = false } = {}) {
+  texto(x, y, conteudo, { tam = 12, cor = 'suave', negrito = false, ancora = 'start', mono = false, traduzido = false } = {}) {
+    if (!traduzido) conteudo = this.tr(conteudo)
     this.partes.push(
       `<text x="${x}" y="${y}" font-size="${tam}" text-anchor="${ancora}" fill="${this.#cor(cor)}"${negrito ? ' font-weight="700"' : ''}${mono ? ` font-family="${MONO}"` : ''}>${esc(conteudo)}</text>`,
     )
@@ -123,6 +151,7 @@ export class Desenho {
 
   /** Um chip (etiqueta curta arredondada). */
   chip(x, y, conteudo, { tipo = 'neutro', mono = true } = {}) {
+    if (!mono) conteudo = this.tr(conteudo)
     const w = Math.ceil(largura(conteudo, 11, mono)) + 18
     const fundo = { neutro: 'caixa', destaque: 'destaqueFundo', verde: 'verdeFundo', ambar: 'ambarFundo', vermelho: 'vermelhoFundo', roxo: 'roxoFundo' }[tipo]
     const borda = { neutro: 'borda', destaque: 'destaque', verde: 'verde', ambar: 'ambar', vermelho: 'vermelho', roxo: 'roxo' }[tipo]
@@ -137,6 +166,7 @@ export class Desenho {
    * Seta ortogonal por uma lista de pontos. `rotulo` fica no meio do primeiro segmento mais longo.
    */
   seta(pontos, { rotulo, tracejado = false, cor = 'suave', dupla = false } = {}) {
+    if (rotulo) rotulo = this.tr(rotulo)
     const c = this.#cor(cor)
     const id = `ponta-${cor.replace(/[^a-z0-9]/gi, '')}`
     if (!this.defs.includes(id)) {

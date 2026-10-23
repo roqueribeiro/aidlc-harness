@@ -70,6 +70,14 @@
       "$why": "Um diagrama e um documento descreveram, com detalhes, um subcomando que nunca existiu (aidlc-phase approve). Documentação grande envelhece calada; o check cobra a referência contra o disco e cada comando citado contra os executáveis reais."
     },
     {
+      "id": "i18n",
+      "label": "A documentação em inglês acompanha a em português",
+      "cmd": "node scripts/check-i18n.mjs",
+      "blocking": true,
+      "platform": "any",
+      "$why": "Tradução diverge calada: o original muda, o par em inglês continua dizendo o antigo, ou perde uma seção no caminho. O check compara a forma, cobra o hash do original e acusa português sobrando na prosa em inglês."
+    },
+    {
       "id": "links",
       "label": "Todo link relativo dos documentos resolve (arquivo e âncora)",
       "cmd": "node scripts/check-links.mjs",

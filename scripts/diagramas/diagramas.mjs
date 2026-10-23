@@ -357,6 +357,7 @@ function banner(d, inv) {
   const L = 1280
   const H = 440
   const pilula = (x, y, txt, { cor = '#93c5fd', fundo = '#ffffff', op = 0.08, tam = 14 } = {}) => {
+    txt = d.tr(txt)
     const w = Math.ceil(largura(txt, tam)) + 26
     return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="30" rx="15" fill="${fundo}" fill-opacity="${op}" stroke="${cor}" stroke-opacity="0.55"/><text x="${x + 13}" y="${y + 20}" font-size="${tam}" fill="${cor}" font-weight="600">${txt}</text>` }
   }
@@ -399,8 +400,8 @@ function banner(d, inv) {
   passos.forEach(([t, sub, cor], i) => {
     const bx = 72 + i * (bw + gap)
     esteira += `<rect x="${bx}" y="290" width="${bw}" height="78" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="${cor}" stroke-opacity="0.6"/>`
-    esteira += `<text x="${bx + 16}" y="322" font-size="19" font-weight="700" fill="#ffffff">${t}</text>`
-    esteira += `<text x="${bx + 16}" y="346" font-size="13" fill="${cor}">${sub}</text>`
+    esteira += `<text x="${bx + 16}" y="322" font-size="19" font-weight="700" fill="#ffffff">${d.tr(t)}</text>`
+    esteira += `<text x="${bx + 16}" y="346" font-size="13" fill="${cor}">${d.tr(sub)}</text>`
     if (i < passos.length - 1) {
       const ax = bx + bw + 6
       esteira += `<path d="M${ax} 329 H${ax + gap - 16}" stroke="#9fb3d9" stroke-width="2" stroke-linecap="round"/><path d="M${ax + gap - 18} 322 L${ax + gap - 8} 329 L${ax + gap - 18} 336 Z" fill="#9fb3d9"/>`
@@ -409,7 +410,7 @@ function banner(d, inv) {
   d.bruto(() => esteira)
 
   const numeros = [`${inv.hooks.length} hooks`, `${inv.agentes.length} agentes`, `${inv.skills.length} skills`, `${inv.comandos.length} comandos`, `${inv.tools.length} executáveis`, `${inv.tecnologias.length} manifestos de stack`, 'MIT', `v${inv.versao}`]
-  d.texto(72, 412, numeros.join('   ·   '), { tam: 15, cor: '#c7d8ff', negrito: true })
+  d.texto(72, 412, numeros.map((n) => d.tr(n)).join('   ·   '), { tam: 15, cor: '#c7d8ff', negrito: true, traduzido: true })
 }
 
 function social(d) {
@@ -434,7 +435,7 @@ export const DIAGRAMAS = [
   { arquivo: 'multiferramenta', desc: 'Uma fonte de instruções, três ferramentas', largura: 1200, altura: 630, desenha: multiferramenta },
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
-  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo },
+  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true },
   { arquivo: 'banner', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA no ciclo AI-DLC', largura: 1280, altura: 440, desenha: banner },
   { arquivo: 'social-preview', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA', largura: 1280, altura: 640, desenha: social },
   { arquivo: 'roqueshield', desc: 'RoqueShield e o kit: o laço de varredura', largura: 1200, altura: 650, desenha: roqueshield },

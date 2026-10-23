@@ -33,7 +33,7 @@ Identidade (`aidlc-identity`), testes, sintaxe de todo `.mjs`, manifestos contra
 ## Regras de conteúdo
 
 - **Nada que identifique pessoa, empresa ou infraestrutura.** Sem nomes de clientes, sistemas internos, IPs, hostnames, e-mails ou caminhos de home. O `aidlc-identity` barra os formatos; os nomes dependem de você. Se o seu exemplo precisa de um nome, use um fictício óbvio (`app-exemplo`, `fulano`).
-- **Texto novo em português do Brasil**, direto, sem enfeite. Tradução para inglês é muito bem-vinda em PR separado.
+- **Texto novo em português do Brasil**, direto, sem enfeite. Quem muda um documento em português atualiza o par em `docs/en/` no mesmo PR, e depois roda `node scripts/check-i18n.mjs --atualizar`; o `check-i18n` reprova o PR que deixa o inglês para trás.
 - **Não afirme o que você não verificou.** Se algo foi testado só em Linux, diga. A seção "Limites conhecidos" do README existe para isso, e contribuições que a encolham com evidência (um teste em macOS ou Windows, por exemplo) são das mais valiosas.
 - **Não copie texto de terceiros.** Cite e linke. A descrição do AI-DLC é da AWS; o `docs/AIDLC.md` resume e aponta para a fonte.
 
@@ -65,4 +65,4 @@ Este projeto segue o [Código de Conduta](CODE_OF_CONDUCT.md).
 
 ## English summary
 
-Open an issue first for anything non-trivial. Every new check ships with a mutant (break the code on purpose and show the test fails). Run `node --test` and the `scripts/check-*.mjs` before opening a PR. No personal, company or infrastructure identifiers anywhere: `aidlc-identity` must pass. Sign off every commit (`git commit -s`, DCO). Security issues go through private reporting, see SECURITY.md. Docs are Brazilian Portuguese first; English translations are welcome as separate PRs.
+Open an issue first for anything non-trivial. Every new check ships with a mutant (break the code on purpose and show the test fails). Run `node --test` and the `scripts/check-*.mjs` before opening a PR. No personal, company or infrastructure identifiers anywhere: `aidlc-identity` must pass. Sign off every commit (`git commit -s`, DCO). Security issues go through private reporting, see SECURITY.md. Docs are Brazilian Portuguese first, with an English pair under `docs/en/` that you update in the same PR (`node scripts/check-i18n.mjs`).

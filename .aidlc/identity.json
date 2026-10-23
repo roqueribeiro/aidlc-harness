@@ -87,10 +87,40 @@
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
     },
     {
+      "file": "docs/assets/diagramas/banner.en.claro.svg",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "docs/assets/diagramas/banner.en.escuro.svg",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
       "file": "scripts/diagramas/diagramas.mjs",
       "categoria": "termo",
       "valor": "levelhard",
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "scripts/diagramas/en.mjs",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "README.en.md",
+      "categoria": "termo",
+      "valor": "levelhard",
+      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
+    },
+    {
+      "file": "docs/en/ROQUESHIELD.md",
+      "categoria": "termo",
+      "valor": "roqueos",
+      "why": "parte do endereço público do repositório do RoqueShield citado no documento"
     }
   ]
 }

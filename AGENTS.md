@@ -27,6 +27,7 @@ O kit de qualidade para desenvolvimento com agentes de IA no ciclo AI-DLC. Este 
 - Manifestos: `node scripts/check-quality-manifests.mjs`
 - Documentação: `node scripts/check-docs-consistency.mjs` e `node scripts/gerar-prompts.mjs --check`
 - Diagramas, referência e links: `node scripts/gerar-diagramas.mjs --check`, `node scripts/check-reference.mjs` e `node scripts/check-links.mjs`
+- Documentação em inglês (`docs/en/`, `README.en.md`): `node scripts/check-i18n.mjs`. Mudou um documento em português, atualize o par e rode `--atualizar` depois de rever
 - Identidade: `node plugins/aidlc-harness/tools/aidlc-identity`
 - Validação oficial do plugin: `claude plugin validate ./plugins/aidlc-harness --strict`
 

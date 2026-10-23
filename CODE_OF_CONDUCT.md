@@ -31,20 +31,34 @@ Quem for bloqueado pode pedir revisão pelo mesmo endereço.
 
 ---
 
-## Code of conduct (English)
+## English
+
+*Translation of the Portuguese text above. If they differ, the Portuguese one wins.*
 
 This applies to this repository and to every issue, pull request and discussion in the
-roqueribeiro organization, for maintainers and newcomers alike, in the spirit of the
+roqueribeiro organization, for those who maintain it as much as for those who just arrived. The
+text follows the spirit of the
 [Contributor Covenant 2.1](https://www.contributor-covenant.org/version/2/1/code_of_conduct/).
 
-Critique code and ideas, never people. Everyone is welcome regardless of age, origin,
-language, body, identity or experience; beginner questions are legitimate questions.
-Disagreements are settled with arguments and, when possible, with a test.
+### The agreement
 
-Harassment, sexual jokes or imagery, threats, doxxing, insisting on contact someone has
-refused, spam, scams and code that tries to hide from the reviewer get people removed.
+- Criticism goes to the code or the idea, never to the person.
+- People of any age, place, language, body, identity and level of experience are welcome.
+  A beginner's question is a legitimate question.
+- Disagreement is settled with arguments and, when possible, with a test.
+- Whoever made a mistake fixes it and moves on. Nobody needs to apologize three times.
 
-Report to **contato@levelhard.com.br** with a link to what happened. The maintainer reads it,
-the reporter's name stays private, and you get an answer within seven days. Consequences go
-from a private warning to a ban from the organization, and a ban can be appealed at the same
-address.
+### What gets someone removed from the project
+
+- Harassment, insults, sexual jokes or imagery, threats.
+- Exposing someone's personal data (address, phone, account) without permission.
+- Insisting on contact the other person has already refused.
+- Spam, scams, malicious links or code that tries to hide from the reviewer.
+
+### How to report
+
+Write to **contato@levelhard.com.br** with the link to what happened. The maintainer receives
+it, and the reporter's name does not leave there. The answer comes within seven days.
+
+Depending on the case, the consequence goes from a private warning to a ban from the
+organization. Whoever is banned can ask for a review at the same address.

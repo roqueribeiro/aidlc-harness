@@ -22,7 +22,7 @@
   <a href="docs/INTEGRACOES.md">Integrações</a> ·
   <a href="https://levelhard.com.br/aidlc">O método na prática</a> ·
   <a href="CONTRIBUTING.md">Contribuir</a> ·
-  <a href="#english-summary">English</a>
+  <a href="README.en.md">English</a>
 </p>
 
 ---
@@ -80,8 +80,8 @@ Uma regra atravessa tudo: **regra sem mecanismo é decoração.** Cada norma des
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **365 passam, 0 falham** | Linux (Node 22) e macOS arm64 (Node 22.23.2), cada um em um clone limpo |
-| Gate do próprio repositório (`aidlc-gate`) | **11 de 11 passam** | Em clone limpo no macOS; os mesmos checks rodam no CI a cada push |
+| Suíte de testes (`node --test`) | **380 passam, 0 falham** no Linux | Linux (Node 22). No macOS arm64 (Node 22.23.2), os 365 testes da versão anterior passaram em clone limpo; os 15 novos ainda não rodaram lá |
+| Gate do próprio repositório (`aidlc-gate`) | **12 de 12 passam** no Linux | Em clone limpo; no macOS, 11 de 11 passaram na versão anterior (ainda não reexecutado). Os mesmos checks rodam no CI a cada push |
 | `claude plugin validate --strict` | passa (plugin e marketplace) | Linux |
 | Mecanismos novos | cada um com **mutante** que reprova | Os testes de mutação estão ao lado do código |
 | Hooks dentro do Claude Code no macOS | **não exercitados** | Só a suíte e o gate rodaram lá |
@@ -240,7 +240,7 @@ O mapa completo está em **[docs/INDEX.md](docs/INDEX.md)**. Os principais:
 
 Dito sem enfeite, para você não descobrir na hora errada:
 
-- **Testado:** Linux e macOS (arm64), com Node 22. As suítes do repositório (`node --test`) cobrem hooks, fases, scanner de identidade, `aidlc-init`, instalação e manifestos, e cada mecanismo novo foi testado com mutantes. No macOS rodaram a suíte e o gate, em uma máquina.
+- **Testado:** Linux e macOS (arm64), com Node 22. As suítes do repositório (`node --test`) cobrem hooks, fases, scanner de identidade, `aidlc-init`, instalação e manifestos, e cada mecanismo novo foi testado com mutantes. No macOS rodaram a suíte e o gate da versão anterior, em uma máquina.
 - **Não testado em máquina real:** Windows (o `setup` gera atalhos `.cmd`, mas ninguém os executou), Kiro e Copilot. As convenções de arquivo dessas duas ferramentas foram conferidas na documentação pública, e a documentação muda. O piso declarado de Node é 20.19, mas só o 22 foi exercitado; o CI roda uma matriz.
 - **A ligação com o RoqueShield foi validada contra a documentação dele**, com relatórios sintéticos, não contra uma instância em execução. O SARIF e o formato neutro são testados com os exemplos de `docs/exemplos/scan/`; a invocação de cada scanner externo, não.
 - **Hooks só existem no Claude Code.** Em Kiro e Copilot, o que impede um "pronto" sem evidência é o CI e a revisão humana.
@@ -257,7 +257,7 @@ Sem datas prometidas. É o que ainda não existe:
 - [ ] "Achado aceito com prazo" no `aidlc-scan` (existe no `aidlc-secscan`, por allowlist com `# expira:`).
 - [ ] Teste do laço completo contra uma instância do RoqueShield, e das receitas de cada scanner externo.
 - [ ] Verificação em Windows, Kiro e Copilot, com relato de quem usar.
-- [ ] Documentação em inglês (hoje só este resumo; traduções são bem-vindas).
+- [x] Documentação em inglês: [README.en.md](README.en.md) e [docs/en/](docs/en/INDEX.md) (o português é a versão principal, e o `check-i18n` cobra o par).
 - [ ] Adaptador para o Codex (decisão de escopo: fora da 0.1).
 
 ## Contribuir, segurança e licença
@@ -271,4 +271,4 @@ Sem datas prometidas. É o que ainda não existe:
 
 `aidlc-harness` is an open-source quality harness for building software with AI agents following the AI-DLC cycle (Inception, Construction, Operations). Acceptance criteria are executable data (`quality/*.json`), "done" requires pasted gate output, and phase approvals must be filled in by a human (`aidlc-phase check`). One `AGENTS.md` source generates the instruction files for Claude Code, Kiro and GitHub Copilot. Hooks that actually block run only in Claude Code; for Kiro and Copilot the CI workflow is the enforcement point. An identity scanner (`aidlc-identity`) keeps IPs, emails, home paths, internal hostnames, secrets and your own denylist terms out of the repository. `aidlc-scan` reads the report of any security platform (SARIF, a neutral format, or the AI Fix Bundle of the open-source [RoqueShield](docs/ROQUESHIELD.md), which the kit does not depend on) and separates three outcomes, not two: clean (0), failed (1), and **did not run** (2). A scan that did not run is never clean.
 
-Status: pre-release 0.1.0. The test suite (365 tests) and the repository's own gate pass on Linux and on macOS arm64 with Node 22; Windows, Kiro and Copilot are untested. This is an interpretation of AI-DLC, not AWS documentation. Documentation is in Brazilian Portuguese first; English translations of the guides are welcome (see [CONTRIBUTING.md](CONTRIBUTING.md)). The method behind the kit is explained (in Portuguese) at [levelhard.com.br/aidlc](https://levelhard.com.br/aidlc).
+Status: pre-release 0.1.0. The test suite and the repository's own gate pass on Linux with Node 22, and passed on macOS arm64 in an earlier revision; Windows, Kiro and Copilot are untested. This is an interpretation of AI-DLC, not AWS documentation. Documentation is in Brazilian Portuguese first, with a full English translation in [README.en.md](README.en.md) and [docs/en/](docs/en/INDEX.md), kept in step by a CI check. The method behind the kit is explained (in Portuguese) at [levelhard.com.br/aidlc](https://levelhard.com.br/aidlc).

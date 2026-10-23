@@ -49,14 +49,18 @@ export const SUBCOMANDOS = {
 const problemas = []
 
 // 1. FALTA ----------------------------------------------------------------------------------
-const refPath = join(RAIZ, 'docs/REFERENCIA.md')
-if (!existsSync(refPath)) {
-  problemas.push('docs/REFERENCIA.md nao existe')
-} else {
+// A referencia em portugues e a em ingles cobram o mesmo inventario.
+for (const rel of ['docs/REFERENCIA.md', 'docs/en/REFERENCE.md']) {
+  const refPath = join(RAIZ, rel)
+  if (!existsSync(refPath)) {
+    if (rel === 'docs/REFERENCIA.md') problemas.push('docs/REFERENCIA.md nao existe')
+    else problemas.push(`${rel} nao existe (a referencia em ingles cobre o mesmo inventario)`)
+    continue
+  }
   const ref = readFileSync(refPath, 'utf8')
   const cobra = (rotulo, nomes, forma) => {
     for (const n of nomes) {
-      if (!ref.includes(forma(n))) problemas.push(`REFERENCIA.md nao documenta ${rotulo} "${n}" (esperava "${forma(n)}")`)
+      if (!ref.includes(forma(n))) problemas.push(`${rel} nao documenta ${rotulo} "${n}" (esperava "${forma(n)}")`)
     }
   }
   cobra('o hook', inventario.hooks, (n) => `\`${n}\``)
@@ -70,15 +74,18 @@ if (!existsSync(refPath)) {
 const nomesValidos = new Set([...inventario.tools, ...inventario.skills, 'aidlc-harness'])
 const docs = [
   'README.md',
+  'README.en.md',
   'CONTRIBUTING.md',
   'AGENTS.md',
   'OPERATING-MODEL.md',
-  ...(existsSync(join(RAIZ, 'docs'))
-    ? readdirSync(join(RAIZ, 'docs'))
-        .filter((f) => f.endsWith('.md'))
-        .sort()
-        .map((f) => `docs/${f}`)
-    : []),
+  ...['docs', 'docs/en'].flatMap((pasta) =>
+    existsSync(join(RAIZ, pasta))
+      ? readdirSync(join(RAIZ, pasta))
+          .filter((f) => f.endsWith('.md'))
+          .sort()
+          .map((f) => `${pasta}/${f}`)
+      : [],
+  ),
 ]
 for (const doc of docs) {
   const p = join(RAIZ, doc)

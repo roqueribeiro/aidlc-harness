@@ -6,6 +6,8 @@ import { tmpdir } from 'node:os'
 import { join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Desenho, TEMAS } from './diagramas/lib.mjs'
+import { DIAGRAMAS } from './diagramas/diagramas.mjs'
+import EN from './diagramas/en.mjs'
 import { gerarTodos } from './gerar-diagramas.mjs'
 
 const RAIZ = join(fileURLToPath(new URL('.', import.meta.url)), '..')
@@ -35,7 +37,7 @@ describe('gerar-diagramas', () => {
     const todos = gerarTodos()
     const nomes = Object.keys(todos)
     assert.ok(nomes.length >= 18)
-    for (const n of nomes) assert.match(n, /\.(claro|escuro)\.svg$/)
+    for (const n of nomes) assert.match(n, /\.(en\.)?(claro|escuro)\.svg$/)
     for (const n of nomes.filter((n) => n.endsWith('.claro.svg'))) assert.ok(nomes.includes(n.replace('.claro.', '.escuro.')), `${n} sem par escuro`)
     for (const [n, svg] of Object.entries(todos)) {
       assert.ok(svg.startsWith('<svg '), n)
@@ -43,6 +45,61 @@ describe('gerar-diagramas', () => {
       assert.equal((svg.match(/<g[ >]/g) || []).length, (svg.match(/<\/g>/g) || []).length, `${n}: <g> desbalanceado`)
       assert.equal((svg.match(/<text /g) || []).length, (svg.match(/<\/text>/g) || []).length, `${n}: <text> desbalanceado`)
     }
+  })
+
+  test('en: todo diagrama com texto tem as 4 variantes (pt e en, claro e escuro) e só o logo fica sem en', () => {
+    const nomes = Object.keys(gerarTodos())
+    for (const dg of DIAGRAMAS) {
+      const esperados = dg.semIdioma ? [''] : ['', '.en']
+      for (const idioma of esperados) for (const tema of ['claro', 'escuro']) assert.ok(nomes.includes(`${dg.arquivo}${idioma}.${tema}.svg`), `${dg.arquivo}${idioma}.${tema}.svg faltando`)
+    }
+    assert.ok(DIAGRAMAS.find((d) => d.arquivo === 'logo').semIdioma)
+    assert.ok(!nomes.some((n) => n.startsWith('logo.en.')))
+    for (const n of nomes.filter((n) => n.includes('.en.claro.'))) assert.ok(nomes.includes(n.replace('.claro.', '.escuro.')), `${n} sem par escuro`)
+    assert.ok(nomes.filter((n) => n.includes('.en.')).length >= 22)
+  })
+
+  test('en: nenhuma letra acentuada do português sobra no texto visível dos SVG en', () => {
+    // Excecoes declaradas: nenhuma. O unico caractere nao ASCII permitido e o simbolo '≠' (limpo ≠ não rodou).
+    const texto = (svg) => [...svg.matchAll(/<text [^>]*>([^<]*)<\/text>/g)].map((m) => m[1]).join('\n')
+    const todos = gerarTodos()
+    for (const [n, svg] of Object.entries(todos).filter(([n]) => n.includes('.en.'))) {
+      assert.doesNotMatch(texto(svg), /[ãõçáéíóúâêôàÃÕÇÁÉÍÓÚÂÊÔÀ]/, `${n}: sobrou letra acentuada em texto visível`)
+      assert.doesNotMatch(svg, /aria-label="[^"]*[ãõçáéíóúâêôà]/i, `${n}: aria-label em português`)
+      assert.ok(!svg.includes('\u2014'), `${n}: travessão`)
+    }
+  })
+
+  test('en: o dicionário não tem travessão nem chave duplicada por engano, e os valores nunca ficam vazios', () => {
+    for (const [k, v] of Object.entries(EN)) {
+      assert.ok(v.length > 0, k)
+      assert.ok(!v.includes('\u2014'), `${k}: travessão`)
+    }
+  })
+
+  test('mutante de contrato: string sem tradução faz o gerador lançar erro listando a string', () => {
+    const d = new Desenho('Contexto do sistema', 400, 200, TEMAS.claro, 'en')
+    assert.throws(() => d.texto(0, 0, 'frase sem tradução nenhuma'), /sem traducao.*frase sem tradução nenhuma/)
+    assert.throws(() => d.caixa(0, 0, 300, 90, 'Equipe nova', []), /sem traducao.*Equipe nova/)
+    assert.throws(() => d.texto(0, 0, 'Cozinha'), /sem traducao/, 'palavra simples sem símbolo não passa de graça')
+    assert.doesNotThrow(() => d.texto(0, 0, 'aidlc-gate'))
+    assert.equal(new Desenho('x', 1, 1, TEMAS.claro, 'pt').tr('qualquer coisa'), 'qualquer coisa')
+  })
+
+  test('mutante: tirar uma entrada do dicionário faz o gerador reprovar (em subprocesso, sem tocar no repo)', () => {
+    const base = mkdtempSync(join(tmpdir(), 'aidlc-en-'))
+    cpSync(join(RAIZ, 'scripts'), join(base, 'scripts'), { recursive: true })
+    cpSync(join(RAIZ, 'plugins'), join(base, 'plugins'), { recursive: true })
+    mkdirSync(join(base, 'docs/assets'), { recursive: true })
+    const en = join(base, 'scripts/diagramas/en.mjs')
+    const orig = readFileSync(en, 'utf8')
+    const mutada = orig.replace("  'Trivy (embutido)': 'Trivy (built in)',\n", '')
+    assert.notEqual(mutada, orig, 'o mutante precisa mexer no dicionário')
+    writeFileSync(en, mutada)
+    const r = spawnSync(process.execPath, [join(base, 'scripts/gerar-diagramas.mjs'), '--root', base], { encoding: 'utf8' })
+    rmSync(base, { recursive: true, force: true })
+    assert.notEqual(r.status, 0)
+    assert.match(r.stderr, /sem traducao.*Trivy \(embutido\)/)
   })
 
   test('os dois temas usam o fundo do próprio tema', () => {
