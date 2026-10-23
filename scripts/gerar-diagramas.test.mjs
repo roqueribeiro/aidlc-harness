@@ -40,7 +40,7 @@ describe('gerar-diagramas', () => {
     for (const [n, svg] of Object.entries(todos)) {
       assert.ok(svg.startsWith('<svg '), n)
       assert.ok(svg.trimEnd().endsWith('</svg>'), n)
-      assert.equal((svg.match(/<g>/g) || []).length, (svg.match(/<\/g>/g) || []).length, `${n}: <g> desbalanceado`)
+      assert.equal((svg.match(/<g[ >]/g) || []).length, (svg.match(/<\/g>/g) || []).length, `${n}: <g> desbalanceado`)
       assert.equal((svg.match(/<text /g) || []).length, (svg.match(/<\/text>/g) || []).length, `${n}: <text> desbalanceado`)
     }
   })
