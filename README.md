@@ -80,8 +80,8 @@ One rule runs through everything: **a rule without a mechanism is decoration.** 
 
 | Item | Status | How it was measured |
 | --- | --- | --- |
-| Test suite (`node --test`) | **381 pass, 0 fail** on Linux | Linux (Node 22). On macOS arm64 (Node 22.23.2), the 365 tests of an earlier revision passed on a clean clone; the newer ones have not run there yet |
-| The repository's own gate (`aidlc-gate`) | **12 of 12 pass** on Linux | On a clean clone; on macOS, 11 of 11 passed in the previous revision (not re-run yet). The same checks run in CI on every push |
+| Test suite (`node --test`) | **383 pass, 0 fail** | Linux (Node 22) and macOS 27 arm64 (Node 22.23.2), each on a clean clone of the same commit |
+| The repository's own gate (`aidlc-gate`) | **12 of 12 pass** | On a clean clone, on Linux and on macOS. The same checks run in CI on every push |
 | `claude plugin validate --strict` | passes (plugin and marketplace) | Linux |
 | New mechanisms | each with a **mutant** that fails | The mutation tests sit next to the code |
 | Hooks inside Claude Code on macOS | **not exercised** | Only the suite and the gate ran there |
@@ -240,7 +240,7 @@ The full map is in **[docs/INDEX.md](docs/INDEX.md)**. The main ones:
 
 Stated plainly, so you do not find out at the wrong moment:
 
-- **Tested:** Linux and macOS (arm64), with Node 22. The repository suites (`node --test`) cover hooks, phases, the identity scanner, `aidlc-init`, installation and manifests, and each new mechanism was tested with mutants. On macOS the suite and the gate of the previous revision ran, on one machine.
+- **Tested:** Linux and macOS (arm64), with Node 22. The repository suites (`node --test`) cover hooks, phases, the identity scanner, `aidlc-init`, installation and manifests, and each new mechanism was tested with mutants. On macOS the suite and the gate ran on one machine; that run caught a real bug (a script reached through a symlinked path exited 0 without running), now fixed with a test.
 - **Not tested on a real machine:** Windows (`setup` generates `.cmd` shortcuts, but nobody ran them), Kiro and Copilot. The file conventions of those two tools were checked against public documentation, and documentation changes. The declared Node floor is 20.19, but only 22 was exercised; CI runs a matrix.
 - **The RoqueShield link was validated against its documentation**, with synthetic reports, not against a running instance. SARIF and the neutral format are tested with the examples in `docs/exemplos/scan/`; the invocation of each external scanner is not.
 - **Hooks exist only in Claude Code.** In Kiro and Copilot, what prevents a "done" without evidence is CI and human review.

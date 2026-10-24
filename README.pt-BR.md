@@ -80,8 +80,8 @@ Uma regra atravessa tudo: **regra sem mecanismo é decoração.** Cada norma des
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **381 passam, 0 falham** no Linux | Linux (Node 22). No macOS arm64 (Node 22.23.2), os 365 testes de uma versão anterior passaram em clone limpo; os mais novos ainda não rodaram lá |
-| Gate do próprio repositório (`aidlc-gate`) | **12 de 12 passam** no Linux | Em clone limpo; no macOS, 11 de 11 passaram na versão anterior (ainda não reexecutado). Os mesmos checks rodam no CI a cada push |
+| Suíte de testes (`node --test`) | **383 passam, 0 falham** | Linux (Node 22) e macOS 27 arm64 (Node 22.23.2), cada um em um clone limpo do mesmo commit |
+| Gate do próprio repositório (`aidlc-gate`) | **12 de 12 passam** | Em clone limpo, no Linux e no macOS. Os mesmos checks rodam no CI a cada push |
 | `claude plugin validate --strict` | passa (plugin e marketplace) | Linux |
 | Mecanismos novos | cada um com **mutante** que reprova | Os testes de mutação estão ao lado do código |
 | Hooks dentro do Claude Code no macOS | **não exercitados** | Só a suíte e o gate rodaram lá |
@@ -240,7 +240,7 @@ O mapa completo está em **[docs/pt-BR/INDEX.md](docs/pt-BR/INDEX.md)**. Os prin
 
 Dito sem enfeite, para você não descobrir na hora errada:
 
-- **Testado:** Linux e macOS (arm64), com Node 22. As suítes do repositório (`node --test`) cobrem hooks, fases, scanner de identidade, `aidlc-init`, instalação e manifestos, e cada mecanismo novo foi testado com mutantes. No macOS rodaram a suíte e o gate da versão anterior, em uma máquina.
+- **Testado:** Linux e macOS (arm64), com Node 22. As suítes do repositório (`node --test`) cobrem hooks, fases, scanner de identidade, `aidlc-init`, instalação e manifestos, e cada mecanismo novo foi testado com mutantes. No macOS rodaram a suíte e o gate, em uma máquina; essa rodada pegou um defeito real (um script chamado por um caminho com link simbólico saía com 0 sem rodar), já corrigido com teste.
 - **Não testado em máquina real:** Windows (o `setup` gera atalhos `.cmd`, mas ninguém os executou), Kiro e Copilot. As convenções de arquivo dessas duas ferramentas foram conferidas na documentação pública, e a documentação muda. O piso declarado de Node é 20.19, mas só o 22 foi exercitado; o CI roda uma matriz.
 - **A ligação com o RoqueShield foi validada contra a documentação dele**, com relatórios sintéticos, não contra uma instância em execução. O SARIF e o formato neutro são testados com os exemplos de `docs/exemplos/scan/`; a invocação de cada scanner externo, não.
 - **Hooks só existem no Claude Code.** Em Kiro e Copilot, o que impede um "pronto" sem evidência é o CI e a revisão humana.
