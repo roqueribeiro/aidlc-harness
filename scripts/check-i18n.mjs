@@ -18,6 +18,7 @@
  */
 import { createHash } from 'node:crypto'
 import { existsSync, readFileSync, writeFileSync } from 'node:fs'
+import { ehPrincipal } from './lib/principal.mjs'
 import { dirname, join, relative, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -152,7 +153,7 @@ export function atualizar(raiz) {
   return out
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (ehPrincipal(import.meta.url)) {
   if (ATUALIZAR) {
     const o = atualizar(RAIZ)
     console.log(`hashes gravados em ${ARQ_HASH} para ${Object.keys(o).length} documentos. Rode so depois de rever o par em portugues.`)

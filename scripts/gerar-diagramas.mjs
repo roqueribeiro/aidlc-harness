@@ -10,6 +10,7 @@
  * tem 9. O CI roda o --check.
  */
 import { readFileSync, writeFileSync, mkdirSync, existsSync, readdirSync } from 'node:fs'
+import { ehPrincipal } from './lib/principal.mjs'
 import { join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { Desenho, TEMAS } from './diagramas/lib.mjs'
@@ -40,7 +41,7 @@ export function gerarTodos(raiz = RAIZ) {
   return out
 }
 
-if (process.argv[1] && resolve(process.argv[1]) === fileURLToPath(import.meta.url)) {
+if (ehPrincipal(import.meta.url)) {
   const gerados = gerarTodos()
   if (CHECK) {
     const problemas = []
