@@ -49,7 +49,7 @@
     },
     {
       "id": "prompts",
-      "label": "docs/PROMPTS.md acompanha os comandos",
+      "label": "docs/pt-BR/PROMPTS.md acompanha os comandos",
       "cmd": "node scripts/gerar-prompts.mjs --check",
       "blocking": true
     },

@@ -1,6 +1,6 @@
 # Reference
 
-*Translation of [../REFERENCIA.md](../REFERENCIA.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/REFERENCIA.md).*
 
 > Everything the kit has, one piece at a time: what it does, what it is called, what it returns and how to turn it off. To understand **why** it is built this way, read [ARCHITECTURE.md](ARCHITECTURE.md) and [STRATEGY.md](STRATEGY.md). To start from zero, [GETTING-STARTED.md](GETTING-STARTED.md).
 >
@@ -188,7 +188,7 @@ Processes that Claude Code fires. They live in `plugins/aidlc-harness/hooks/` an
 | `Stop` | [`promise-check`](#promise-check) | Blocks "I'll do it later" without having done it | `AIDLC_PROMISE=0` |
 | `Stop` | [`dod-check`](#dod-check) | Requires the manifest's evidence in the chat | `AIDLC_GATE=0` |
 
-![Hook lifecycle](../assets/diagramas/hooks.en.claro.svg)
+![Hook lifecycle](assets/diagramas/hooks.en.claro.svg)
 
 ### session-brief
 
@@ -220,7 +220,7 @@ Refuses to end a turn that **promises to continue** ("I'll carry on in the next 
 
 ### dod-check
 
-The evidence gate. Reads the transcript since the person's last message, works out which evidence the technology manifest requires (`evidence`), and refuses the end of the turn if any marker does not appear. Deterministic, no model, in milliseconds. It fails toward allowing: unknown technology, clean tree (except when the turn claims to close a unit: then only the `whenSays` evidence is required) or the ceiling of **3 refusals per session**, when it becomes a warning and allows. Each decision is recorded in `.claude/audit/<day>.jsonl`; a failure to write the record never holds up the Stop. Flow details: ![How Stop decides](../assets/diagramas/evidencia.en.claro.svg)
+The evidence gate. Reads the transcript since the person's last message, works out which evidence the technology manifest requires (`evidence`), and refuses the end of the turn if any marker does not appear. Deterministic, no model, in milliseconds. It fails toward allowing: unknown technology, clean tree (except when the turn claims to close a unit: then only the `whenSays` evidence is required) or the ceiling of **3 refusals per session**, when it becomes a warning and allows. Each decision is recorded in `.claude/audit/<day>.jsonl`; a failure to write the record never holds up the Stop. Flow details: ![How Stop decides](assets/diagramas/evidencia.en.claro.svg)
 
 ---
 
@@ -235,7 +235,7 @@ Available in Claude Code with the plugin installed. They are instructions for th
 | `/gate` | Runs `aidlc-gate` and pastes the raw output. Optional argument: the id of a gate |
 | `/status` | Overview of the repository on one screen (gate, standard, vault, graph, pending items), read-only |
 
-The full text of each command is in [PROMPTS.md](../PROMPTS.md) (Portuguese), which is **generated** from `commands/` (`node scripts/gerar-prompts.mjs`).
+The full text of each command is in [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese), which is **generated** from `commands/` (`node scripts/gerar-prompts.mjs`).
 
 ## Agents
 
@@ -266,7 +266,7 @@ In `plugins/aidlc-harness/skills/<name>/SKILL.md`. The agent loads them by their
 
 The acceptance criteria as data. They live in `plugins/aidlc-harness/quality/<tech>.json`, validated by `_schema.json` (`node scripts/check-quality-manifests.mjs`).
 
-![Manifest layers](../assets/diagramas/camadas.en.claro.svg)
+![Manifest layers](assets/diagramas/camadas.en.claro.svg)
 
 ### Manifests that ship with the kit
 

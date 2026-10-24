@@ -2,7 +2,7 @@
   "name": "aidlc-harness",
   "version": "0.1.0",
   "private": true,
-  "description": "Kit de qualidade para desenvolvimento com agentes de IA no ciclo AI-DLC.",
+  "description": "Quality kit for software development with AI agents in the AI-DLC cycle.",
   "license": "MIT",
   "engines": {
     "node": ">=20.19"

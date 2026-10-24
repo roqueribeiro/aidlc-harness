@@ -1,5 +1,7 @@
 # Adaptadores: Claude Code, Kiro e GitHub Copilot
 
+*Tradução de [ADAPTERS.md](../ADAPTERS.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 O kit funciona com as três ferramentas, mas **não da mesma maneira**. Este documento diz o que cada uma recebe, o que é garantido por mecanismo e o que é só instrução, e como você confere isso na sua versão.
 
 ## A ideia

@@ -1,5 +1,7 @@
 # A estratégia do kit
 
+*Tradução de [STRATEGY.md](../STRATEGY.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 > Por que o `aidlc-harness` é desenhado do jeito que é, o que cada decisão custa e o que dá para levar para outro lugar. Para quem quer entender o desenho antes de adotar ou de contribuir.
 >
 > Os números deste documento foram medidos neste repositório (Linux, Node 22) e conferidos por `scripts/check-docs-consistency.mjs`. Onde algo é opinião ou lição de uso, o texto diz.
@@ -118,7 +120,7 @@ O valor sai do cofre do sistema, entra no ambiente do filho, e o processo termin
 
 ## O que mantém a documentação honesta
 
-`scripts/check-docs-consistency.mjs` conta do disco o que os documentos afirmam (quantos hooks, agentes, skills, executáveis) e avisa quando um número escrito diverge. `docs/PROMPTS.md` é gerado de `commands/` e o CI reprova se ficar defasado. O `aidlc-identity` impede que dado pessoal ou de infraestrutura entre no repositório.
+`scripts/check-docs-consistency.mjs` conta do disco o que os documentos afirmam (quantos hooks, agentes, skills, executáveis) e avisa quando um número escrito diverge. `docs/pt-BR/PROMPTS.md` é gerado de `commands/` e o CI reprova se ficar defasado. O `aidlc-identity` impede que dado pessoal ou de infraestrutura entre no repositório.
 
 Hash de fonte sozinho não basta: ele pega "a fonte mudou", não "o número está errado". Contar do disco pega o segundo.
 

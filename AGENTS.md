@@ -1,34 +1,34 @@
 # aidlc-harness
 
-O kit de qualidade para desenvolvimento com agentes de IA no ciclo AI-DLC. Este repositório se governa com o próprio kit (manifesto `harness-self`).
+The quality kit for software development with AI agents in the AI-DLC cycle. This repository governs itself with its own kit (manifest `harness-self`).
 
-## Regras que não se negociam
+## Non-negotiable rules
 
-- **Regra sem mecanismo é decoração.** Antes de propor uma norma, diga qual hook, gate ou manifesto vai executá-la.
-- **Todo check novo nasce com mutante.** Quebre o código de propósito e confirme que o teste reprova. Check que nunca reprovou não é check.
-- **Pronto exige evidência.** Rode `node --test` e cole a saída crua. Resumo não vale.
-- **Nunca enfraqueça um teste para o gate passar.**
-- **Nada que identifique pessoa, empresa ou infraestrutura.** `aidlc-identity` deve passar. Exemplos usam nomes fictícios (`app-exemplo`, `fulano`).
-- **Não afirme o que não verificou.** Se só foi testado em Linux, o texto diz.
-- **Antes de apagar, sobrescrever ou mover, liste e mostre.**
-- **Português do Brasil, direto**, sem travessão como recurso de estilo (o `check-plugin` reprova na prosa do kit).
+- **A rule without a mechanism is decoration.** Before proposing a norm, say which hook, gate or manifest will enforce it.
+- **Every new check is born with a mutant.** Break the code on purpose and confirm the test fails. A check that never failed is not a check.
+- **Done requires evidence.** Run `node --test` and paste the raw output. A summary does not count.
+- **Never weaken a test to make the gate pass.**
+- **Nothing that identifies a person, company or infrastructure.** `aidlc-identity` must pass. Examples use fictional names (`app-exemplo`, `fulano`).
+- **Do not claim what you did not verify.** If it was only tested on Linux, the text says so.
+- **Before deleting, overwriting or moving, list and show.**
+- **Documentation in English first, with a Brazilian Portuguese pair** under `docs/pt-BR/` (and `README.pt-BR.md`), updated in the same change (`check-i18n` fails otherwise). The kit's own prose (prompts, executable messages, commands) is still Brazilian Portuguese. No em dash as a style device (`check-plugin` fails on it in the kit's prose).
 
-## Onde as coisas moram
+## Where things live
 
-- `plugins/aidlc-harness/`: o plugin (hooks, agentes, skills, comandos, `tools/`, `lib/`, `quality/`, `templates/`).
-- `scripts/`: verificações do próprio repositório e utilitários (`setup`, `install-git-hooks`, `definir-dono`, `gerar-prompts`).
-- `docs/`: documentação. `docs/PROMPTS.md` é **gerado** a partir de `commands/` e `docs/assets/diagramas/*.svg` é **gerado** por `scripts/gerar-diagramas.mjs`: não edite à mão.
-- `OPERATING-MODEL.md`: o modelo operacional, com o mecanismo de cada regra.
+- `plugins/aidlc-harness/`: the plugin (hooks, agents, skills, commands, `tools/`, `lib/`, `quality/`, `templates/`).
+- `scripts/`: the repository's own checks and utilities (`setup`, `install-git-hooks`, `definir-dono`, `gerar-prompts`).
+- `docs/`: documentation in English; `docs/pt-BR/`: the Brazilian Portuguese pair. `docs/pt-BR/PROMPTS.md` is **generated** from `commands/` and `docs/assets/diagramas/*.svg` is **generated** by `scripts/gerar-diagramas.mjs`: do not edit them by hand.
+- `OPERATING-MODEL.md`: the operating model, with the mechanism behind each rule.
 
-## Comandos
+## Commands
 
-- Testes: `node --test`
-- Integridade do plugin: `node scripts/check-plugin.mjs`
-- Manifestos: `node scripts/check-quality-manifests.mjs`
-- Documentação: `node scripts/check-docs-consistency.mjs` e `node scripts/gerar-prompts.mjs --check`
-- Diagramas, referência e links: `node scripts/gerar-diagramas.mjs --check`, `node scripts/check-reference.mjs` e `node scripts/check-links.mjs`
-- Documentação em inglês (`docs/en/`, `README.en.md`): `node scripts/check-i18n.mjs`. Mudou um documento em português, atualize o par e rode `--atualizar` depois de rever
-- Identidade: `node plugins/aidlc-harness/tools/aidlc-identity`
-- Validação oficial do plugin: `claude plugin validate ./plugins/aidlc-harness --strict`
+- Tests: `node --test`
+- Plugin integrity: `node scripts/check-plugin.mjs`
+- Manifests: `node scripts/check-quality-manifests.mjs`
+- Documentation: `node scripts/check-docs-consistency.mjs` and `node scripts/gerar-prompts.mjs --check`
+- Diagrams, reference and links: `node scripts/gerar-diagramas.mjs --check`, `node scripts/check-reference.mjs` and `node scripts/check-links.mjs`
+- Both languages in step: `node scripts/check-i18n.mjs`. Changed a document, update its pair and run `--update` after reviewing both
+- Identity: `node plugins/aidlc-harness/tools/aidlc-identity`
+- Official plugin validation: `claude plugin validate ./plugins/aidlc-harness --strict`
 
-Veja `CONTRIBUTING.md` para o fluxo completo.
+See `CONTRIBUTING.md` for the full flow.

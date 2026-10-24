@@ -2,11 +2,11 @@
 
 > How to connect the kit to a security platform, a CI pipeline and an AI tool. The central idea: the kit **does not embed a scanner and does not know your platform**. It reads the report your platform produces and enforces the result, under a rule that never changes: **a scan that did not run is not a clean scan**.
 
-*Translation of [../INTEGRACOES.md](../INTEGRACOES.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/INTEGRACOES.md).*
 
 For the RoqueShield case in detail, see [ROQUESHIELD.md](ROQUESHIELD.md). For the design, see [ARCHITECTURE.md](ARCHITECTURE.md#9-security-the-scan-contract).
 
-![Scan contract](../assets/diagramas/varredura.en.claro.svg)
+![Scan contract](assets/diagramas/varredura.en.claro.svg)
 
 ## 1. The contract in three lines
 
@@ -76,7 +76,7 @@ With `--baseline`, blocking still applies to **every** finding at the threshold,
 
 ## 4. Examples that CI runs
 
-The reports in [`docs/exemplos/scan/`](../exemplos/scan/) are executed by the repository's tests, with the exit code checked. If one of them stops producing the result below, the documentation is lying and CI fails.
+The reports in [`docs/exemplos/scan/`](exemplos/scan/) are executed by the repository's tests, with the exit code checked. If one of them stops producing the result below, the documentation is lying and CI fails.
 
 | File | Result |
 | --- | --- |

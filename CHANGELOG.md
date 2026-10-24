@@ -1,24 +1,24 @@
 # Changelog
 
-Formato [Keep a Changelog](https://keepachangelog.com/pt-BR/1.1.0/). Versionamento semântico a partir da 1.0; na série 0.x, qualquer versão pode mudar o comportamento.
+Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versioning from 1.0 on; in the 0.x series, any version may change behavior.
 
-## [0.1.0] - não lançado
+## [0.1.0] - unreleased
 
-Primeira versão pública do kit.
+First public version of the kit.
 
-### Incluído
+### Added
 
-- Plugin `aidlc-harness` para Claude Code: 8 hooks, 3 agentes, 4 skills, 4 comandos (`/inception`, `/construction`, `/gate`, `/status`) e 14 executáveis `aidlc-*`.
-- Fases do AI-DLC como artefatos conferidos: `aidlc-init` (esqueleto e instruções para Claude Code, Kiro e Copilot a partir de um `AGENTS.md`) e `aidlc-phase` (Inception e Construction, aprovação humana obrigatória).
-- Critério de aceite como dado: manifestos `node-yarn`, `node-npm`, `python-uv` e `harness-self`, e manifestos do próprio projeto em `.aidlc/quality/`.
-- `aidlc-identity`: scanner de IP, MAC, e-mail, caminho de home, hostname interno, segredo e termos proibidos mantidos fora do repositório.
-- `scripts/setup.mjs` (executáveis no PATH, macOS, Linux e Windows), `scripts/install-git-hooks.mjs`, `scripts/definir-dono.mjs`, `scripts/gerar-prompts.mjs`.
-- `aidlc-scan`: lê o relatório de qualquer plataforma de segurança (SARIF 2.1.0, formato neutro, AI Fix Bundle do RoqueShield) e separa limpo (0), reprovado (1) e não rodou (2). Modelo de gate em `templates/security/`.
-- `aidlc-gate` coloca a pasta dos executáveis do kit na frente do `PATH` dos comandos dos gates: sem isso, um gate `aidlc-scan` ou `aidlc-lockcheck` dava `command not found` em runner de CI limpo.
-- `aidlc-identity`: a allowlist aceita `valor`, para liberar um termo só, não a categoria inteira no arquivo.
-- Documentação: trilha guiada, interpretação do AI-DLC, adaptadores, perfil para organizações reguladas, e a documentação de referência (`docs/INDEX.md`, `ARQUITETURA`, `REFERENCIA`, `INTEGRACOES`, `ROQUESHIELD`, `GLOSSARIO`) com 10 diagramas e a marca, gerados do código (claro e escuro), conferidos no CI, mais relatórios de exemplo executados pelos testes.
-- Checks novos, cada um com mutantes: `gerar-diagramas --check` (SVG acompanha o código), `check-reference` (a referência cobre o que existe e a prosa não cita comando fantasma) e `check-links` (todo link relativo resolve, inclusive âncora).
+- `aidlc-harness` plugin for Claude Code: 8 hooks, 3 agents, 4 skills, 4 commands (`/inception`, `/construction`, `/gate`, `/status`) and 14 `aidlc-*` executables.
+- AI-DLC phases as checked artifacts: `aidlc-init` (skeleton and instructions for Claude Code, Kiro and Copilot from one `AGENTS.md`) and `aidlc-phase` (Inception and Construction, human approval required).
+- Acceptance criteria as data: `node-yarn`, `node-npm`, `python-uv` and `harness-self` manifests, plus project manifests in `.aidlc/quality/`.
+- `aidlc-identity`: scanner for IP, MAC, email, home path, internal hostname, secret and forbidden terms kept outside the repository.
+- `scripts/setup.mjs` (executables on the PATH, macOS, Linux and Windows), `scripts/install-git-hooks.mjs`, `scripts/definir-dono.mjs`, `scripts/gerar-prompts.mjs`.
+- `aidlc-scan`: reads the report of any security platform (SARIF 2.1.0, neutral format, RoqueShield AI Fix Bundle) and separates clean (0), failed (1) and did not run (2). Gate template in `templates/security/`.
+- `aidlc-gate` puts the kit's executables folder at the front of the gates' `PATH`: without it, an `aidlc-scan` or `aidlc-lockcheck` gate gave `command not found` on a clean CI runner.
+- `aidlc-identity`: the allowlist accepts `valor`, to allow a single term instead of the whole category in a file.
+- Documentation in English (primary) and Brazilian Portuguese (`docs/pt-BR/`, `README.pt-BR.md`): guided path, AI-DLC interpretation, adapters, regulated-organization profile, and reference documentation (architecture, reference, integrations, RoqueShield, glossary) with diagrams and the brand mark in both languages, generated from code (light and dark), checked in CI, plus example reports executed by the tests.
+- New checks, each with mutants: `gerar-diagramas --check` (SVG follows the code, and every diagram string has an English translation), `check-reference` (the reference covers what exists and the prose cites no phantom command), `check-links` (every relative link resolves, anchors included) and `check-i18n` (every document has its pair in the other language, with the same structure, and the pair is reviewed when the primary changes).
 
-### Limites
+### Limits
 
-Testado em Linux com Node 22. macOS, Windows, Kiro e GitHub Copilot não foram testados em máquina real.
+Tested on Linux with Node 22, and on macOS arm64 (an earlier revision). Windows, Kiro and GitHub Copilot were not tested on a real machine. The kit's own messages and prompts are in Brazilian Portuguese.

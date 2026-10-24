@@ -1,6 +1,6 @@
 # When the gate fails
 
-*Translation of [../QUANDO-QUEBRA.md](../QUANDO-QUEBRA.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/QUANDO-QUEBRA.md).*
 
 What each state means and what to do about it. The underlying rule is that **skipped is a pending item, not an approval**, and that weakening a test to make the gate pass is forbidden: a test that failed means the code is wrong.
 

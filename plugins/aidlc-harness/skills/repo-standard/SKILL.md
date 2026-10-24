@@ -13,7 +13,7 @@ aidlc-doctor          # a nota e exatamente o que falta, com o peso de cada item
 aidlc-gate --list     # a tecnologia precisa estar reconhecida
 ```
 
-Se o `aidlc-doctor` disser que a tecnologia não é reconhecida, **esse é o primeiro trabalho**: falta um manifesto. O kit traz `node-yarn`, `node-npm` e `python-uv`; outra stack entra como manifesto do próprio projeto em `.aidlc/quality/<tech>.json` (veja `docs/ESTENDER.md`). Sem manifesto não há gate, e nenhum outro item importa.
+Se o `aidlc-doctor` disser que a tecnologia não é reconhecida, **esse é o primeiro trabalho**: falta um manifesto. O kit traz `node-yarn`, `node-npm` e `python-uv`; outra stack entra como manifesto do próprio projeto em `.aidlc/quality/<tech>.json` (veja `docs/pt-BR/ESTENDER.md`). Sem manifesto não há gate, e nenhum outro item importa.
 
 Para um repositório novo, `aidlc-init` escreve o esqueleto inteiro (instruções para Claude, Kiro e Copilot, pastas do ciclo AI-DLC, workflow de CI). Para um repositório existente, ele só cria o que falta e nunca sobrescreve.
 

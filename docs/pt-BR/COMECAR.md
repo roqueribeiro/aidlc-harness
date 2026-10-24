@@ -1,5 +1,7 @@
 # Começar: a trilha em sete passos
 
+*Tradução de [GETTING-STARTED.md](../GETTING-STARTED.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 Do zero a um projeto com o ciclo AI-DLC funcionando. Cada passo diz o que fazer, o que você deve ver e o que fazer se não vir. Tempo estimado do primeiro ao quinto passo: meia hora, a maior parte na conversa de requisitos.
 
 Os trechos de saída abaixo vieram de uma execução real do kit (Linux, Node 22). Em outro sistema, a forma é a mesma.
@@ -135,7 +137,7 @@ Assine os dois arquivos como no passo anterior e rode `aidlc-phase check constru
 
 ## 6. Código, uma unidade por vez
 
-Com as duas fases aprovadas, o trabalho segue a skill `bolts` (veja [`skills/bolts/SKILL.md`](../plugins/aidlc-harness/skills/bolts/SKILL.md)):
+Com as duas fases aprovadas, o trabalho segue a skill `bolts` (veja [`skills/bolts/SKILL.md`](../../plugins/aidlc-harness/skills/bolts/SKILL.md)):
 
 1. branch curta por unidade;
 2. teste e código no mesmo diff; um check novo nasce com um **mutante** (quebre o código de propósito e confirme que o teste reprova);

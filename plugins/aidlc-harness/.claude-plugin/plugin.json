@@ -3,9 +3,9 @@
   "name": "aidlc-harness",
   "displayName": "AI-DLC Harness",
   "version": "0.1.0",
-  "description": "Harness de qualidade para criar software com agentes de IA seguindo o ciclo AI-DLC: critério de aceite executável por tecnologia, contexto e regra certa entregues no momento em que o código é escrito, gate de evidência, fases com aprovação humana e scanner de identidade. Funciona com Claude Code e gera instruções para Kiro e GitHub Copilot.",
+  "description": "Quality harness for building software with AI agents following the AI-DLC cycle: executable acceptance criteria per technology, the right context and rule delivered while the code is being written, an evidence gate, phases with human approval and an identity scanner. Works with Claude Code and generates instructions for Kiro and GitHub Copilot. The kit's messages and prompts are in Brazilian Portuguese.",
   "author": {
-    "name": "Contribuidores do aidlc-harness"
+    "name": "aidlc-harness contributors"
   },
   "homepage": "https://github.com/roqueribeiro/aidlc-harness",
   "repository": "https://github.com/roqueribeiro/aidlc-harness",

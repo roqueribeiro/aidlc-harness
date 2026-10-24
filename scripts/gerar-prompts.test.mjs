@@ -8,7 +8,7 @@ import { corpoDoComando, paraColar, gerar } from './gerar-prompts.mjs'
 
 const RAIZ = join(dirname(fileURLToPath(import.meta.url)), '..')
 const SCRIPT = join(RAIZ, 'scripts', 'gerar-prompts.mjs')
-const PROMPTS = join(RAIZ, 'docs', 'PROMPTS.md')
+const PROMPTS = join(RAIZ, 'docs', 'pt-BR', 'PROMPTS.md')
 
 describe('corpoDoComando', () => {
   test('tira o front matter', () => {
@@ -36,7 +36,7 @@ describe('gerar', () => {
 })
 
 describe('o arquivo versionado', () => {
-  test('docs/PROMPTS.md acompanha os comandos (--check passa)', () => {
+  test('docs/pt-BR/PROMPTS.md acompanha os comandos (--check passa)', () => {
     const r = spawnSync('node', [SCRIPT, '--check'], { encoding: 'utf8' })
     assert.equal(r.status, 0, r.stderr)
   })

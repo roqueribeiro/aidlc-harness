@@ -14,7 +14,7 @@ function copia() {
   const base = mkdtempSync(join(tmpdir(), 'aidlc-ref-'))
   cpSync(join(RAIZ, 'plugins'), join(base, 'plugins'), { recursive: true })
   cpSync(join(RAIZ, 'docs'), join(base, 'docs'), { recursive: true })
-  for (const f of ['README.md', 'CONTRIBUTING.md', 'AGENTS.md', 'OPERATING-MODEL.md']) cpSync(join(RAIZ, f), join(base, f))
+  for (const f of ['README.md', 'README.pt-BR.md', 'CONTRIBUTING.md', 'AGENTS.md', 'OPERATING-MODEL.md']) cpSync(join(RAIZ, f), join(base, f))
   return base
 }
 const roda = (base) => spawnSync(process.execPath, [CHECK, '--root', base], { encoding: 'utf8' })
@@ -71,11 +71,11 @@ describe('check-reference', () => {
 
   test('mutante: referência apagada reprova', () => {
     const base = copia()
-    rmSync(join(base, 'docs/REFERENCIA.md'))
+    rmSync(join(base, 'docs/REFERENCE.md'))
     const r = roda(base)
     rmSync(base, { recursive: true, force: true })
     assert.equal(r.status, 1)
-    assert.match(r.stderr, /REFERENCIA\.md nao existe/)
+    assert.match(r.stderr, /REFERENCE\.md nao existe/)
   })
 
   test('mutante: a prosa cita um executável que não existe (o caso do `aidlc-phase approve`)', () => {
@@ -89,7 +89,7 @@ describe('check-reference', () => {
 
   test('mutante: a prosa cita um subcomando que o executável não tem', () => {
     const base = copia()
-    edita(base, 'docs/COMECAR.md', (t) => t + '\n```bash\naidlc-phase approve inception\n```\n')
+    edita(base, 'docs/GETTING-STARTED.md', (t) => t + '\n```bash\naidlc-phase approve inception\n```\n')
     const r = roda(base)
     rmSync(base, { recursive: true, force: true })
     assert.equal(r.status, 1)

@@ -1,40 +1,42 @@
-# Documentação do aidlc-harness
+# aidlc-harness documentation
 
-Por onde começar depende do que você quer.
+*Also available in [Brazilian Portuguese](pt-BR/INDEX.md): every document below has a pair under [`docs/pt-BR/`](pt-BR/INDEX.md).*
 
-| Eu quero... | Leia |
+Where to start depends on what you want.
+
+| I want to... | Read |
 | --- | --- |
-| **Usar o kit em um projeto, do zero** | [COMECAR.md](COMECAR.md): a trilha em sete passos |
-| **Entender o método** | [AIDLC.md](AIDLC.md): o AI-DLC e como o kit o interpreta |
-| **Ver como é feito por dentro** | [ARQUITETURA.md](ARQUITETURA.md): contexto, containers, hooks, manifestos, segurança, decisões |
-| **Procurar um comando, hook, campo ou variável** | [REFERENCIA.md](REFERENCIA.md) |
-| **Ligar uma plataforma de segurança** | [INTEGRACOES.md](INTEGRACOES.md) |
-| **Usar com o RoqueShield** | [ROQUESHIELD.md](ROQUESHIELD.md) |
-| **Usar com Claude Code, Kiro ou Copilot** | [ADAPTADORES.md](ADAPTADORES.md) |
-| **Aplicar numa empresa regulada** | [REGULADO.md](REGULADO.md) |
-| **Acrescentar uma tecnologia, revisor ou regra** | [ESTENDER.md](ESTENDER.md) |
-| **Entender uma falha do gate** | [QUANDO-QUEBRA.md](QUANDO-QUEBRA.md) |
-| **Entender por que o desenho é assim** | [ESTRATEGIA.md](ESTRATEGIA.md) |
-| **Achar um termo ou uma resposta rápida** | [GLOSSARIO.md](GLOSSARIO.md) |
-| **Ver o texto dos comandos `/inception`, `/construction`...** | [PROMPTS.md](PROMPTS.md) (gerado) |
-| **Contribuir** | [CONTRIBUTING.md](../CONTRIBUTING.md) |
-| **Relatar uma vulnerabilidade** | [SECURITY.md](../SECURITY.md) |
+| **Use the kit in a project, from scratch** | [GETTING-STARTED.md](GETTING-STARTED.md): the seven-step path |
+| **Understand the method** | [AIDLC.md](AIDLC.md): AI-DLC and how the kit interprets it |
+| **See how it is built inside** | [ARCHITECTURE.md](ARCHITECTURE.md): context, containers, hooks, manifests, security, decisions |
+| **Look up a command, hook, field or variable** | [REFERENCE.md](REFERENCE.md) |
+| **Connect a security platform** | [INTEGRATIONS.md](INTEGRATIONS.md) |
+| **Use it with RoqueShield** | [ROQUESHIELD.md](ROQUESHIELD.md) |
+| **Use it with Claude Code, Kiro or Copilot** | [ADAPTERS.md](ADAPTERS.md) |
+| **Apply it in a regulated company** | [REGULATED.md](REGULATED.md) |
+| **Add a technology, reviewer or rule** | [EXTENDING.md](EXTENDING.md) |
+| **Understand a gate failure** | [WHEN-IT-BREAKS.md](WHEN-IT-BREAKS.md) |
+| **Understand why the design is the way it is** | [STRATEGY.md](STRATEGY.md) |
+| **Find a term or a quick answer** | [GLOSSARY.md](GLOSSARY.md) |
+| **See the text of the `/inception`, `/construction`... commands** | [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese, generated) |
+| **Contribute** | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
+| **Report a vulnerability** | [../SECURITY.md](../SECURITY.md) |
 
-## Os diagramas
+## The diagrams
 
-Todos são gerados do código (`node scripts/gerar-diagramas.mjs`), em tema claro e escuro, e conferidos no CI. Os números neles vêm do disco.
+All of them are generated from code (`node scripts/gerar-diagramas.mjs`), in light and dark themes, and checked in CI. The numbers in them come from the disk.
 
-| Diagrama | Onde é explicado |
+| Diagram | Where it is explained |
 | --- | --- |
-| [Contexto](assets/diagramas/contexto.claro.svg) | [ARQUITETURA, seção 2](ARQUITETURA.md#2-contexto-onde-o-kit-entra) |
-| [Containers](assets/diagramas/containers.claro.svg) | [ARQUITETURA, seção 3](ARQUITETURA.md#3-containers-o-que-há-dentro-do-plugin) |
-| [Camadas de manifesto](assets/diagramas/camadas.claro.svg) | [ARQUITETURA, seção 4](ARQUITETURA.md#4-o-critério-de-aceite-como-dado) |
-| [Hooks](assets/diagramas/hooks.claro.svg) | [ARQUITETURA, seção 5](ARQUITETURA.md#5-o-caminho-de-uma-edição-hooks-em-ordem) |
-| [Como o Stop decide](assets/diagramas/evidencia.claro.svg) | [ARQUITETURA, seção 6](ARQUITETURA.md#6-o-stop-como-pronto-ganha-evidência) |
-| [Fases e aprovação humana](assets/diagramas/fases.claro.svg) | [ARQUITETURA, seção 7](ARQUITETURA.md#7-as-fases-e-a-aprovação-humana) |
-| [Uma fonte, três ferramentas](assets/diagramas/multiferramenta.claro.svg) | [ARQUITETURA, seção 8](ARQUITETURA.md#8-uma-fonte-de-instruções-três-ferramentas) |
-| [Contrato de varredura](assets/diagramas/varredura.claro.svg) | [INTEGRACOES](INTEGRACOES.md) |
-| [RoqueShield e o kit](assets/diagramas/roqueshield.claro.svg) | [ROQUESHIELD](ROQUESHIELD.md) |
-| [Instalação](assets/diagramas/instalacao.claro.svg) | [COMECAR](COMECAR.md) |
+| [Context](assets/diagramas/contexto.en.claro.svg) | [ARCHITECTURE, section 2](ARCHITECTURE.md#2-context-where-the-kit-fits-in) |
+| [Containers](assets/diagramas/containers.en.claro.svg) | [ARCHITECTURE, section 3](ARCHITECTURE.md#3-containers-what-is-inside-the-plugin) |
+| [Manifest layers](assets/diagramas/camadas.en.claro.svg) | [ARCHITECTURE, section 4](ARCHITECTURE.md#4-acceptance-criteria-as-data) |
+| [Hooks](assets/diagramas/hooks.en.claro.svg) | [ARCHITECTURE, section 5](ARCHITECTURE.md#5-the-path-of-an-edit-hooks-in-order) |
+| [How Stop decides](assets/diagramas/evidencia.en.claro.svg) | [ARCHITECTURE, section 6](ARCHITECTURE.md#6-stop-how-done-earns-evidence) |
+| [Phases and human approval](assets/diagramas/fases.en.claro.svg) | [ARCHITECTURE, section 7](ARCHITECTURE.md#7-phases-and-human-approval) |
+| [One source, three tools](assets/diagramas/multiferramenta.en.claro.svg) | [ARCHITECTURE, section 8](ARCHITECTURE.md#8-one-source-of-instructions-three-tools) |
+| [Scan contract](assets/diagramas/varredura.en.claro.svg) | [INTEGRATIONS](INTEGRATIONS.md) |
+| [RoqueShield and the kit](assets/diagramas/roqueshield.en.claro.svg) | [ROQUESHIELD](ROQUESHIELD.md) |
+| [Installation](assets/diagramas/instalacao.en.claro.svg) | [GETTING-STARTED](GETTING-STARTED.md) |
 
-Para usar um diagrama com tema automático em um documento, use `<picture>` (exemplo em [ARQUITETURA, seção 15](ARQUITETURA.md#15-como-os-diagramas-são-feitos)).
+To use a diagram with an automatic theme in a document, use `<picture>` (example in [ARCHITECTURE, section 15](ARCHITECTURE.md#15-how-the-diagrams-are-made)).

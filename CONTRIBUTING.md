@@ -1,68 +1,70 @@
-# Contribuindo
+# Contributing
 
-Obrigado por querer melhorar o `aidlc-harness`. Este guia é curto de propósito. *English summary at the end.*
+*Also available in [Brazilian Portuguese](docs/pt-BR/CONTRIBUTING.md).*
 
-## Antes de abrir um pull request
+Thank you for wanting to improve `aidlc-harness`. This guide is short on purpose. The messages printed by the executables are in Portuguese.
 
-1. **Abra uma issue primeiro** para qualquer mudança além de correção pequena. Alinhar o rumo custa menos que refazer.
-2. **A regra do projeto vale para o projeto:** regra sem mecanismo é decoração. Se você propõe uma norma, diga qual hook, gate ou manifesto vai executá-la.
-3. **Todo check novo nasce com mutante.** Quebre o código de propósito e mostre que o teste reprova. Um teste que nunca reprovou não prova nada. Na descrição do PR, liste os mutantes que você tentou.
+## Before opening a pull request
 
-## Rodando localmente
+1. **Open an issue first** for any change beyond a small fix. Aligning on direction costs less than redoing work.
+2. **The project's rule applies to the project:** a rule without a mechanism is decoration. If you propose a norm, say which hook, gate or manifest will enforce it.
+3. **Every new check is born with a mutant.** Break the code on purpose and show that the test fails. A test that never failed proves nothing. In the PR description, list the mutants you tried.
 
-Requer Node 20.19 ou mais novo e git.
+## Running locally
+
+Requires Node 20.19 or newer and git.
 
 ```bash
-node --test                          # todas as suítes
-node scripts/check-plugin.mjs        # integridade do plugin
+node --test                          # all suites
+node scripts/check-plugin.mjs        # plugin integrity
 node scripts/check-quality-manifests.mjs
 node scripts/check-docs-consistency.mjs
 node scripts/gerar-prompts.mjs --check
 node scripts/gerar-diagramas.mjs --check
 node scripts/check-reference.mjs
 node scripts/check-links.mjs
-node plugins/aidlc-harness/tools/aidlc-identity    # nenhum dado pessoal ou de infraestrutura
+node plugins/aidlc-harness/tools/aidlc-identity    # no personal or infrastructure data
 ```
 
-Sem `npm install` ou `yarn install`: o kit não tem dependências de execução, de propósito.
+No `npm install` or `yarn install`: the kit has no runtime dependencies, on purpose.
 
-## O que o CI confere
+## What CI checks
 
-Identidade (`aidlc-identity`), testes, sintaxe de todo `.mjs`, manifestos contra o schema, integridade do plugin, consistência da documentação, `docs/PROMPTS.md` em dia e DCO nos commits.
+Identity (`aidlc-identity`), tests, syntax of every `.mjs`, manifests against the schema, plugin integrity, documentation consistency, an up-to-date `docs/pt-BR/PROMPTS.md` and DCO on the commits.
 
-## Regras de conteúdo
+## Content rules
 
-- **Nada que identifique pessoa, empresa ou infraestrutura.** Sem nomes de clientes, sistemas internos, IPs, hostnames, e-mails ou caminhos de home. O `aidlc-identity` barra os formatos; os nomes dependem de você. Se o seu exemplo precisa de um nome, use um fictício óbvio (`app-exemplo`, `fulano`).
-- **Texto novo em português do Brasil**, direto, sem enfeite. Quem muda um documento em português atualiza o par em `docs/en/` no mesmo PR, e depois roda `node scripts/check-i18n.mjs --atualizar`; o `check-i18n` reprova o PR que deixa o inglês para trás.
-- **Não afirme o que você não verificou.** Se algo foi testado só em Linux, diga. A seção "Limites conhecidos" do README existe para isso, e contribuições que a encolham com evidência (um teste em macOS ou Windows, por exemplo) são das mais valiosas.
-- **Não copie texto de terceiros.** Cite e linke. A descrição do AI-DLC é da AWS; o `docs/AIDLC.md` resume e aponta para a fonte.
+- **Nothing that identifies a person, company or infrastructure.** No names of clients, internal systems, IPs, hostnames, emails or home paths. `aidlc-identity` blocks the formats; the names are up to you. If your example needs a name, use an obviously fictional one (`app-exemplo`, `fulano`).
+- **Documentation in English, with a Brazilian Portuguese pair**, direct, without decoration. Whoever changes a document updates the other language in the same PR (English under `docs/`, Portuguese under `docs/pt-BR/`), then runs `node scripts/check-i18n.mjs --update` after reviewing both; `check-i18n` fails the PR that leaves a pair behind. If you do not write Portuguese, say so in the PR and a maintainer completes the pair. The kit's own messages and prompts are still in Brazilian Portuguese.
+- **Do not claim what you did not verify.** If something was tested only on Linux, say so. The README's "Known limits" section exists for this, and contributions that shrink it with evidence (a test on macOS or Windows, for example) are among the most valuable.
+- **Do not copy third-party text.** Quote and link. The AI-DLC description belongs to AWS; `docs/AIDLC.md` summarizes it and points to the source.
 
 ## DCO
 
-Este projeto usa o [Developer Certificate of Origin](https://developercertificate.org/). Cada commit precisa de uma linha `Signed-off-by` com o seu nome e e-mail, dizendo que você tem o direito de contribuir aquele código sob a licença MIT do projeto:
+This project uses the [Developer Certificate of Origin](https://developercertificate.org/). Each commit needs a `Signed-off-by` line with your name and email, stating that you have the right to contribute that code under the project's MIT license:
 
 ```bash
-git commit -s -m "fix: mensagem"
-# esqueceu? refaça o último commit:
+git commit -s -m "fix: message"
+# forgot? redo the last commit:
 git commit --amend -s --no-edit
 ```
 
-O CI reprova o pull request com commit sem assinatura.
+CI fails the pull request if a commit is unsigned.
 
-## Estilo de commit
+## Commit style
 
-Mensagem curta no imperativo, com prefixo: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`. O corpo explica o porquê, não o quê.
+Short message in the imperative, with a prefix: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`. The body explains why, not what.
 
-## Reportando falha de segurança
+## Reporting a security issue
 
-**Não abra issue pública.** Veja [SECURITY.md](SECURITY.md).
+**Do not open a public issue.** See [SECURITY.md](SECURITY.md).
 
-## Conduta
+## Conduct
 
-Este projeto segue o [Código de Conduta](CODE_OF_CONDUCT.md).
+This project follows the [Code of Conduct](CODE_OF_CONDUCT.md).
 
 ---
 
-## English summary
+## Summary
 
-Open an issue first for anything non-trivial. Every new check ships with a mutant (break the code on purpose and show the test fails). Run `node --test` and the `scripts/check-*.mjs` before opening a PR. No personal, company or infrastructure identifiers anywhere: `aidlc-identity` must pass. Sign off every commit (`git commit -s`, DCO). Security issues go through private reporting, see SECURITY.md. Docs are Brazilian Portuguese first, with an English pair under `docs/en/` that you update in the same PR (`node scripts/check-i18n.mjs`).
+Open an issue first for anything non-trivial. Every new check ships with a mutant (break the code on purpose and show the test fails). Run `node --test` and the `scripts/check-*.mjs` before opening a PR. No personal, company or infrastructure identifiers anywhere: `aidlc-identity` must pass. Sign off every commit (`git commit -s`, DCO). Security issues go through private reporting, see SECURITY.md. Docs are English first, with a Brazilian Portuguese pair under `docs/pt-BR/` that you update in the same PR (`node scripts/check-i18n.mjs`).

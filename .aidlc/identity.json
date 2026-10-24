@@ -33,13 +33,13 @@
       "why": "a plataforma de segurança de código aberto que o kit sabe ler é citada pelo nome de propósito, por decisão explícita do mantenedor de tornar a ligação pública"
     },
     {
-      "file": "docs/ROQUESHIELD.md",
+      "file": "docs/pt-BR/ROQUESHIELD.md",
       "categoria": "termo",
       "valor": "roqueos",
       "why": "parte do endereço público do repositório do RoqueShield citado no documento"
     },
     {
-      "file": "docs/ROQUESHIELD.md",
+      "file": "docs/pt-BR/ROQUESHIELD.md",
       "categoria": "termo",
       "valor": "roqueribeiro",
       "why": "dono do repositório público do RoqueShield, parte do endereço citado no documento"
@@ -69,7 +69,7 @@
       "why": "e-mail de contato do mantenedor para denúncias de conduta, escolhido por ele"
     },
     {
-      "file": "README.md",
+      "file": "README.pt-BR.md",
       "categoria": "termo",
       "valor": "levelhard",
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
@@ -111,13 +111,13 @@
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
     },
     {
-      "file": "README.en.md",
+      "file": "README.md",
       "categoria": "termo",
       "valor": "levelhard",
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
     },
     {
-      "file": "docs/en/ROQUESHIELD.md",
+      "file": "docs/ROQUESHIELD.md",
       "categoria": "termo",
       "valor": "roqueos",
       "why": "parte do endereço público do repositório do RoqueShield citado no documento"

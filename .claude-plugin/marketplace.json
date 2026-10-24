@@ -1,13 +1,13 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "aidlc",
-  "owner": { "name": "Contribuidores do aidlc-harness" },
-  "metadata": { "description": "Harness de qualidade para desenvolvimento com agentes de IA no ciclo AI-DLC." },
+  "owner": { "name": "aidlc-harness contributors" },
+  "metadata": { "description": "Quality harness for software development with AI agents in the AI-DLC cycle." },
   "plugins": [
     {
       "name": "aidlc-harness",
       "source": "./plugins/aidlc-harness",
-      "description": "Critério de aceite executável, gate de evidência, fases do AI-DLC com aprovação humana e scanner de identidade.",
+      "description": "Executable acceptance criteria, evidence gate, AI-DLC phases with human approval, and an identity scanner.",
       "category": "development",
       "tags": ["aidlc", "quality-gate", "governance"]
     }

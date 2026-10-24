@@ -2,5 +2,5 @@
 
 ## Claude Code
 
-- Este repositório liga o próprio plugin (`.claude/settings.json`). Depois de mudar um hook, rode `/reload-plugins`.
-- Kill switch do hook de Stop, só se for mesmo desnecessário: `AIDLC_GATE=0`.
+- This repository enables its own plugin (`.claude/settings.json`). After changing a hook, run `/reload-plugins`.
+- Kill switch for the Stop hook, only if it is truly unnecessary: `AIDLC_GATE=0`.

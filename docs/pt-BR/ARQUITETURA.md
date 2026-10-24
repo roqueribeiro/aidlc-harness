@@ -1,5 +1,7 @@
 # Arquitetura
 
+*Tradução de [ARCHITECTURE.md](../ARCHITECTURE.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 > Como o `aidlc-harness` é feito por dentro: as peças, como conversam, onde cada decisão mora e o que acontece quando algo dá errado. Para quem vai adotar, estender ou contribuir. Os números dos diagramas são lidos do disco por `scripts/gerar-diagramas.mjs`, então não envelhecem sozinhos.
 >
 > Este documento descreve o desenho. Para cada comando, campo e variável, veja a [REFERÊNCIA](REFERENCIA.md); para o raciocínio por trás das escolhas, a [ESTRATÉGIA](ESTRATEGIA.md).
@@ -30,7 +32,7 @@ Agente de IA gera código barato; conferir é caro. O kit move a conferência do
 
 ## 2. Contexto: onde o kit entra
 
-![Contexto do sistema](assets/diagramas/contexto.claro.svg)
+![Contexto do sistema](../assets/diagramas/contexto.claro.svg)
 
 Três atores e uma fronteira:
 
@@ -42,7 +44,7 @@ Do lado de fora, as **plataformas de segurança** (RoqueShield, qualquer ferrame
 
 ## 3. Containers: o que há dentro do plugin
 
-![Containers do plugin](assets/diagramas/containers.claro.svg)
+![Containers do plugin](../assets/diagramas/containers.claro.svg)
 
 | Pasta | Papel | Regra de ouro |
 | --- | --- | --- |
@@ -58,7 +60,7 @@ A separação **executável fino, lib grossa** existe para o teste: o executáve
 
 ## 4. O critério de aceite como dado
 
-![Camadas de manifesto](assets/diagramas/camadas.claro.svg)
+![Camadas de manifesto](../assets/diagramas/camadas.claro.svg)
 
 Um manifesto diz **como reconhecer** a tecnologia, **o que rodar**, **o que precisa aparecer no chat** e **o que ler antes de escrever**. O mesmo arquivo alimenta quatro consumidores: `aidlc-gate` (roda os gates), `session-brief` (anuncia), `path-strategy` (entrega a regra do arquivo) e `dod-check` (cobra a evidência).
 
@@ -76,7 +78,7 @@ Um gate declara `blocking` (reprova o `aidlc-gate`), `cmd` ou `agent` (um reviso
 
 ## 5. O caminho de uma edição: hooks em ordem
 
-![Ciclo de vida dos hooks](assets/diagramas/hooks.claro.svg)
+![Ciclo de vida dos hooks](../assets/diagramas/hooks.claro.svg)
 
 O desenho aposta em falar **no momento em que cada informação custa menos e vale mais**:
 
@@ -92,7 +94,7 @@ O desenho aposta em falar **no momento em que cada informação custa menos e va
 
 ## 6. O Stop: como "pronto" ganha evidência
 
-![Como o Stop decide](assets/diagramas/evidencia.claro.svg)
+![Como o Stop decide](../assets/diagramas/evidencia.claro.svg)
 
 O `dod-check` lê a árvore (`git status`), o manifesto e o transcript, e decide em milissegundos:
 
@@ -107,7 +109,7 @@ Cada decisão vira uma linha em `.claude/audit/<dia>.jsonl`, e `aidlc-cycle` cal
 
 ## 7. As fases e a aprovação humana
 
-![As fases do AI-DLC](assets/diagramas/fases.claro.svg)
+![As fases do AI-DLC](../assets/diagramas/fases.claro.svg)
 
 `aidlc-phase check <fase>` é a trava. Uma fase está completa quando cada arquivo existe, não tem o marcador `<!-- PREENCHER` e termina com `Aprovado por:` e `Data:` preenchidos. O nome é **recusado** se for de ferramenta de IA, para o agente não aprovar o próprio trabalho. A Construction exige a Inception completa.
 
@@ -117,7 +119,7 @@ A fase **Operations** é a mais fina do kit: entrega e observação ficam com o 
 
 ## 8. Uma fonte de instruções, três ferramentas
 
-![Uma fonte, três ferramentas](assets/diagramas/multiferramenta.claro.svg)
+![Uma fonte, três ferramentas](../assets/diagramas/multiferramenta.claro.svg)
 
 `AGENTS.md` é o único arquivo de instrução que se edita. `CLAUDE.md` o importa (`@AGENTS.md`) e acrescenta só o que é do Claude Code; as cópias para Kiro (`.kiro/steering/aidlc.md`) e Copilot (`.github/copilot-instructions.md`) são **derivadas** por `aidlc-init --sync`, e `aidlc-init --check` no CI reprova divergência.
 
@@ -134,7 +136,7 @@ Em Kiro e Copilot, o que faz o papel dos hooks é o **CI** (`aidlc-gate.yml`) e 
 
 ## 9. Segurança: o contrato de varredura
 
-![Contrato de varredura](assets/diagramas/varredura.claro.svg)
+![Contrato de varredura](../assets/diagramas/varredura.claro.svg)
 
 A regra que organiza o módulo: **um scan que não rodou não é um scan limpo.** Um relatório vazio pode significar "nada achado" ou "o scanner caiu", e as duas coisas são indistinguíveis se o gate só conta achados. Por isso `aidlc-scan` tem três resultados, não dois (0 limpo, 1 reprovado, 2 não rodou).
 
@@ -148,7 +150,7 @@ Como é um **leitor de relatório**, não um cliente de API, qualquer plataforma
 
 ## 10. Princípios que atravessam o código
 
-1. **Regra sem mecanismo é decoração.** Antes de propor uma norma, diz-se qual hook, gate ou manifesto a executa. As normas deste repositório apontam para o mecanismo ([OPERATING-MODEL.md](../OPERATING-MODEL.md)).
+1. **Regra sem mecanismo é decoração.** Antes de propor uma norma, diz-se qual hook, gate ou manifesto a executa. As normas deste repositório apontam para o mecanismo ([OPERATING-MODEL.md](OPERATING-MODEL.md)).
 2. **Todo check nasce com mutante.** Quebra-se o código de propósito e confirma-se que o teste reprova. Check que nunca reprovou não é check. Os testes têm casos `mutante:` explícitos.
 3. **Falhar para o lado de deixar trabalhar.** Hook sem certeza sai com 0. Bloquear por engano custa mais do que deixar passar um caso.
 4. **Três estados, não dois.** Passou, falhou e **não rodou** são coisas diferentes (`PULADO`, `PENDENTE`, saída 2). Verde fingido é o defeito que o kit mais combate.
@@ -171,7 +173,7 @@ O kit roda código na máquina de quem o instala e lê o transcript, então a su
 | PR de fork roda código com segredo | O CI roda em `pull_request` sem segredo; `aidlc-doctor` confere | Check do doctor para repositório aberto |
 | Aprovação de fase preenchida pela IA | `aidlc-phase check` recusa nome de ferramenta de IA | `lib/phase.mjs`, testes |
 
-O que o kit **não** protege: um agente com acesso de shell pode, por definição, fazer coisas que nenhum hook previu, e `secret-guard` é um conjunto de padrões, não um sandbox. Ele reduz o acidente comum; não substitui permissão mínima nem revisão. Para relatar uma vulnerabilidade do kit, veja [SECURITY.md](../SECURITY.md).
+O que o kit **não** protege: um agente com acesso de shell pode, por definição, fazer coisas que nenhum hook previu, e `secret-guard` é um conjunto de padrões, não um sandbox. Ele reduz o acidente comum; não substitui permissão mínima nem revisão. Para relatar uma vulnerabilidade do kit, veja [../../SECURITY.md](../../SECURITY.md).
 
 ## 12. Decisões de desenho
 
@@ -227,7 +229,7 @@ node scripts/gerar-diagramas.mjs --check  # reprova se o SVG versionado difere d
 
 ```html
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/contexto.escuro.svg">
-  <img alt="Contexto do sistema" src="docs/assets/diagramas/contexto.claro.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="../docs/assets/diagramas/contexto.escuro.svg">
+  <img alt="Contexto do sistema" src="../docs/assets/diagramas/contexto.claro.svg">
 </picture>
 ```

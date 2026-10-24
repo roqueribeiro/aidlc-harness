@@ -1,5 +1,7 @@
 # Referência
 
+*Tradução de [REFERENCE.md](../REFERENCE.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 > Tudo o que o kit tem, uma peça por vez: o que faz, como se chama, o que devolve e como desligar. Para entender **por que** é assim, leia [ARQUITETURA.md](ARQUITETURA.md) e [ESTRATEGIA.md](ESTRATEGIA.md). Para começar do zero, [COMECAR.md](COMECAR.md).
 >
 > Este arquivo é conferido por `scripts/check-reference.mjs`: um hook, executável, comando, agente ou skill que exista no disco e não apareça aqui reprova o CI, e um comando citado na prosa que não exista também.
@@ -184,7 +186,7 @@ Processos que o Claude Code dispara. Ficam em `plugins/aidlc-harness/hooks/` e s
 | `Stop` | [`promise-check`](#promise-check) | Barra "faço depois" sem ter feito | `AIDLC_PROMISE=0` |
 | `Stop` | [`dod-check`](#dod-check) | Exige a evidência do manifesto no chat | `AIDLC_GATE=0` |
 
-![Ciclo de vida dos hooks](assets/diagramas/hooks.claro.svg)
+![Ciclo de vida dos hooks](../assets/diagramas/hooks.claro.svg)
 
 ### session-brief
 
@@ -216,7 +218,7 @@ Recusa encerrar o turno que **promete continuar** ("sigo no próximo ciclo", "na
 
 ### dod-check
 
-O gate de evidência. Lê o transcript desde a última mensagem da pessoa, descobre quais evidências o manifesto da tecnologia exige (`evidence`), e recusa o fim do turno se algum marcador não aparece. Determinista, sem modelo, em milissegundos. Falha para o lado de liberar: tecnologia desconhecida, árvore limpa (salvo quando o turno afirma fechar uma unidade: aí só a evidência `whenSays` é cobrada) ou teto de **3 recusas por sessão**, quando vira aviso e libera. Cada decisão é gravada em `.claude/audit/<dia>.jsonl`; falha ao gravar o registro nunca segura o Stop. Detalhes do fluxo: ![Como o Stop decide](assets/diagramas/evidencia.claro.svg)
+O gate de evidência. Lê o transcript desde a última mensagem da pessoa, descobre quais evidências o manifesto da tecnologia exige (`evidence`), e recusa o fim do turno se algum marcador não aparece. Determinista, sem modelo, em milissegundos. Falha para o lado de liberar: tecnologia desconhecida, árvore limpa (salvo quando o turno afirma fechar uma unidade: aí só a evidência `whenSays` é cobrada) ou teto de **3 recusas por sessão**, quando vira aviso e libera. Cada decisão é gravada em `.claude/audit/<dia>.jsonl`; falha ao gravar o registro nunca segura o Stop. Detalhes do fluxo: ![Como o Stop decide](../assets/diagramas/evidencia.claro.svg)
 
 ---
 
@@ -262,7 +264,7 @@ Em `plugins/aidlc-harness/skills/<nome>/SKILL.md`. O agente as carrega pela desc
 
 O critério de aceite como dado. Ficam em `plugins/aidlc-harness/quality/<tech>.json`, validados por `_schema.json` (`node scripts/check-quality-manifests.mjs`).
 
-![Camadas de manifesto](assets/diagramas/camadas.claro.svg)
+![Camadas de manifesto](../assets/diagramas/camadas.claro.svg)
 
 ### Manifestos que vêm no kit
 

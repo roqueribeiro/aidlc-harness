@@ -1,5 +1,7 @@
 # Glossário e perguntas frequentes
 
+*Tradução de [GLOSSARY.md](../GLOSSARY.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 ## Glossário
 
 | Termo | Significado neste kit |
@@ -78,8 +80,8 @@ macOS, Windows, Kiro, GitHub Copilot, o piso de Node 20.19 (só o 22 rodou) e a 
 
 ### Como contribuo?
 
-Leia o [CONTRIBUTING.md](../CONTRIBUTING.md). Em resumo: todo check novo vem com mutante, "pronto" exige a saída crua do `node --test`, e os commits levam `Signed-off-by`.
+Leia o [CONTRIBUTING.md](CONTRIBUTING.md). Em resumo: todo check novo vem com mutante, "pronto" exige a saída crua do `node --test`, e os commits levam `Signed-off-by`.
 
 ### Quero traduzir a documentação.
 
-Bem-vindo. A documentação é em português do Brasil primeiro, com resumo em inglês no README. Traduções para inglês dos guias seguem o fluxo do CONTRIBUTING.
+Bem-vindo. A documentação é em inglês primeiro, com o par completo em português do Brasil em `docs/pt-BR/`. As mensagens que o kit imprime continuam em português.

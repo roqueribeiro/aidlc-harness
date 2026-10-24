@@ -18,7 +18,7 @@
  *   aidlc-scan bundle.json --require-scanners semgrep,trivy
  *   aidlc-scan relatorio.json --json
  *
- * Contrato do formato neutro e dos outros: docs/INTEGRACOES.md.
+ * Contrato do formato neutro e dos outros: docs/INTEGRATIONS.md (pt-BR: docs/pt-BR/INTEGRACOES.md).
  */
 import { readFileSync } from 'node:fs'
 import { lerRelatorio, avalia, ErroDeRelatorio, SEVERIDADES } from '../lib/scan.mjs'

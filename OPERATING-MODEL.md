@@ -1,72 +1,76 @@
-# Modelo operacional
+# Operating model
 
-Como trabalhamos com agentes de IA neste repositório e em qualquer projeto que adote o `aidlc-harness`. Este arquivo é normativo para o próprio kit: é a razão de o manifesto `harness-self` existir, e o `aidlc-gate` só reconhece este repositório quando ele está aqui.
+*Also available in [Brazilian Portuguese](docs/pt-BR/OPERATING-MODEL.md).*
 
-A regra que organiza todo o resto: **regra sem mecanismo é decoração.** Toda norma abaixo aponta para o hook, o gate ou o manifesto que a executa. Se você quiser acrescentar uma norma, diga primeiro qual mecanismo vai cobrá-la.
+Note: the messages printed by the `aidlc-*` executables and the literal markers they look for (such as `Aprovado por:` and `PREENCHER`) are in Portuguese. They are quoted verbatim below.
 
-## 1. Princípios
+How we work with AI agents in this repository and in any project that adopts `aidlc-harness`. This file is normative for the kit itself: it is the reason the `harness-self` manifest exists, and `aidlc-gate` only recognizes this repository when this file is here.
 
-| # | Princípio | O que o executa |
+The rule that organizes everything else: **a rule without a mechanism is decoration.** Every norm below points to the hook, gate or manifest that enforces it. If you want to add a norm, first say which mechanism will enforce it.
+
+## 1. Principles
+
+| # | Principle | What enforces it |
 | --- | --- | --- |
-| 1 | **Critério de aceite é dado, não prosa.** Qual comando, que saída reprova, se bloqueia. | `quality/<tech>.json`, validado por `quality/_schema.json` e por `scripts/check-quality-manifests.mjs` |
-| 2 | **Determinismo vence modelo quando a tarefa é mecânica.** Se uma checagem pode ser um script, é um script. | `tools/aidlc-*`, todos sem chamada a modelo |
-| 3 | **Evidência antes de "pronto".** O agente cola a saída crua do gate; não a resume. | hook `dod-check` (Stop): recusa encerrar sem o marcador da evidência declarada no manifesto |
-| 4 | **Quem aprova a fase é uma pessoa.** A IA propõe, a equipe valida. | `aidlc-phase check`: reprova campo `PREENCHER` e `Aprovado por:` vazio ou com nome de IA |
-| 5 | **Check que nunca reprovou não é check.** Antes de declarar pronto, quebre de propósito. | `tools/aidlc-mutation` e a regra de escrever o mutante junto do teste (`skills/bolts`) |
-| 6 | **Segredo não aparece em tela.** Nem echo, nem log, nem codificado. | hook `secret-guard` (PreToolUse) e `tools/aidlc-secrets exec` |
-| 7 | **Nada que identifique pessoa ou infraestrutura vai para o repositório.** | `tools/aidlc-identity`, gate `identity` do CI |
-| 8 | **Dependência nova só entra conferida.** Existe, tem dono, nome não imita outro, está no lockfile. | `tools/aidlc-lockcheck`, `tools/aidlc-secscan` e o agente `supply-chain-reviewer` |
-| 9 | **O gerenciador de pacote é o do projeto.** O guard não presume um. | hook `pkg-manager`, lendo `pkgManager` do manifesto |
-| 10 | **Ação irreversível pede confirmação.** Apagar, sobrescrever, publicar, force push. | instrução de `AGENTS.md` e o agente `advisor` para a decisão; nenhum hook substitui o julgamento aqui |
-| 11 | **O contexto sempre carregado é curto.** Invariante fica, referência sai. | `tools/aidlc-harness --check` (orçamento do baseline) e `aidlc-doctor` (CLAUDE.md abaixo de 8 KB) |
-| 12 | **Trabalho terminado deixa a bancada limpa.** | `tools/aidlc-limpeza` e a evidência `fechamento-limpeza` da camada org |
+| 1 | **Acceptance criteria are data, not prose.** Which command, what output fails, whether it blocks. | `quality/<tech>.json`, validated by `quality/_schema.json` and by `scripts/check-quality-manifests.mjs` |
+| 2 | **Determinism beats a model when the task is mechanical.** If a check can be a script, it is a script. | `tools/aidlc-*`, all without a model call |
+| 3 | **Evidence before "done".** The agent pastes the raw gate output; it does not summarize it. | `dod-check` hook (Stop): refuses to finish without the evidence marker declared in the manifest |
+| 4 | **A person approves the phase.** The AI proposes, the team validates. | `aidlc-phase check`: fails on a `PREENCHER` (fill-in) field and on an empty `Aprovado por:` (approved by) or one with an AI's name |
+| 5 | **A check that never failed is not a check.** Before declaring done, break it on purpose. | `tools/aidlc-mutation` and the rule of writing the mutant together with the test (`skills/bolts`) |
+| 6 | **A secret does not show on screen.** Not by echo, not in a log, not encoded. | `secret-guard` hook (PreToolUse) and `tools/aidlc-secrets exec` |
+| 7 | **Nothing that identifies a person or infrastructure goes into the repository.** | `tools/aidlc-identity`, CI `identity` gate |
+| 8 | **A new dependency only gets in after being checked.** It exists, has an owner, its name does not imitate another, it is in the lockfile. | `tools/aidlc-lockcheck`, `tools/aidlc-secscan` and the `supply-chain-reviewer` agent |
+| 9 | **The package manager is the project's.** The guard does not assume one. | `pkg-manager` hook, reading `pkgManager` from the manifest |
+| 10 | **An irreversible action asks for confirmation.** Deleting, overwriting, publishing, force push. | `AGENTS.md` instruction and the `advisor` agent for the decision; no hook replaces judgment here |
+| 11 | **The always-loaded context is short.** Invariants stay, reference material goes out. | `tools/aidlc-harness --check` (baseline budget) and `aidlc-doctor` (CLAUDE.md under 8 KB) |
+| 12 | **Finished work leaves a clean bench.** | `tools/aidlc-limpeza` and the `fechamento-limpeza` evidence of the org layer |
 
-O item 10 é o único sem hook de bloqueio, de propósito: decidir se um apagar é seguro depende de contexto que um padrão de texto não tem. Ele fica com a instrução e com o humano.
+Item 10 is the only one without a blocking hook, on purpose: deciding whether a deletion is safe depends on context that a text pattern does not have. It is left to the instruction and to the human.
 
-## 2. Papéis de modelo
+## 2. Model roles
 
-O erro caro não é escolher o modelo errado num turno; é pagar contexto de sobra em todos.
+The expensive mistake is not picking the wrong model in one turn; it is paying for extra context in all of them.
 
-| Papel | Quando | Como |
+| Role | When | How |
 | --- | --- | --- |
-| **Scanner** | varredura mecânica sem julgamento: inventário, drift, triagem de lint | `agents/scanner.md`, modelo pequeno, esforço baixo |
-| **Executor** | o turno a turno: implementar, rodar o gate, escrever documentação | a sessão principal |
-| **Advisor** | decisão grande demais para o turno: arquitetura, refutar um achado, gate travado duas vezes, ação irreversível | `agents/advisor.md`, sob demanda, nunca a cada turno |
+| **Scanner** | mechanical sweeps without judgment: inventory, drift, lint triage | `agents/scanner.md`, small model, low effort |
+| **Executor** | turn by turn: implementing, running the gate, writing documentation | the main session |
+| **Advisor** | a decision too big for the turn: architecture, refuting a finding, a gate stuck twice, an irreversible action | `agents/advisor.md`, on demand, never every turn |
 
-## 3. Autonomia declarada como dado
+## 3. Autonomy declared as data
 
-Cada manifesto declara `autonomy`: `observe` (só lê e relata), `advise` (recomenda, o humano executa), `approve` (propõe, o humano aprova, então executa) ou `breaker` (executa sozinho e o humano interrompe). O padrão é `approve`. Um gate pode declarar a sua e sobrescrever a da stack. O schema (`quality/_schema.json`) recusa valor fora dessa lista, e o `scripts/check-quality-manifests.mjs` aplica o schema.
+Each manifest declares `autonomy`: `observe` (only reads and reports), `advise` (recommends, the human executes), `approve` (proposes, the human approves, then it executes) or `breaker` (executes on its own and the human interrupts). The default is `approve`. A gate can declare its own and override the stack's. The schema (`quality/_schema.json`) rejects any value outside that list, and `scripts/check-quality-manifests.mjs` applies the schema.
 
-## 4. Critério de aceite por tecnologia
+## 4. Acceptance criteria per technology
 
-O kit traz manifestos genéricos; cada projeto acrescenta os seus em `.aidlc/quality/<tech>.json` (veja `docs/ESTENDER.md`).
+The kit ships generic manifests; each project adds its own in `.aidlc/quality/<tech>.json` (see [`docs/EXTENDING.md`](docs/EXTENDING.md)).
 
-| Tecnologia | Detecção | Gates bloqueantes |
+| Technology | Detection | Blocking gates |
 | --- | --- | --- |
-| `node-yarn` | `package.json` + `yarn.lock` | testes, `aidlc-secscan`, `supply-chain-reviewer`, `aidlc-lockcheck` (camada org) |
-| `node-npm` | `package.json` + `package-lock.json` | os mesmos, com `npm` |
-| `python-uv` | `pyproject.toml` + `uv.lock` | lint, formato, lockfile, segredo, testes unitários |
-| `harness-self` | este repositório | `node --test`, sintaxe de todo `.mjs`, manifestos, integridade do plugin |
+| `node-yarn` | `package.json` + `yarn.lock` | tests, `aidlc-secscan`, `supply-chain-reviewer`, `aidlc-lockcheck` (org layer) |
+| `node-npm` | `package.json` + `package-lock.json` | the same, with `npm` |
+| `python-uv` | `pyproject.toml` + `uv.lock` | lint, format, lockfile, secret, unit tests |
+| `harness-self` | this repository | `node --test`, syntax of every `.mjs`, manifests, plugin integrity |
 
-Lint e build começam como não bloqueantes nos manifestos genéricos, porque o kit não sabe se o seu projeto os tem. Transformar um em bloqueante é uma edição do manifesto, revisada como qualquer outra, nunca uma decisão de sessão.
+Lint and build start as non-blocking in the generic manifests, because the kit does not know whether your project has them. Making one blocking is a manifest edit, reviewed like any other, never a session decision.
 
-## 5. Contrato de evidência
+## 5. Evidence contract
 
-"Pronto" só vale com a evidência que o manifesto declara, colada no chat:
+"Done" only counts with the evidence the manifest declares, pasted in the chat:
 
-- **Gate:** a saída de `aidlc-gate`, crua. Resumo não vale.
-- **Mudança visível:** capturas de tela abertas e lidas, não só geradas.
-- **Fechamento de unidade de trabalho:** a linha final `aidlc-limpeza: nada sobrando`.
-- **Fase do AI-DLC:** `aidlc-phase check <fase>` saindo com 0, e a aprovação de uma pessoa nos arquivos.
+- **Gate:** the output of `aidlc-gate`, raw. A summary does not count.
+- **Visible change:** screenshots opened and read, not just generated.
+- **Closing a unit of work:** the final line `aidlc-limpeza: nada sobrando` (verbatim, as the executable prints it: "nothing left over").
+- **AI-DLC phase:** `aidlc-phase check <phase>` exiting with 0, and a person's approval in the files.
 
-O `dod-check` grava cada decisão em `.claude/audit/<dia>.jsonl`, e o `aidlc-cycle` lê esse registro. O que não tem registro aparece como "não medido", nunca como zero.
+`dod-check` records each decision in `.claude/audit/<day>.jsonl`, and `aidlc-cycle` reads that record. What has no record shows up as "not measured", never as zero.
 
-## 6. O que fica fora deste modelo
+## 6. What stays outside this model
 
-- **Decisão de produto** mora em `context/product.md` e `aidlc/decisions.md` de cada projeto, não aqui.
-- **Política de uma organização específica** (classificação de dados, aprovadores, fornecedores) mora num repositório interno que estende o kit. Veja `docs/REGULADO.md`.
-- **A documentação oficial do AI-DLC** é da AWS. `docs/AIDLC.md` é uma interpretação, e diz que é.
+- **Product decisions** live in each project's `context/product.md` and `aidlc/decisions.md`, not here.
+- **The policy of a specific organization** (data classification, approvers, vendors) lives in an internal repository that extends the kit. See [`docs/REGULATED.md`](docs/REGULATED.md).
+- **The official AI-DLC documentation** belongs to AWS. `docs/AIDLC.md` ([`AIDLC.md`](docs/AIDLC.md) in English) is an interpretation, and says so.
 
-## 7. Como este arquivo é mantido
+## 7. How this file is maintained
 
-Mudou um hook, um manifesto ou uma ferramenta que a tabela da seção 1 cita? A mesma alteração atualiza esta tabela. O `scripts/check-docs-consistency.mjs` confere as contagens e os nomes que a documentação afirma; a revisão confere o resto.
+Did you change a hook, a manifest or a tool that the table in section 1 mentions? The same change updates this table. `scripts/check-docs-consistency.mjs` checks the counts and names the documentation claims; review checks the rest.

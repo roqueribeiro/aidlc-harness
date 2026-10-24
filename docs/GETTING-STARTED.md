@@ -1,6 +1,6 @@
 # Getting started: the seven-step path
 
-*Translation of [../COMECAR.md](../COMECAR.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/COMECAR.md).*
 
 From zero to a project with the AI-DLC cycle running. Each step says what to do, what you should see, and what to do if you do not see it. Estimated time from the first to the fifth step: half an hour, most of it in the requirements conversation.
 
@@ -94,7 +94,7 @@ Here the AI leads and the team answers. In Claude Code:
 
 (The example prompt is in Portuguese; it means "I want a customer registry with search and change history". Write yours in your own language.)
 
-In Kiro or Copilot, paste the text from [PROMPTS.md](../PROMPTS.md#inception) (Portuguese) into the agent's chat.
+In Kiro or Copilot, paste the text from [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md#inception) (Portuguese) into the agent's chat.
 
 The AI should:
 
@@ -139,7 +139,7 @@ When everything is right: `aidlc-phase: inception completa` (inception complete)
 /aidlc-harness:construction
 ```
 
-(In Kiro or Copilot: [PROMPTS.md](../PROMPTS.md#construction), in Portuguese.)
+(In Kiro or Copilot: [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md#construction), in Portuguese.)
 
 The AI starts by running `aidlc-phase check inception`. If Inception is not complete, it stops. Then it proposes the design with alternatives and their costs, asks what only the team knows (internal standards, approved platforms, sensitive data) and writes `aidlc/construction/design.md` and `test-plan.md`. The test plan ties **each acceptance criterion** to a test, and says what remains unverified.
 
@@ -147,7 +147,7 @@ Sign both files as in the previous step and run `aidlc-phase check construction`
 
 ## 6. Code, one unit at a time
 
-With both phases approved, the work follows the `bolts` skill (see [`skills/bolts/SKILL.md`](../../plugins/aidlc-harness/skills/bolts/SKILL.md)):
+With both phases approved, the work follows the `bolts` skill (see [`skills/bolts/SKILL.md`](../plugins/aidlc-harness/skills/bolts/SKILL.md)):
 
 1. a short branch per unit;
 2. test and code in the same diff; a new check is born with a **mutant** (break the code on purpose and confirm the test fails);

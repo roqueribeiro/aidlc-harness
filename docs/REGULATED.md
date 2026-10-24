@@ -1,6 +1,6 @@
 # Profile for regulated organizations
 
-*Translation of [../REGULADO.md](../REGULADO.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/REGULADO.md).*
 
 For teams in banks, insurers, healthcare, government and other organizations with audit, segregation of duties and sensitive data. This document is generic on purpose: **nothing here is specific to a company**, and the kit carries no company's policy. Your organization's policy lives in an internal repository that extends this one (see the last section).
 

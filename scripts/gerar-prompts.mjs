@@ -1,8 +1,8 @@
 #!/usr/bin/env node
 /*
- * gerar-prompts: gera docs/PROMPTS.md a partir dos comandos do plugin.
+ * gerar-prompts: gera docs/pt-BR/PROMPTS.md a partir dos comandos do plugin.
  *
- *   node scripts/gerar-prompts.mjs           # regrava docs/PROMPTS.md
+ *   node scripts/gerar-prompts.mjs           # regrava docs/pt-BR/PROMPTS.md
  *   node scripts/gerar-prompts.mjs --check   # exit 1 se o arquivo divergir dos comandos
  *
  * Por que existe: Kiro e Copilot não carregam os comandos do plugin (`/inception`, `/construction`),
@@ -48,7 +48,7 @@ export function gerar(leitor) {
 
 if (import.meta.url === `file://${process.argv[1]}`) {
   const leitor = (arq) => readFileSync(join(RAIZ, 'plugins', 'aidlc-harness', 'commands', arq), 'utf8')
-  const destino = join(RAIZ, 'docs', 'PROMPTS.md')
+  const destino = join(RAIZ, 'docs', 'pt-BR', 'PROMPTS.md')
   const novo = gerar(leitor)
   if (process.argv.includes('--check')) {
     let atual = ''
@@ -58,12 +58,12 @@ if (import.meta.url === `file://${process.argv[1]}`) {
       /* ausente: diverge */
     }
     if (atual !== novo) {
-      console.error('docs/PROMPTS.md diverge dos comandos. Rode: node scripts/gerar-prompts.mjs')
+      console.error('docs/pt-BR/PROMPTS.md diverge dos comandos. Rode: node scripts/gerar-prompts.mjs')
       process.exit(1)
     }
-    console.log('ok, docs/PROMPTS.md acompanha os comandos')
+    console.log('ok, docs/pt-BR/PROMPTS.md acompanha os comandos')
   } else {
     writeFileSync(destino, novo)
-    console.log('docs/PROMPTS.md regravado')
+    console.log('docs/pt-BR/PROMPTS.md regravado')
   }
 }

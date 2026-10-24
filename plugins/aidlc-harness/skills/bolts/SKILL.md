@@ -8,7 +8,7 @@ allowed-tools: Bash, Read, Glob, Grep, Edit, Write
 
 Uma unidade de trabalho (bolt) é uma entrega pequena o bastante para fechar em horas ou poucos dias, com critério de aceite medível. Este skill descreve como planejar e fechar uma, em uma sequência que o kit consegue conferir.
 
-O vocabulário é inspirado no AI-DLC, e não é a documentação da AWS. A relação com as fases está em `docs/AIDLC.md`.
+O vocabulário é inspirado no AI-DLC, e não é a documentação da AWS. A relação com as fases está em `docs/pt-BR/AIDLC.md`.
 
 ## 1. Planejar antes da primeira linha de código
 

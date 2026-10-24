@@ -1,5 +1,7 @@
 # Quando o gate reprova
 
+*Tradução de [WHEN-IT-BREAKS.md](../WHEN-IT-BREAKS.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 O que cada estado significa e o que fazer com ele. A regra de fundo é que **pulado é pendência, não aprovação**, e que enfraquecer um teste para o gate passar é proibido: teste que falhou significa código errado.
 
 ## Os quatro estados

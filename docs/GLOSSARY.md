@@ -1,6 +1,6 @@
 # Glossary and FAQ
 
-*Translation of [../GLOSSARIO.md](../GLOSSARIO.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/GLOSSARIO.md).*
 
 The messages printed by the `aidlc-*` executables are in Portuguese. Where a term appears in those messages, the Portuguese term is given in parentheses next to the English one.
 
@@ -82,8 +82,8 @@ macOS, Windows, Kiro, GitHub Copilot, the Node 20.19 floor (only 22 was run) and
 
 ### How do I contribute?
 
-Read [CONTRIBUTING.md](CONTRIBUTING.md). In short: every new check comes with a mutant, "done" requires the raw output of `node --test`, and commits carry `Signed-off-by`.
+Read [../CONTRIBUTING.md](../CONTRIBUTING.md). In short: every new check comes with a mutant, "done" requires the raw output of `node --test`, and commits carry `Signed-off-by`.
 
 ### I want to translate the documentation.
 
-Welcome. The documentation is in Brazilian Portuguese first, with an English summary in the README. English translations of the guides follow the CONTRIBUTING flow.
+Welcome. The documentation is in English first, with a full Brazilian Portuguese pair under `docs/pt-BR/`. The messages the kit prints are still in Portuguese, and the glossary gives the English term next to each one.

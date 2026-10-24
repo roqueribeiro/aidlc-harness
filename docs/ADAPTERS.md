@@ -1,6 +1,6 @@
 # Adapters: Claude Code, Kiro and GitHub Copilot
 
-*Translation of [../ADAPTADORES.md](../ADAPTADORES.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/ADAPTADORES.md).*
 
 The kit works with the three tools, but **not in the same way**. This document says what each one receives, what is guaranteed by a mechanism and what is only instruction, and how you check that in your version.
 
@@ -43,14 +43,14 @@ Read the table honestly: **outside Claude Code, the kit instructs, and what stop
 
 - Instructions: [Kiro reads steering from `.kiro/steering/`](https://kiro.dev/docs/steering/) and, according to the public documentation, also reads `AGENTS.md` at the workspace root (always included, with no inclusion modes). `aidlc-init` generates `.kiro/steering/aidlc.md` with `inclusion: always`.
 - **Probable duplication:** if your version of Kiro reads `AGENTS.md`, the copy in `.kiro/steering/aidlc.md` is redundant and the rules enter the context twice. In that case run `aidlc-init --tools claude,copilot` and delete the copy. The copy exists for versions that do not yet read `AGENTS.md`.
-- No plugin: the `/inception` and `/construction` commands do not exist. Use the texts in [PROMPTS.md](../PROMPTS.md) (Portuguese), pasted into the chat.
+- No plugin: the `/inception` and `/construction` commands do not exist. Use the texts in [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese), pasted into the chat.
 - No kit hooks: Kiro has its own hook mechanism, which the kit does **not** use. CI is what enforces the evidence.
 
 ## GitHub Copilot
 
 - Instructions: the [GitHub documentation](https://docs.github.com/en/copilot/concepts/prompting-and-context/custom-instructions) mentions `.github/copilot-instructions.md` (whole repository), `.github/instructions/*.instructions.md` (per path) and `AGENTS.md`, `CLAUDE.md` or `GEMINI.md` as agent instructions. `aidlc-init` generates `.github/copilot-instructions.md`.
 - **Which surface reads which file varies** (chat on GitHub, coding agent, code review, CLI, IDEs) and the page we consulted points to a separate matrix. Before relying on it, run the canary test below on the surface your team uses.
-- No plugin and no kit hooks, as with Kiro. Use [PROMPTS.md](../PROMPTS.md) (Portuguese).
+- No plugin and no kit hooks, as with Kiro. Use [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese).
 
 ## The canary test
 

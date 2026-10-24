@@ -61,7 +61,7 @@ export function settingsDoRepo(template, scripts) {
   allow.splice(pos < 0 ? allow.length : pos, 0, ...daStack.filter((a) => !allow.includes(a)))
   delete cfg.$comment
   cfg.$comment =
-    'Quem registra o marketplace de verdade e o `claude plugin marketplace add`, uma vez por maquina; veja docs/COMECAR.md.'
+    'Quem registra o marketplace de verdade e o `claude plugin marketplace add`, uma vez por maquina; veja docs/GETTING-STARTED.md.'
   return JSON.stringify(cfg, null, 2) + '\n'
 }
 

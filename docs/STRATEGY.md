@@ -1,6 +1,6 @@
 # The kit's strategy
 
-*Translation of [../ESTRATEGIA.md](../ESTRATEGIA.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/ESTRATEGIA.md).*
 
 > Why `aidlc-harness` is designed the way it is, what each decision costs and what you can take elsewhere. For those who want to understand the design before adopting or contributing.
 >
@@ -120,7 +120,7 @@ The value leaves the system vault, enters the child's environment, and the proce
 
 ## What keeps the documentation honest
 
-`scripts/check-docs-consistency.mjs` counts from disk what the documents claim (how many hooks, agents, skills, executables) and warns when a written number diverges. `docs/PROMPTS.md` (Portuguese) is generated from `commands/` and CI fails if it goes stale. `aidlc-identity` keeps personal or infrastructure data out of the repository.
+`scripts/check-docs-consistency.mjs` counts from disk what the documents claim (how many hooks, agents, skills, executables) and warns when a written number diverges. `docs/pt-BR/PROMPTS.md` (Portuguese) is generated from `commands/` and CI fails if it goes stale. `aidlc-identity` keeps personal or infrastructure data out of the repository.
 
 A source hash alone is not enough: it catches "the source changed", not "the number is wrong". Counting from disk catches the second.
 

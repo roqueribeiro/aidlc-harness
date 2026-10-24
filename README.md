@@ -1,120 +1,120 @@
 <p align="center">
   <a href="https://levelhard.com.br/aidlc">
-    <img src="docs/assets/diagramas/banner.claro.svg" alt="aidlc-harness: kit de qualidade para desenvolver com agentes de IA no ciclo AI-DLC. Pronto exige evidência. Regra sem mecanismo é decoração." width="100%">
+    <img src="docs/assets/diagramas/banner.en.claro.svg" alt="aidlc-harness: a quality kit for building with AI agents in the AI-DLC cycle. Done requires evidence. A rule without a mechanism is decoration." width="100%">
   </a>
 </p>
 
 <p align="center">
   <a href="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=vers%C3%A3o&sort=semver&color=2563eb"></a>
-  <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-16a34a"></a>
+  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Version" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=version&sort=semver&color=2563eb"></a>
+  <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-16a34a"></a>
   <a href="CONTRIBUTING.md#dco"><img alt="DCO" src="https://img.shields.io/badge/commits-DCO-16a34a"></a>
-  <img alt="Node 20.19 ou mais novo" src="https://img.shields.io/badge/node-%E2%89%A5%2020.19-5fa04e">
-  <img alt="Estado: pré-lançamento" src="https://img.shields.io/badge/estado-pr%C3%A9--lan%C3%A7amento-f59e0b">
-  <img alt="Claude Code, Kiro e GitHub Copilot" src="https://img.shields.io/badge/ferramentas-Claude%20Code%20%C2%B7%20Kiro%20%C2%B7%20Copilot-6d28d9">
+  <img alt="Node 20.19 or newer" src="https://img.shields.io/badge/node-%E2%89%A5%2020.19-5fa04e">
+  <img alt="Status: pre-release" src="https://img.shields.io/badge/status-pre--release-f59e0b">
+  <img alt="Claude Code, Kiro and GitHub Copilot" src="https://img.shields.io/badge/tools-Claude%20Code%20%C2%B7%20Kiro%20%C2%B7%20Copilot-6d28d9">
 </p>
 
 <p align="center">
-  <a href="docs/COMECAR.md"><b>Começar</b></a> ·
-  <a href="docs/INDEX.md">Documentação</a> ·
-  <a href="docs/ARQUITETURA.md">Arquitetura</a> ·
-  <a href="docs/REFERENCIA.md">Referência</a> ·
-  <a href="docs/INTEGRACOES.md">Integrações</a> ·
-  <a href="https://levelhard.com.br/aidlc">O método na prática</a> ·
-  <a href="CONTRIBUTING.md">Contribuir</a> ·
-  <a href="README.en.md">English</a>
+  <a href="docs/GETTING-STARTED.md"><b>Get started</b></a> ·
+  <a href="docs/INDEX.md">Documentation</a> ·
+  <a href="docs/ARCHITECTURE.md">Architecture</a> ·
+  <a href="docs/REFERENCE.md">Reference</a> ·
+  <a href="docs/INTEGRATIONS.md">Integrations</a> ·
+  <a href="https://levelhard.com.br/aidlc">The method in practice (in Portuguese)</a> ·
+  <a href="CONTRIBUTING.md">Contributing</a> ·
+  <a href="README.pt-BR.md">Português (Brasil)</a>
 </p>
 
 ---
 
-**Um harness de qualidade para desenvolver software com agentes de IA seguindo o ciclo AI-DLC**: a IA propõe, a equipe valida, e nada é "pronto" sem evidência. Funciona com **Claude Code**, **Kiro** e **GitHub Copilot**, e lê o relatório de **qualquer plataforma de segurança** (SARIF, o formato neutro do kit, ou o AI Fix Bundle do [RoqueShield](docs/ROQUESHIELD.md)). Não depende de nenhum produto, empresa ou stack específica.
+**A quality harness for building software with AI agents following the AI-DLC cycle**: the AI proposes, the team validates, and nothing is "done" without evidence. It works with **Claude Code**, **Kiro** and **GitHub Copilot**, and reads the report of **any security platform** (SARIF, the kit's neutral format, or the AI Fix Bundle of [RoqueShield](docs/ROQUESHIELD.md)). It does not depend on any specific product, company or stack.
 
 > [!NOTE]
-> **Pré-lançamento (0.1.0).** O que está descrito aqui existe e tem teste. O que ainda não foi verificado em máquina real está dito, sem enfeite, em [Estado do projeto](#estado-do-projeto) e em [Limites conhecidos](#limites-conhecidos). Este projeto é uma interpretação prática do AI-DLC; não é documentação nem produto da AWS ([docs/AIDLC.md](docs/AIDLC.md)).
+> **Pre-release (0.1.0).** What is described here exists and has tests. What has not yet been verified on a real machine is stated plainly in [Project status](#project-status) and in [Known limits](#known-limits). This project is a practical interpretation of AI-DLC; it is not AWS documentation or an AWS product ([docs/AIDLC.md](docs/AIDLC.md)).
 
-## Sumário
+## Contents
 
-- [Por que existe](#por-que-existe)
-- [Destaques](#destaques)
-- [Estado do projeto](#estado-do-projeto)
-- [Começar em cinco minutos](#começar-em-cinco-minutos)
-- [Como funciona](#como-funciona)
-- [O ciclo](#o-ciclo)
-- [Segurança: qualquer plataforma, inclusive o RoqueShield](#segurança-qualquer-plataforma-inclusive-o-roqueshield)
-- [O que vem no kit](#o-que-vem-no-kit)
-- [Compatibilidade](#compatibilidade-o-que-cada-ferramenta-recebe)
-- [O método na prática](#o-método-na-prática)
-- [Documentação](#documentação)
-- [Limites conhecidos](#limites-conhecidos)
-- [Lacunas e próximos passos](#lacunas-e-próximos-passos)
-- [Contribuir, segurança e licença](#contribuir-segurança-e-licença)
-- [English summary](#english-summary)
+- [Why it exists](#why-it-exists)
+- [Highlights](#highlights)
+- [Project status](#project-status)
+- [Get started in five minutes](#get-started-in-five-minutes)
+- [How it works](#how-it-works)
+- [The cycle](#the-cycle)
+- [Security: any platform, including RoqueShield](#security-any-platform-including-roqueshield)
+- [What ships in the kit](#what-ships-in-the-kit)
+- [Compatibility: what each tool gets](#compatibility-what-each-tool-gets)
+- [The method in practice](#the-method-in-practice)
+- [Documentation](#documentation)
+- [Known limits](#known-limits)
+- [Gaps and next steps](#gaps-and-next-steps)
+- [Contributing, security and license](#contributing-security-and-license)
+- [Languages](#languages)
 
-## Por que existe
+## Why it exists
 
-O sintoma que motivou o kit: um agente entrega, a pessoa revisa, e encontra o mesmo tipo de problema pela quinta vez. Não porque o modelo seja ruim, mas porque cada sessão recomeça sem saber o que a equipe já decidiu e sem nada que cobre o "pronto". O gargalo vira a revisão.
+The symptom that motivated the kit: an agent delivers, a person reviews, and finds the same kind of problem for the fifth time. Not because the model is bad, but because every session starts over without knowing what the team has already decided and without anything that enforces "done". The bottleneck becomes review.
 
-O kit trata isso com quatro decisões que não são sobre prompt:
+The kit addresses this with four decisions that are not about prompts:
 
-1. **Critério de aceite é dado, não prosa.** Um arquivo JSON diz qual comando roda, que saída reprova e se bloqueia.
-2. **Determinismo vence modelo quando a tarefa é mecânica.** Se uma checagem pode ser um script, é um script.
-3. **Evidência antes de "pronto".** O agente cola a saída crua do gate no chat, e um hook recusa encerrar a sessão sem ela.
-4. **Quem aprova a fase é uma pessoa.** O kit confere que a aprovação existe e que não foi preenchida por uma IA.
+1. **Acceptance criteria are data, not prose.** A JSON file says which command runs, which output fails and whether it blocks.
+2. **Determinism beats the model when the task is mechanical.** If a check can be a script, it is a script.
+3. **Evidence before "done".** The agent pastes the raw gate output into the chat, and a hook refuses to end the session without it.
+4. **A person approves the phase.** The kit checks that the approval exists and was not filled in by an AI.
 
-Uma regra atravessa tudo: **regra sem mecanismo é decoração.** Cada norma deste repositório aponta para o hook, o gate ou o manifesto que a executa ([OPERATING-MODEL.md](OPERATING-MODEL.md)).
+One rule runs through everything: **a rule without a mechanism is decoration.** Every norm in this repository points to the hook, gate or manifest that enforces it ([OPERATING-MODEL.md](OPERATING-MODEL.md)).
 
-## Destaques
+## Highlights
 
 | | |
 | --- | --- |
-| **Gate de evidência** | `aidlc-gate` roda o critério de aceite da stack detectada. O hook de `Stop` recusa o "pronto" sem a saída crua colada no chat. |
-| **Fases com aprovação humana** | `aidlc-phase check` reprova campo por preencher, aprovação em branco e aprovação assinada por IA. |
-| **Um scan que não rodou não é limpo** | `aidlc-scan` separa três saídas, não duas: **0 limpo**, **1 reprovado**, **2 não rodou**. |
-| **Qualquer plataforma de segurança** | SARIF 2.1.0, formato neutro e AI Fix Bundle do RoqueShield entram pelo mesmo contrato. |
-| **Três ferramentas, uma fonte** | Um `AGENTS.md` gera as instruções para Claude Code, Kiro e GitHub Copilot, e o `aidlc-init --check` acusa a deriva. |
-| **Nada que identifique pessoa ou empresa** | `aidlc-identity` varre IP, e-mail, caminho de home, hostname interno, segredo e a sua lista de termos proibidos. |
-| **Estratégia na hora em que o código é escrito** | Hooks entregam a regra certa para o arquivo que acabou de mudar, e o `strategy-map` sobrevive ao `/compact`. |
-| **Documentação que não mente** | Os diagramas são gerados por código, a referência é conferida contra o disco, e todo link relativo é verificado no CI. |
+| **Evidence gate** | `aidlc-gate` runs the acceptance criteria of the detected stack. The `Stop` hook refuses "done" without the raw output pasted into the chat. |
+| **Phases with human approval** | `aidlc-phase check` fails on an unfilled field, a blank approval and an approval signed by an AI. |
+| **A scan that did not run is not clean** | `aidlc-scan` separates three outcomes, not two: **0 clean**, **1 failed**, **2 did not run**. |
+| **Any security platform** | SARIF 2.1.0, the neutral format and the RoqueShield AI Fix Bundle all enter through the same contract. |
+| **Three tools, one source** | One `AGENTS.md` generates the instructions for Claude Code, Kiro and GitHub Copilot, and `aidlc-init --check` flags drift. |
+| **Nothing that identifies a person or company** | `aidlc-identity` scans for IPs, emails, home paths, internal hostnames, secrets and your own denylist terms. |
+| **Strategy at the moment the code is written** | Hooks deliver the right rule for the file that just changed, and the `strategy-map` survives `/compact`. |
+| **Documentation that does not lie** | Diagrams are generated by code, the reference is checked against the disk, and every relative link is verified in CI. |
 
-## Estado do projeto
+## Project status
 
-| Item | Estado | Como foi medido |
+| Item | Status | How it was measured |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **380 passam, 0 falham** no Linux | Linux (Node 22). No macOS arm64 (Node 22.23.2), os 365 testes da versão anterior passaram em clone limpo; os 15 novos ainda não rodaram lá |
-| Gate do próprio repositório (`aidlc-gate`) | **12 de 12 passam** no Linux | Em clone limpo; no macOS, 11 de 11 passaram na versão anterior (ainda não reexecutado). Os mesmos checks rodam no CI a cada push |
-| `claude plugin validate --strict` | passa (plugin e marketplace) | Linux |
-| Mecanismos novos | cada um com **mutante** que reprova | Os testes de mutação estão ao lado do código |
-| Hooks dentro do Claude Code no macOS | **não exercitados** | Só a suíte e o gate rodaram lá |
-| Windows, Kiro, Copilot, Node 20.19 | **não testados** | Ninguém executou; veja [Limites conhecidos](#limites-conhecidos) |
-| Ligação com o RoqueShield | validada contra a documentação dele | Relatórios sintéticos, não uma instância em execução |
+| Test suite (`node --test`) | **381 pass, 0 fail** on Linux | Linux (Node 22). On macOS arm64 (Node 22.23.2), the 365 tests of an earlier revision passed on a clean clone; the newer ones have not run there yet |
+| The repository's own gate (`aidlc-gate`) | **12 of 12 pass** on Linux | On a clean clone; on macOS, 11 of 11 passed in the previous revision (not re-run yet). The same checks run in CI on every push |
+| `claude plugin validate --strict` | passes (plugin and marketplace) | Linux |
+| New mechanisms | each with a **mutant** that fails | The mutation tests sit next to the code |
+| Hooks inside Claude Code on macOS | **not exercised** | Only the suite and the gate ran there |
+| Windows, Kiro, Copilot, Node 20.19 | **not tested** | Nobody ran them; see [Known limits](#known-limits) |
+| RoqueShield link | validated against its documentation | Synthetic reports, not a running instance |
 
-Versão atual: `0.1.0`. Ainda não há promessa de compatibilidade entre versões menores.
+Current version: `0.1.0`. There is no compatibility promise between minor versions yet.
 
-## Começar em cinco minutos
+## Get started in five minutes
 
-Pré-requisitos: **Node 20.19 ou mais novo** e **git**. O guia passo a passo, com o que esperar em cada passo, está em **[docs/COMECAR.md](docs/COMECAR.md)**. O resumo:
+Prerequisites: **Node 20.19 or newer** and **git**. The step-by-step guide, with what to expect at each step, is in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**. The short version:
 
 ```bash
-# 1. Pegue o kit e ponha os executáveis no PATH
+# 1. Get the kit and put the executables on the PATH
 git clone https://github.com/roqueribeiro/aidlc-harness.git
 node aidlc-harness/scripts/setup.mjs
 
-# 2. No Claude Code: registre o marketplace e instale o plugin
+# 2. In Claude Code: register the marketplace and install the plugin
 #    claude plugin marketplace add roqueribeiro/aidlc-harness
 #    claude plugin install aidlc-harness@aidlc
 
-# 3. No seu projeto
+# 3. In your project
 cd meu-projeto
 aidlc-init --name "Meu Projeto" --desc "uma frase"
 aidlc-phase status
 aidlc-gate
 ```
 
-Depois do `aidlc-init`, a equipe preenche `aidlc/inception/` com a IA fazendo as perguntas, e uma pessoa assina a aprovação no próprio arquivo. A Construction só começa depois.
+After `aidlc-init`, the team fills in `aidlc/inception/` with the AI asking the questions, and a person signs the approval in the file itself. Construction only starts after that.
 
-### Veja o contrato funcionando
+### See the contract in action
 
-Os relatórios de exemplo em [`docs/exemplos/scan/`](docs/exemplos/scan/) são executados pelos testes do repositório. A saída abaixo é a real:
+The example reports in [`docs/exemplos/scan/`](docs/exemplos/scan/) are executed by the repository's tests. The output below is real. The executables print their messages in Portuguese, so the output is shown verbatim (`REPROVADO` means failed, `NAO RODOU` means did not run, `saída` means exit code):
 
 ```console
 $ aidlc-scan docs/exemplos/scan/neutro-reprovado.json; echo "saída $?"
@@ -129,146 +129,145 @@ NAO RODOU: cobertura incompleta: algum scanner nao rodou ou falhou
 saída 2
 ```
 
-A segunda execução é o ponto do contrato: a lista de achados está vazia, e mesmo assim **não** é um resultado limpo.
+The second run is the point of the contract: the list of findings is empty, and it is still **not** a clean result.
 
-## Como funciona
-
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/contexto.escuro.svg">
-  <img alt="Contexto: a equipe decide, a ferramenta de IA executa, o kit cobra o que foi combinado" src="docs/assets/diagramas/contexto.claro.svg">
-</picture>
-
-A equipe decide, a ferramenta de IA executa e o kit cobra o que foi combinado. Por dentro, são hooks que o Claude Code dispara, executáveis `aidlc-*` sem custo de token, manifestos de qualidade por stack e três agentes de apoio. O desenho completo, com os diagramas de hooks, camadas de manifesto e decisão do `Stop`, está em **[docs/ARQUITETURA.md](docs/ARQUITETURA.md)**.
-
-## O ciclo
+## How it works
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/fases.escuro.svg">
-  <img alt="As fases do AI-DLC e onde a aprovação humana fica" src="docs/assets/diagramas/fases.claro.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/contexto.en.escuro.svg">
+  <img alt="Context: the team decides, the AI tool executes, the kit enforces what was agreed" src="docs/assets/diagramas/contexto.en.claro.svg">
 </picture>
 
-`aidlc/decisions.md` guarda o que foi decidido e não se reabre. [docs/AIDLC.md](docs/AIDLC.md) mapeia cada fase para o que o kit faz e diz onde ele se afasta do método original.
+The team decides, the AI tool executes and the kit enforces what was agreed. Inside, there are hooks that Claude Code fires, `aidlc-*` executables that cost no tokens, per-stack quality manifests and three support agents. The full design, with the diagrams of hooks, manifest layers and the `Stop` decision, is in **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**.
 
-## Segurança: qualquer plataforma, inclusive o RoqueShield
-
-O kit não embute um scanner: **cobra o resultado de um**, com uma regra que não muda: *um scan que não rodou não é um scan limpo.* No manifesto, o `aidlc-scan` é um gate comum.
+## The cycle
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/varredura.escuro.svg">
-  <img alt="Contrato de varredura: qualquer plataforma entra por um relatório, e o kit separa limpo de não rodou" src="docs/assets/diagramas/varredura.claro.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/fases.en.escuro.svg">
+  <img alt="The AI-DLC phases and where human approval sits" src="docs/assets/diagramas/fases.en.claro.svg">
 </picture>
 
-| A plataforma exporta | Como entra |
+`aidlc/decisions.md` keeps what was decided and is not reopened. [docs/AIDLC.md](docs/AIDLC.md) maps each phase to what the kit does and says where it departs from the original method.
+
+## Security: any platform, including RoqueShield
+
+The kit does not embed a scanner: it **enforces the result of one**, with a rule that does not change: *a scan that did not run is not a clean scan.* In the manifest, `aidlc-scan` is an ordinary gate.
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/varredura.en.escuro.svg">
+  <img alt="Scan contract: any platform enters through a report, and the kit separates clean from did not run" src="docs/assets/diagramas/varredura.en.claro.svg">
+</picture>
+
+| The platform exports | How it enters |
 | --- | --- |
-| AI Fix Bundle do [RoqueShield](docs/ROQUESHIELD.md) (código aberto, Apache-2.0, alfa) | `aidlc-scan relatorio.json --format roqueshield` |
-| SARIF 2.1.0 (Semgrep, CodeQL, Trivy e outras) | `aidlc-scan relatorio.sarif --format sarif` |
-| Qualquer outro JSON | converter para o formato neutro ([receita](docs/INTEGRACOES.md#5-receitas-por-plataforma)) |
+| AI Fix Bundle from [RoqueShield](docs/ROQUESHIELD.md) (open source, Apache-2.0, alpha) | `aidlc-scan relatorio.json --format roqueshield` |
+| SARIF 2.1.0 (Semgrep, CodeQL, Trivy and others) | `aidlc-scan relatorio.sarif --format sarif` |
+| Any other JSON | convert it to the neutral format ([recipe](docs/INTEGRATIONS.md#5-recipes-by-platform)) |
 
-| Saída | Significado | Quando |
+| Exit | Meaning | When |
 | --- | --- | --- |
-| `0` | limpo | cobertura completa e nenhum achado no limite (`--fail-on`, padrão `high`) |
-| `1` | reprovado | há achado em `high` ou acima |
-| `2` | não rodou | relatório ausente, ilegível, de formato desconhecido, ou cobertura incompleta |
+| `0` | clean | full coverage and no finding at the threshold (`--fail-on`, default `high`) |
+| `1` | failed | there is a finding at `high` or above |
+| `2` | did not run | report missing, unreadable, of unknown format, or coverage incomplete |
 
-O kit **não depende** do RoqueShield, e o RoqueShield não depende do kit: ele é uma das plataformas que entram pelo mesmo contrato. O que está e o que não está verificado nessa ligação está em [docs/ROQUESHIELD.md](docs/ROQUESHIELD.md).
+The kit **does not depend** on RoqueShield, and RoqueShield does not depend on the kit: it is one of the platforms that enter through the same contract. What is and is not verified in that link is in [docs/ROQUESHIELD.md](docs/ROQUESHIELD.md).
 
 <picture>
-  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/roqueshield.escuro.svg">
-  <img alt="O laço de varredura: RoqueShield acha, o kit cobra, o agente corrige" src="docs/assets/diagramas/roqueshield.claro.svg">
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/roqueshield.en.escuro.svg">
+  <img alt="The scan loop: RoqueShield finds, the kit enforces, the agent fixes" src="docs/assets/diagramas/roqueshield.en.claro.svg">
 </picture>
 
-## O que vem no kit
+## What ships in the kit
 
-| Peça | O que faz |
+| Piece | What it does |
 | --- | --- |
-| `aidlc-init` | Prepara um projeto: instruções para as três ferramentas a partir de um `AGENTS.md`, pastas do ciclo, workflow de CI |
-| `aidlc-phase` | Estado das fases. `check inception` reprova campo por preencher e aprovação em branco |
-| `aidlc-gate` | Roda o critério de aceite da stack detectada e sai com 1 se um gate bloqueante reprova |
-| `aidlc-identity` | Varre o repositório atrás de IP, e-mail, caminho de home, hostname interno, segredo e termos que você proíbe |
-| `aidlc-doctor` | Nota o repositório contra o padrão e diz o que falta, com peso |
-| `aidlc-scan` | Lê o relatório de qualquer plataforma de segurança e separa **limpo** de **não rodou** ([INTEGRACOES.md](docs/INTEGRACOES.md)) |
-| `aidlc-secrets`, `aidlc-secscan`, `aidlc-lockcheck` | Cofre que o agente usa sem ver, CVE com correção publicada, dependência fora do lockfile |
-| `aidlc-mutation`, `aidlc-limpeza`, `aidlc-cycle`, `aidlc-graph`, `aidlc-harness` | Teste de mutação, bancada limpa, painel do ciclo, raio de impacto entre repositórios, custo de contexto |
+| `aidlc-init` | Prepares a project: instructions for the three tools from one `AGENTS.md`, cycle folders, CI workflow |
+| `aidlc-phase` | Phase state. `check inception` fails on an unfilled field and a blank approval |
+| `aidlc-gate` | Runs the acceptance criteria of the detected stack and exits with 1 if a blocking gate fails |
+| `aidlc-identity` | Scans the repository for IPs, emails, home paths, internal hostnames, secrets and terms you forbid |
+| `aidlc-doctor` | Grades the repository against the standard and says what is missing, with weights |
+| `aidlc-scan` | Reads the report of any security platform and separates **clean** from **did not run** ([docs/INTEGRATIONS.md](docs/INTEGRATIONS.md)) |
+| `aidlc-secrets`, `aidlc-secscan`, `aidlc-lockcheck` | A vault the agent uses without seeing, CVEs with a published fix, dependencies outside the lockfile |
+| `aidlc-mutation`, `aidlc-limpeza`, `aidlc-cycle`, `aidlc-graph`, `aidlc-harness` | Mutation test, clean bench, cycle dashboard, blast radius across repositories, context cost |
 | Hooks (Claude Code) | `dod-check` (Stop), `promise-check`, `secret-guard`, `pkg-manager`, `strategy-map`, `path-strategy`, `session-brief`, `scratch-guard` |
-| Agentes | `advisor`, `scanner`, `supply-chain-reviewer` |
-| Skills e comandos | `aidlc-context`, `bolts`, `blast`, `repo-standard`, `/inception`, `/construction`, `/gate`, `/status` |
+| Agents | `advisor`, `scanner`, `supply-chain-reviewer` |
+| Skills and commands | `aidlc-context`, `bolts`, `blast`, `repo-standard`, `/inception`, `/construction`, `/gate`, `/status` |
 
-A lista completa, com opções, campos e variáveis, está em [docs/REFERENCIA.md](docs/REFERENCIA.md). Um check do repositório reprova se algo existir no disco e não estiver lá.
+The full list, with options, fields and variables, is in [docs/REFERENCE.md](docs/REFERENCE.md). A repository check fails if something exists on disk and is not listed there.
 
-## Compatibilidade: o que cada ferramenta recebe
+## Compatibility: what each tool gets
 
-O kit aplica regras de duas maneiras: **instrução** (o agente lê e deveria seguir) e **mecanismo** (algo bloqueia ou reprova de fato). A diferença importa.
+The kit applies rules in two ways: **instruction** (the agent reads it and should follow it) and **mechanism** (something actually blocks or fails). The difference matters.
 
 | | Claude Code | Kiro | GitHub Copilot |
 | --- | --- | --- | --- |
-| Instruções do projeto | `CLAUDE.md` importa `AGENTS.md` | `AGENTS.md` e `.kiro/steering/aidlc.md` | `.github/copilot-instructions.md` |
-| Hooks que bloqueiam (evidência no Stop, segredo, gerenciador de pacote) | sim, pelo plugin | não | não |
-| Executáveis `aidlc-*` | sim | sim, via `setup` | sim, via `setup` |
-| Gate no CI (`aidlc-gate.yml`) | sim | sim | sim |
+| Project instructions | `CLAUDE.md` imports `AGENTS.md` | `AGENTS.md` and `.kiro/steering/aidlc.md` | `.github/copilot-instructions.md` |
+| Blocking hooks (evidence at Stop, secret, package manager) | yes, through the plugin | no | no |
+| `aidlc-*` executables | yes | yes, via `setup` | yes, via `setup` |
+| Gate in CI (`aidlc-gate.yml`) | yes | yes | yes |
 
-Em resumo: no Claude Code o kit bloqueia; em Kiro e Copilot ele instrui e o CI confere. Detalhes e o que verificar na sua versão de cada ferramenta: [docs/ADAPTADORES.md](docs/ADAPTADORES.md). Para empresas reguladas, veja o perfil em [docs/REGULADO.md](docs/REGULADO.md).
+In short: in Claude Code the kit blocks; in Kiro and Copilot it instructs and CI checks. Details, and what to verify in your version of each tool: [docs/ADAPTERS.md](docs/ADAPTERS.md). For regulated companies, see the profile in [docs/REGULATED.md](docs/REGULATED.md).
 
-## O método na prática
+## The method in practice
 
-O kit é a parte executável de um método. A explicação do método, em linguagem simples, com o ciclo de seis estações (sentir, decidir, construir, publicar, operar e medir, evoluir), os níveis de autonomia dos agentes, a regra de "pronto só com prova" e os resultados, está no material complementar:
+The kit is the executable part of a method. The explanation of the method, in plain language, with the six-station cycle (sense, decide, build, publish, operate and measure, evolve), the agents' autonomy levels, the "done only with proof" rule and the results, is in the companion material (in Portuguese):
 
-**[levelhard.com.br/aidlc: AI-DLC na prática, do sinal do usuário à loja](https://levelhard.com.br/aidlc)**
+**[levelhard.com.br/aidlc: AI-DLC in practice, from the user signal to the store](https://levelhard.com.br/aidlc)** (the material is in Portuguese)
 
-O material e este repositório se complementam: lá está o porquê e a visão de ponta a ponta, aqui estão os mecanismos que cobram cada regra.
+The material and this repository complement each other: the why and the end-to-end view are there, the mechanisms that enforce each rule are here.
 
-## Documentação
+## Documentation
 
-O mapa completo está em **[docs/INDEX.md](docs/INDEX.md)**. Os principais:
+The full map is in **[docs/INDEX.md](docs/INDEX.md)**. The main ones:
 
-| Documento | Para quê |
+| Document | What for |
 | --- | --- |
-| [COMECAR](docs/COMECAR.md) | A trilha em sete passos, do clone ao primeiro gate |
-| [ARQUITETURA](docs/ARQUITETURA.md) | Como é feito por dentro, com diagramas |
-| [REFERENCIA](docs/REFERENCIA.md) | Todo executável, hook, comando, campo e variável |
-| [INTEGRACOES](docs/INTEGRACOES.md) | Plataformas de segurança, CI e ferramentas de IA |
-| [ROQUESHIELD](docs/ROQUESHIELD.md) | A ligação com o RoqueShield, com o estado dela dito sem enfeite |
-| [AIDLC](docs/AIDLC.md) | O método e como o kit o interpreta |
-| [ADAPTADORES](docs/ADAPTADORES.md) | Claude Code, Kiro e Copilot |
-| [REGULADO](docs/REGULADO.md) | Perfil para empresas reguladas |
-| [ESTENDER](docs/ESTENDER.md) | Como acrescentar uma tecnologia, um revisor, uma regra |
-| [QUANDO-QUEBRA](docs/QUANDO-QUEBRA.md) | O que cada resultado do gate significa |
-| [ESTRATEGIA](docs/ESTRATEGIA.md) | O raciocínio por trás das decisões |
-| [GLOSSARIO](docs/GLOSSARIO.md) | Termos e perguntas frequentes |
-| [OPERATING-MODEL](OPERATING-MODEL.md) | O modelo operacional, com o mecanismo de cada regra |
+| [GETTING-STARTED](docs/GETTING-STARTED.md) | The seven-step path, from clone to the first gate |
+| [ARCHITECTURE](docs/ARCHITECTURE.md) | How it is built inside, with diagrams |
+| [REFERENCE](docs/REFERENCE.md) | Every executable, hook, command, field and variable |
+| [INTEGRATIONS](docs/INTEGRATIONS.md) | Security platforms, CI and AI tools |
+| [ROQUESHIELD](docs/ROQUESHIELD.md) | The link with RoqueShield, with its state stated plainly |
+| [AIDLC](docs/AIDLC.md) | The method and how the kit interprets it |
+| [ADAPTERS](docs/ADAPTERS.md) | Claude Code, Kiro and Copilot |
+| [REGULATED](docs/REGULATED.md) | Profile for regulated companies |
+| [EXTENDING](docs/EXTENDING.md) | How to add a technology, a reviewer, a rule |
+| [WHEN-IT-BREAKS](docs/WHEN-IT-BREAKS.md) | What each gate result means |
+| [STRATEGY](docs/STRATEGY.md) | The reasoning behind the decisions |
+| [GLOSSARY](docs/GLOSSARY.md) | Terms and frequently asked questions |
+| [OPERATING-MODEL](OPERATING-MODEL.md) | The operating model, with the mechanism of each rule |
 
-## Limites conhecidos
+## Known limits
 
-Dito sem enfeite, para você não descobrir na hora errada:
+Stated plainly, so you do not find out at the wrong moment:
 
-- **Testado:** Linux e macOS (arm64), com Node 22. As suítes do repositório (`node --test`) cobrem hooks, fases, scanner de identidade, `aidlc-init`, instalação e manifestos, e cada mecanismo novo foi testado com mutantes. No macOS rodaram a suíte e o gate da versão anterior, em uma máquina.
-- **Não testado em máquina real:** Windows (o `setup` gera atalhos `.cmd`, mas ninguém os executou), Kiro e Copilot. As convenções de arquivo dessas duas ferramentas foram conferidas na documentação pública, e a documentação muda. O piso declarado de Node é 20.19, mas só o 22 foi exercitado; o CI roda uma matriz.
-- **A ligação com o RoqueShield foi validada contra a documentação dele**, com relatórios sintéticos, não contra uma instância em execução. O SARIF e o formato neutro são testados com os exemplos de `docs/exemplos/scan/`; a invocação de cada scanner externo, não.
-- **Hooks só existem no Claude Code.** Em Kiro e Copilot, o que impede um "pronto" sem evidência é o CI e a revisão humana.
-- **O scanner de identidade acha formatos, não nomes.** Ele pega IP, e-mail, caminho de home, hostname e segredo. Nome de pessoa, de cliente ou de sistema interno só é pego se estiver na sua lista de termos proibidos, que fica fora do repositório.
-- **`aidlc-phase` confere forma, não verdade.** Ele garante que a aprovação existe e não é de uma IA. Se o nome escrito é de quem realmente aprovou, é revisão humana.
-- **Um SARIF de uma ferramenta que caiu sem registrar a invocação lê como cobertura completa.** Compense com `--require-scanners` ([INTEGRACOES.md](docs/INTEGRACOES.md#sarif-210)).
+- **Tested:** Linux and macOS (arm64), with Node 22. The repository suites (`node --test`) cover hooks, phases, the identity scanner, `aidlc-init`, installation and manifests, and each new mechanism was tested with mutants. On macOS the suite and the gate of the previous revision ran, on one machine.
+- **Not tested on a real machine:** Windows (`setup` generates `.cmd` shortcuts, but nobody ran them), Kiro and Copilot. The file conventions of those two tools were checked against public documentation, and documentation changes. The declared Node floor is 20.19, but only 22 was exercised; CI runs a matrix.
+- **The RoqueShield link was validated against its documentation**, with synthetic reports, not against a running instance. SARIF and the neutral format are tested with the examples in `docs/exemplos/scan/`; the invocation of each external scanner is not.
+- **Hooks exist only in Claude Code.** In Kiro and Copilot, what prevents a "done" without evidence is CI and human review.
+- **The identity scanner finds formats, not names.** It catches IPs, emails, home paths, hostnames and secrets. The name of a person, customer or internal system is only caught if it is in your denylist, which lives outside the repository.
+- **`aidlc-phase` checks form, not truth.** It guarantees that the approval exists and is not from an AI. Whether the written name belongs to whoever really approved is human review.
+- **A SARIF from a tool that crashed without recording the invocation reads as full coverage.** Compensate with `--require-scanners` ([docs/INTEGRATIONS.md](docs/INTEGRATIONS.md#sarif-210)).
 
-## Lacunas e próximos passos
+## Gaps and next steps
 
-Sem datas prometidas. É o que ainda não existe:
+No promised dates. This is what does not exist yet:
 
-- [ ] Cliente de API de plataforma: hoje o kit lê arquivo, e baixar o relatório é um passo do seu pipeline.
-- [ ] Servidor MCP e GitHub Action do kit: os executáveis são o contrato por enquanto.
-- [ ] "Achado aceito com prazo" no `aidlc-scan` (existe no `aidlc-secscan`, por allowlist com `# expira:`).
-- [ ] Teste do laço completo contra uma instância do RoqueShield, e das receitas de cada scanner externo.
-- [ ] Verificação em Windows, Kiro e Copilot, com relato de quem usar.
-- [x] Documentação em inglês: [README.en.md](README.en.md) e [docs/en/](docs/en/INDEX.md) (o português é a versão principal, e o `check-i18n` cobra o par).
-- [ ] Adaptador para o Codex (decisão de escopo: fora da 0.1).
+- [ ] Platform API client: today the kit reads a file, and downloading the report is a step in your pipeline.
+- [ ] MCP server and GitHub Action for the kit: the executables are the contract for now.
+- [ ] "Accepted finding with a deadline" in `aidlc-scan` (it exists in `aidlc-secscan`, through an allowlist with `# expira:`).
+- [ ] A test of the full loop against a RoqueShield instance, and of the recipes for each external scanner.
+- [ ] Verification on Windows, Kiro and Copilot, with reports from whoever uses them.
+- [x] Documentation in English (primary) and Brazilian Portuguese ([README.pt-BR.md](README.pt-BR.md), [docs/pt-BR/](docs/pt-BR/INDEX.md)), kept in step by `check-i18n`.
+- [ ] Executables, hooks, agent prompts and commands in English (today they speak Brazilian Portuguese).
+- [ ] Adapter for Codex (scope decision: out of 0.1).
 
-## Contribuir, segurança e licença
+## Contributing, security and license
 
-- **Contribuir:** leia [CONTRIBUTING.md](CONTRIBUTING.md). O fluxo exige testes, **mutante para todo check novo** e commits assinados com `git commit -s` ([DCO](CONTRIBUTING.md#dco)). Relatos de teste em Windows, Kiro e Copilot são especialmente úteis.
-- **Segurança:** vulnerabilidade se relata em privado, como diz o [SECURITY.md](SECURITY.md). Não abra uma issue pública.
-- **Conduta:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
-- **Licença:** [MIT](LICENSE).
+- **Contributing:** read [CONTRIBUTING.md](CONTRIBUTING.md). The flow requires tests, a **mutant for every new check** and commits signed off with `git commit -s` ([DCO](CONTRIBUTING.md#dco)). Test reports from Windows, Kiro and Copilot are especially useful.
+- **Security:** vulnerabilities are reported privately, as [SECURITY.md](SECURITY.md) says. Do not open a public issue.
+- **Conduct:** [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+- **License:** [MIT](LICENSE).
 
-## English summary
+## Languages
 
-`aidlc-harness` is an open-source quality harness for building software with AI agents following the AI-DLC cycle (Inception, Construction, Operations). Acceptance criteria are executable data (`quality/*.json`), "done" requires pasted gate output, and phase approvals must be filled in by a human (`aidlc-phase check`). One `AGENTS.md` source generates the instruction files for Claude Code, Kiro and GitHub Copilot. Hooks that actually block run only in Claude Code; for Kiro and Copilot the CI workflow is the enforcement point. An identity scanner (`aidlc-identity`) keeps IPs, emails, home paths, internal hostnames, secrets and your own denylist terms out of the repository. `aidlc-scan` reads the report of any security platform (SARIF, a neutral format, or the AI Fix Bundle of the open-source [RoqueShield](docs/ROQUESHIELD.md), which the kit does not depend on) and separates three outcomes, not two: clean (0), failed (1), and **did not run** (2). A scan that did not run is never clean.
-
-Status: pre-release 0.1.0. The test suite and the repository's own gate pass on Linux with Node 22, and passed on macOS arm64 in an earlier revision; Windows, Kiro and Copilot are untested. This is an interpretation of AI-DLC, not AWS documentation. Documentation is in Brazilian Portuguese first, with a full English translation in [README.en.md](README.en.md) and [docs/en/](docs/en/INDEX.md), kept in step by a CI check. The method behind the kit is explained (in Portuguese) at [levelhard.com.br/aidlc](https://levelhard.com.br/aidlc).
+English is the primary language of this repository. Every document has a Brazilian Portuguese pair: [README.pt-BR.md](README.pt-BR.md) and [docs/pt-BR/](docs/pt-BR/INDEX.md). If the two differ, the English one wins, and `check-i18n` fails CI when a Portuguese pair falls behind. The kit itself still speaks Brazilian Portuguese: the messages printed by the `aidlc-*` executables, the hooks, the agent prompts and the slash commands; the documentation quotes those messages verbatim and translates them alongside. The method material at [levelhard.com.br/aidlc](https://levelhard.com.br/aidlc) is in Portuguese.

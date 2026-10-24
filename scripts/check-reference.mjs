@@ -5,7 +5,7 @@
  * Dois defeitos que a documentacao grande tem, e que ninguem ve ate alguem agir em cima:
  *
  *   1. FALTA: um hook, executavel, comando, agente ou skill entra no disco e nao entra em
- *      docs/REFERENCIA.md. A referencia envelhece calada, e e justo ela que as pessoas abrem
+ *      docs/REFERENCE.md (e no par docs/pt-BR/REFERENCIA.md). A referencia envelhece calada, e e justo ela que as pessoas abrem
  *      para saber o que o kit faz.
  *   2. FANTASMA: a prosa cita `aidlc-phase approve`, que nunca existiu. Aconteceu aqui: um
  *      diagrama e um documento descreveram, com todos os detalhes, um subcomando que o
@@ -49,12 +49,12 @@ export const SUBCOMANDOS = {
 const problemas = []
 
 // 1. FALTA ----------------------------------------------------------------------------------
-// A referencia em portugues e a em ingles cobram o mesmo inventario.
-for (const rel of ['docs/REFERENCIA.md', 'docs/en/REFERENCE.md']) {
+// A referencia em ingles (principal) e a em portugues cobram o mesmo inventario.
+for (const rel of ['docs/REFERENCE.md', 'docs/pt-BR/REFERENCIA.md']) {
   const refPath = join(RAIZ, rel)
   if (!existsSync(refPath)) {
-    if (rel === 'docs/REFERENCIA.md') problemas.push('docs/REFERENCIA.md nao existe')
-    else problemas.push(`${rel} nao existe (a referencia em ingles cobre o mesmo inventario)`)
+    if (rel === 'docs/REFERENCE.md') problemas.push('docs/REFERENCE.md nao existe')
+    else problemas.push(`${rel} nao existe (a referencia em portugues cobre o mesmo inventario)`)
     continue
   }
   const ref = readFileSync(refPath, 'utf8')
@@ -74,11 +74,11 @@ for (const rel of ['docs/REFERENCIA.md', 'docs/en/REFERENCE.md']) {
 const nomesValidos = new Set([...inventario.tools, ...inventario.skills, 'aidlc-harness'])
 const docs = [
   'README.md',
-  'README.en.md',
+  'README.pt-BR.md',
   'CONTRIBUTING.md',
   'AGENTS.md',
   'OPERATING-MODEL.md',
-  ...['docs', 'docs/en'].flatMap((pasta) =>
+  ...['docs', 'docs/pt-BR'].flatMap((pasta) =>
     existsSync(join(RAIZ, pasta))
       ? readdirSync(join(RAIZ, pasta))
           .filter((f) => f.endsWith('.md'))
@@ -125,5 +125,5 @@ if (problemas.length) {
   process.exit(1)
 }
 console.log(
-  `ok, REFERENCIA.md cobre ${inventario.hooks.length} hooks, ${inventario.tools.length} executaveis, ${inventario.comandos.length} comandos, ${inventario.agentes.length} agentes e ${inventario.skills.length} skills; nenhum comando fantasma na prosa.`,
+  `ok, REFERENCE.md e REFERENCIA.md cobrem ${inventario.hooks.length} hooks, ${inventario.tools.length} executaveis, ${inventario.comandos.length} comandos, ${inventario.agentes.length} agentes e ${inventario.skills.length} skills; nenhum comando fantasma na prosa.`,
 )

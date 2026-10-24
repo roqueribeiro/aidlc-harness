@@ -1,48 +1,50 @@
-# AI-DLC e como o kit o interpreta
+# AI-DLC and how the kit interprets it
 
-> **Este documento é uma interpretação.** O AI-DLC (AI-Driven Development Life Cycle) foi descrito pela AWS. Este kit não é documentação, produto nem endosso da AWS. O que está abaixo sobre o método vem do post de lançamento ([AI-Driven Development Life Cycle: Reimagining Software Engineering](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/), AWS DevOps & Developer Productivity Blog, 31/07/2025). Se a AWS publicar algo que contradiga o que está aqui, a AWS está certa e este arquivo está desatualizado.
+*Also available in [Brazilian Portuguese](pt-BR/AIDLC.md).*
 
-## O método, em um parágrafo
+> **This document is an interpretation.** AI-DLC (AI-Driven Development Life Cycle) was described by AWS. This kit is not AWS documentation, product or endorsement. What follows about the method comes from the launch post ([AI-Driven Development Life Cycle: Reimagining Software Engineering](https://aws.amazon.com/blogs/devops/ai-driven-development-life-cycle/), AWS DevOps & Developer Productivity Blog, 2025-07-31). If AWS publishes something that contradicts what is here, AWS is right and this file is out of date.
 
-Segundo o post, o AI-DLC organiza o trabalho em três fases. Na **Inception**, a IA transforma a intenção de negócio em requisitos, histórias e unidades de trabalho, e o time valida as perguntas e propostas dela (um ritual que o post chama de *Mob Elaboration*). Na **Construction**, a IA propõe arquitetura, modelo de domínio, código e testes a partir do contexto validado, e o time decide em conjunto as escolhas técnicas (*Mob Construction*). Na **Operations**, a IA aplica o contexto acumulado a infraestrutura como código e a deploys, sob supervisão. Os termos mudam: *bolts* (ciclos curtos, de horas ou dias) no lugar de sprints, *units of work* no lugar de épicos. Os artefatos ficam no repositório, o que preserva o contexto entre sessões. O padrão que se repete é planejar, esclarecer, implementar, e a IA "adia as decisões críticas aos humanos".
+## The method, in one paragraph
 
-## O que o kit faz com cada parte
+According to the post, AI-DLC organizes the work into three phases. In **Inception**, the AI turns business intent into requirements, stories and units of work, and the team validates its questions and proposals (a ritual the post calls *Mob Elaboration*). In **Construction**, the AI proposes architecture, domain model, code and tests from the validated context, and the team jointly decides the technical choices (*Mob Construction*). In **Operations**, the AI applies the accumulated context to infrastructure as code and to deployments, under supervision. The terms change: *bolts* (short cycles, of hours or days) instead of sprints, *units of work* instead of epics. The artifacts stay in the repository, which preserves context between sessions. The recurring pattern is plan, clarify, implement, and the AI "defers critical decisions to humans".
 
-| No AI-DLC | No kit | Mecanismo |
+## What the kit does with each part
+
+| In AI-DLC | In the kit | Mechanism |
 | --- | --- | --- |
-| Fase Inception | `aidlc/inception/`: requisitos, histórias, unidades de trabalho | `/inception` conduz; `aidlc-phase check inception` confere |
-| Mob Elaboration | A IA pergunta em rodadas de no máximo cinco, com opções e recomendação; a equipe responde | instrução do comando; o kit **não** reúne pessoas, ele registra o que a equipe respondeu |
-| Units of work | `aidlc/inception/units-of-work.md`, cada uma com a evidência que a dá por pronta | `aidlc-phase` exige o arquivo sem campo por preencher |
-| Validação humana | `Aprovado por:` e `Data:` no fim de cada artefato, preenchidos por uma pessoa | `aidlc-phase` reprova em branco e nome de IA; não prova que o nome é de quem aprovou |
-| Fase Construction | `aidlc/construction/`: desenho e plano de testes antes do código | `/construction` conduz; `aidlc-phase check construction` exige a Inception completa primeiro |
-| Mob Construction | A IA propõe alternativas com custo e recomendação; a equipe escolhe; o descartado fica registrado | instrução do comando; o kit **não** orquestra uma sessão ao vivo |
-| Bolts | A skill `bolts`: uma unidade por vez, com a sequência de fechamento (teste, gate, principal atualizada, limpeza) | `dod-check` cobra a limpeza; `aidlc-gate` cobra o critério de aceite |
-| Artefatos no repositório | Pasta `aidlc/` e `aidlc/decisions.md`, versionados com o código | `aidlc-init` cria; o CI confere o estado das fases |
-| Fase Operations | `aidlc/decisions.md`, `aidlc-cycle`, `aidlc-limpeza` | veja abaixo: é a parte mais fina do kit |
+| Inception phase | `aidlc/inception/`: requirements, stories, units of work | `/inception` drives it; `aidlc-phase check inception` checks it |
+| Mob Elaboration | The AI asks in rounds of at most five, with options and a recommendation; the team answers | command instruction; the kit does **not** bring people together, it records what the team answered |
+| Units of work | `aidlc/inception/units-of-work.md`, each with the evidence that makes it done | `aidlc-phase` requires the file without any unfilled field |
+| Human validation | `Aprovado por:` and `Data:` at the end of each artifact, filled in by a person | `aidlc-phase` fails on blank and on an AI name; it does not prove the name belongs to whoever approved |
+| Construction phase | `aidlc/construction/`: design and test plan before the code | `/construction` drives it; `aidlc-phase check construction` requires a complete Inception first |
+| Mob Construction | The AI proposes alternatives with cost and a recommendation; the team chooses; what was discarded is recorded | command instruction; the kit does **not** orchestrate a live session |
+| Bolts | The `bolts` skill: one unit at a time, with the closing sequence (test, gate, main branch updated, cleanup) | `dod-check` enforces the cleanup; `aidlc-gate` enforces the acceptance criteria |
+| Artifacts in the repository | The `aidlc/` folder and `aidlc/decisions.md`, versioned with the code | `aidlc-init` creates it; CI checks the phase state |
+| Operations phase | `aidlc/decisions.md`, `aidlc-cycle`, `aidlc-limpeza` | see below: it is the thinnest part of the kit |
 
-## O que o kit acrescenta ao método
+## What the kit adds to the method
 
-O post descreve o *quê* do ciclo; o kit acrescenta controles que fazem o "pronto" ser conferível:
+The post describes the *what* of the cycle; the kit adds controls that make "done" verifiable:
 
-- **Critério de aceite como dado** (`quality/*.json`) e **evidência obrigatória**: a saída crua do gate no chat, cobrada por hook no Claude Code.
-- **Teste de mutação** dos próprios checks: um check que nunca reprovou não prova nada.
-- **Scanner de identidade**: nada que identifique pessoa ou infraestrutura vai para o repositório.
-- **Cofre de segredos** que o agente usa sem ver.
-- **Revisão de cadeia de suprimento** para dependência nova.
-- **Instruções para três ferramentas** a partir de uma fonte, com conferência de divergência.
+- **Acceptance criteria as data** (`quality/*.json`) and **mandatory evidence**: the raw gate output in the chat, enforced by a hook in Claude Code.
+- **Mutation test** of the checks themselves: a check that never failed proves nothing.
+- **Identity scanner**: nothing that identifies a person or infrastructure goes into the repository.
+- **Secrets vault** that the agent uses without seeing.
+- **Supply chain review** for a new dependency.
+- **Instructions for three tools** from one source, with a drift check.
 
-## Onde o kit se afasta do método, ou fica aquém
+## Where the kit departs from the method, or falls short
 
-Dito para você decidir com os olhos abertos:
+Stated so you can decide with open eyes:
 
-1. **Operations é a parte mais fina.** O kit registra decisões, mede o ciclo (`aidlc-cycle`) e limpa a bancada. Ele **não** gera infraestrutura como código, não faz deploy e não observa produção. A promessa do método de a IA aplicar o contexto acumulado a deploys e infraestrutura fica por conta do seu pipeline.
-2. **Os rituais "mob" são práticas de equipe.** O kit dá a estrutura (perguntas em rodadas, aprovação no arquivo), mas não reúne ninguém. Uma Inception respondida por uma pessoa só, às pressas, passa no `aidlc-phase` do mesmo jeito que uma discutida por todo o time. A qualidade do ritual é da equipe.
-3. **A validação é conferida na forma.** `aidlc-phase` garante que existe aprovação e que não é de uma IA. Quem exige que a aprovação seja de quem tem autoridade para dá-la é o processo da sua organização (por exemplo, revisão obrigatória do pull request que comita a assinatura).
-4. **O vocabulário é adaptado.** "Bolt" no kit é a unidade de trabalho com a sequência de fechamento da skill `bolts`. Não é um ciclo medido em horas por definição do método; se a sua unidade levar uma semana, o kit não impede.
-5. **As fases do kit são duas (Inception e Construction)** no `aidlc-phase`, porque Operations não tem artefato de aprovação próprio aqui.
+1. **Operations is the thinnest part.** The kit records decisions, measures the cycle (`aidlc-cycle`) and cleans the bench. It does **not** generate infrastructure as code, deploy or observe production. The method's promise that the AI applies the accumulated context to deployments and infrastructure is left to your pipeline.
+2. **The "mob" rituals are team practices.** The kit provides the structure (questions in rounds, approval in the file), but does not bring anyone together. An Inception answered by one person, in a hurry, passes `aidlc-phase` the same way as one discussed by the whole team. The quality of the ritual is the team's.
+3. **Validation is checked in form.** `aidlc-phase` guarantees that an approval exists and is not from an AI. What requires the approval to come from someone with the authority to give it is your organization's process (for example, mandatory review of the pull request that commits the signature).
+4. **The vocabulary is adapted.** "Bolt" in the kit is the unit of work with the closing sequence of the `bolts` skill. It is not a cycle measured in hours by the method's definition; if your unit takes a week, the kit does not prevent it.
+5. **The kit has two phases (Inception and Construction)** in `aidlc-phase`, because Operations has no approval artifact of its own here.
 
-## Leitura recomendada
+## Recommended reading
 
-- O post original (link acima), para o método.
-- [ADAPTADORES.md](ADAPTADORES.md), para o que cada ferramenta de IA recebe.
-- [REGULADO.md](REGULADO.md), para uma organização com requisitos de auditoria e conformidade.
+- The original post (link above), for the method.
+- [ADAPTERS.md](ADAPTERS.md), for what each AI tool receives.
+- [REGULATED.md](REGULATED.md), for an organization with audit and compliance requirements.

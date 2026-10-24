@@ -55,4 +55,4 @@ console.log(`\naidlc-init  ${raiz}${flag('--dry-run') ? '  (dry-run: nada foi gr
 for (const f of r.criados) console.log(`  criado       ${f}`)
 for (const f of r.sobrescritos) console.log(`  sobrescrito  ${f}`)
 for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
-console.log('\nProximo passo: peca a IA para conduzir a Inception (aidlc/README.md), ou leia docs/COMECAR.md do kit.')
+console.log('\nProximo passo: peca a IA para conduzir a Inception (aidlc/README.md), ou leia docs/GETTING-STARTED.md do kit (em portugues: docs/pt-BR/COMECAR.md).')

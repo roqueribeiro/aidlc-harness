@@ -1,5 +1,7 @@
 # Estender o kit
 
+*Tradução de [EXTENDING.md](../EXTENDING.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 Como acrescentar coisa nova sem que ela nasça decorativa.
 
 A regra que este documento existe para impor é uma só: **toda peça nova precisa de um check que a segure**. Uma norma sem hook, gate ou manifesto que a execute é decoração: parece cobertura e não cobra nada.
@@ -18,8 +20,8 @@ Antes de mexer em qualquer coisa, saiba quem manda no quê.
 | Qual regra governa qual caminho, e qual revisor ele exige | o bloco `strategy` do manifesto |
 | O que vale para toda stack | `quality/_org.json` |
 | Quem depende de quem no seu projeto | `aidlc-graph list` e `aidlc-graph blast <alvo>` (grafo em `.aidlc/graph.json`) |
-| Como o time trabalha: modelos, autonomia, segredos, evidência | [`OPERATING-MODEL.md`](../OPERATING-MODEL.md) |
-| O que este repositório carrega | [`AGENTS.md`](../AGENTS.md) |
+| Como o time trabalha: modelos, autonomia, segredos, evidência | [`OPERATING-MODEL.md`](OPERATING-MODEL.md) |
+| O que este repositório carrega | [`AGENTS.md`](../../AGENTS.md) |
 
 Os números do kit (quantos hooks, agentes, skills) **não se escrevem à mão em lugar nenhum sem gate**. `scripts/check-docs-consistency.mjs` conta do disco e avisa quando um documento diverge.
 

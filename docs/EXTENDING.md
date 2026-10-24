@@ -1,6 +1,6 @@
 # Extending the kit
 
-*Translation of [../ESTENDER.md](../ESTENDER.md) (Brazilian Portuguese, the primary version). If they differ, the Portuguese one wins.*
+*Also available in [Brazilian Portuguese](pt-BR/ESTENDER.md).*
 
 How to add something new without it being born decorative.
 
@@ -20,8 +20,8 @@ On the left, what you want to know; on the right, the file that decides. Prose t
 | Which rule governs which path, and which reviewer it requires | the manifest's `strategy` block |
 | What holds for every stack | `quality/_org.json` |
 | Who depends on whom in your project | `aidlc-graph list` and `aidlc-graph blast <target>` (graph in `.aidlc/graph.json`) |
-| How the team works: models, autonomy, secrets, evidence | [`OPERATING-MODEL.md`](OPERATING-MODEL.md) |
-| What this repository carries | [`AGENTS.md`](../../AGENTS.md) |
+| How the team works: models, autonomy, secrets, evidence | [`OPERATING-MODEL.md`](../OPERATING-MODEL.md) |
+| What this repository carries | [`AGENTS.md`](../AGENTS.md) |
 
 The kit's numbers (how many hooks, agents, skills) **are not written by hand anywhere without a gate**. `scripts/check-docs-consistency.mjs` counts from disk and warns when a document diverges.
 

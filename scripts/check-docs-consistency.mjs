@@ -91,12 +91,15 @@ const DOCS = [
   'CONTRIBUTING.md',
   'OPERATING-MODEL.md',
   'plugins/aidlc-harness/README.md',
-  ...(existsSync(join(ROOT, 'docs'))
-    ? readdirSync(join(ROOT, 'docs'))
-        .filter((f) => f.endsWith('.md') && f !== 'PROMPTS.md')
-        .sort()
-        .map((f) => `docs/${f}`)
-    : []),
+  'README.pt-BR.md',
+  ...['docs', 'docs/pt-BR'].flatMap((pasta) =>
+    existsSync(join(ROOT, pasta))
+      ? readdirSync(join(ROOT, pasta))
+          .filter((f) => f.endsWith('.md') && f !== 'PROMPTS.md')
+          .sort()
+          .map((f) => `${pasta}/${f}`)
+      : [],
+  ),
 ]
 const problemas = []
 

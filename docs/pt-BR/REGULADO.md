@@ -1,5 +1,7 @@
 # Perfil para organizações reguladas
 
+*Tradução de [REGULATED.md](../REGULATED.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 Para equipes em bancos, seguradoras, saúde, governo e outras organizações com auditoria, segregação de funções e dados sensíveis. Este documento é genérico de propósito: **nada aqui é específico de uma empresa**, e o kit não traz política de nenhuma. A política da sua organização mora num repositório interno que estende este (veja a última seção).
 
 Este documento não é aconselhamento jurídico nem de conformidade, e o kit não certifica nada. Ele diz onde os controles do kit ajudam, onde não ajudam, e o que a sua organização precisa acrescentar.

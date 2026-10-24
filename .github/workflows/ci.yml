@@ -35,7 +35,7 @@ jobs:
         run: node scripts/check-plugin.mjs
       - name: Documentação consistente
         run: node scripts/check-docs-consistency.mjs
-      - name: docs/PROMPTS.md em dia
+      - name: docs/pt-BR/PROMPTS.md em dia
         run: node scripts/gerar-prompts.mjs --check
       - name: Diagramas em dia
         run: node scripts/gerar-diagramas.mjs --check

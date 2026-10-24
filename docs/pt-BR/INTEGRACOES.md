@@ -1,10 +1,12 @@
 # Integrações
 
+*Tradução de [INTEGRATIONS.md](../INTEGRATIONS.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
+
 > Como ligar o kit a uma plataforma de segurança, a um pipeline de CI e a uma ferramenta de IA. A ideia central: o kit **não embute um scanner e não conhece a sua plataforma**. Ele lê o relatório que ela produz e cobra o resultado, com uma regra que não muda: **um scan que não rodou não é um scan limpo**.
 
 Para o caso do RoqueShield em detalhe, veja [ROQUESHIELD.md](ROQUESHIELD.md). Para o desenho, [ARQUITETURA.md](ARQUITETURA.md#9-segurança-o-contrato-de-varredura).
 
-![Contrato de varredura](assets/diagramas/varredura.claro.svg)
+![Contrato de varredura](../assets/diagramas/varredura.claro.svg)
 
 ## 1. O contrato em três linhas
 
@@ -74,7 +76,7 @@ Com `--baseline`, o bloqueio continua valendo para **todo** achado no limite, no
 
 ## 4. Exemplos que o CI executa
 
-Os relatórios em [`docs/exemplos/scan/`](exemplos/scan/) são executados pelos testes do repositório, com o código de saída conferido. Se um deles deixar de produzir o resultado abaixo, a documentação está mentindo e o CI reprova.
+Os relatórios em [`docs/exemplos/scan/`](../exemplos/scan/) são executados pelos testes do repositório, com o código de saída conferido. Se um deles deixar de produzir o resultado abaixo, a documentação está mentindo e o CI reprova.
 
 | Arquivo | Resultado |
 | --- | --- |
