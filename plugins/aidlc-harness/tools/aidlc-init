@@ -4,15 +4,21 @@
  *
  *   aidlc-init [diretorio]                       # cria o que falta; nunca sobrescreve
  *   aidlc-init --name "Meu Projeto" --desc "uma frase"
- *   aidlc-init --tools claude,copilot            # padrao: claude,kiro,copilot
+ *   aidlc-init --tools claude,cursor,opencode    # quais ferramentas; "all" para todas
+ *                                                # sem --tools num terminal: pergunta, com as detectadas marcadas
+ *                                                # sem --tools fora de terminal (CI): claude,kiro,copilot
+ *   aidlc-init --yes                             # não pergunta: usa as detectadas ou o padrão
  *   aidlc-init --dry-run                         # mostra o que faria
  *   aidlc-init --force                           # sobrescreve o que já existe
  *   aidlc-init --check                           # confere que as instruções das ferramentas não divergem
- *   aidlc-init --sync                            # regrava as cópias do Copilot e do Kiro a partir do AGENTS.md
+ *   aidlc-init --sync                            # atualiza o bloco do AGENTS.md, as cópias, as skills e os comandos
  */
-import { mkdirSync } from 'node:fs'
-import { resolve } from 'node:path'
-import { FERRAMENTAS, aplicar, conferirSincronia, eDiretorio, nomePadrao, planejar, sincronizar } from '../lib/init.mjs'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { createInterface } from 'node:readline/promises'
+import { detectTech } from '../lib/detect.mjs'
+import { aplicar, conferirSincronia, eDiretorio, ferramentasDoProjeto, nomePadrao, planejar, sincronizar } from '../lib/init.mjs'
+import { ADAPTADORES, FERRAMENTAS, FERRAMENTAS_PADRAO, resolverFerramentas } from '../lib/adaptadores.mjs'
 
 const argv = process.argv.slice(2)
 const flag = (n) => argv.includes(n)
@@ -38,21 +44,79 @@ if (flag('--sync')) {
 }
 
 if (!eDiretorio(raiz)) mkdirSync(raiz, { recursive: true })
-const ferramentas = (val('--tools') ?? FERRAMENTAS.join(',')).split(',').map((s) => s.trim()).filter(Boolean)
+/*
+ * Quais ferramentas. Pistas no disco marcam as que o time já usa; num terminal a pessoa confirma
+ * ou troca com um Enter, fora dele (CI) vale o que estiver marcado ou o padrão.
+ */
+const PISTAS = { claude: ['CLAUDE.md', '.claude'], opencode: ['.opencode', 'opencode.json'], kilo: ['.kilo', '.kilocode'], copilot: ['.github/copilot-instructions.md', '.github/prompts'], cursor: ['.cursor', '.cursorrules'], gemini: ['GEMINI.md', '.gemini'], kiro: ['.kiro'], codex: ['.codex'], devin: ['.devin', '.windsurf', '.windsurfrules'], cline: ['.clinerules', '.cline'], junie: ['.junie'], continue: ['.continue'], augment: ['.augment'] }
+const detectadas = FERRAMENTAS.filter((f) => (PISTAS[f] ?? []).some((p) => existsSync(join(raiz, p))))
+const jaDoProjeto = ferramentasDoProjeto(raiz)
+const marcadas = [...new Set([...jaDoProjeto, ...detectadas])]
+
+async function escolher() {
+  if (val('--tools')) return val('--tools').split(',').map((x) => x.trim()).filter(Boolean)
+  const sugestao = marcadas.length ? marcadas : FERRAMENTAS_PADRAO
+  if (flag('--yes') || flag('--dry-run') || !process.stdin.isTTY || !process.stdout.isTTY) return sugestao
+  console.log('\nCom quais ferramentas de IA o time trabalha neste projeto?\n')
+  FERRAMENTAS.forEach((f, i) => console.log(`  ${sugestao.includes(f) ? '[x]' : '[ ]'} ${String(i + 1).padStart(2)}  ${ADAPTADORES[f].nome}`))
+  const rl = createInterface({ input: process.stdin, output: process.stdout })
+  const resp = (await rl.question('\nEnter aceita as marcadas. Ou digite os numeros (ex.: 1,3,5) ou "all": ')).trim()
+  rl.close()
+  if (!resp) return sugestao
+  if (/^(all|todas)$/i.test(resp)) return ['all']
+  return resp.split(/[,\s]+/).filter(Boolean).map((n) => FERRAMENTAS[Number(n) - 1] ?? n)
+}
+
+let ferramentas
+try {
+  ferramentas = resolverFerramentas(await escolher())
+} catch (e) {
+  console.error(`aidlc-init: ${e.message}`)
+  process.exit(2)
+}
+// Rodar o init de novo com outra ferramenta acrescenta, nunca tira: as do projeto continuam.
+ferramentas = [...new Set([...jaDoProjeto, ...ferramentas])]
 let plano
 try {
   plano = planejar({
     nome: val('--name') ?? nomePadrao(raiz),
     descricao: val('--desc') ?? 'Descreva aqui, em uma frase, o que este projeto e e para quem.',
     ferramentas,
+    tech: detectTech(raiz),
+    // O AGENTS.md do time é preservado: o init só acrescenta o bloco do aidlc (--force regera do molde).
+    agentsExistente: !flag('--force') && existsSync(join(raiz, 'AGENTS.md')) ? readFileSync(join(raiz, 'AGENTS.md'), 'utf8').replace(/\r\n/g, '\n') : null,
   })
 } catch (e) {
   console.error(`aidlc-init: ${e.message}`)
   process.exit(2)
 }
 const r = aplicar(raiz, plano, { force: flag('--force'), dryRun: flag('--dry-run') })
+
+// .aidlc/config.json é do kit: a lista de ferramentas acompanha o que foi gerado, para o --check e o --sync.
+const cfgP = join(raiz, '.aidlc', 'config.json')
+if (!flag('--dry-run') && r.mantidos.includes('.aidlc/config.json')) {
+  try {
+    const cfg = JSON.parse(readFileSync(cfgP, 'utf8'))
+    if (JSON.stringify(cfg.tools) !== JSON.stringify(ferramentas)) {
+      cfg.tools = ferramentas
+      writeFileSync(cfgP, JSON.stringify(cfg, null, 2) + '\n')
+      r.mantidos = r.mantidos.filter((f) => f !== '.aidlc/config.json')
+      r.derivados.push('.aidlc/config.json (tools)')
+    }
+  } catch {
+    console.error('aidlc-init: .aidlc/config.json ilegivel; a lista de ferramentas nao foi atualizada')
+  }
+}
 console.log(`\naidlc-init  ${raiz}${flag('--dry-run') ? '  (dry-run: nada foi gravado)' : ''}`)
 for (const f of r.criados) console.log(`  criado       ${f}`)
 for (const f of r.sobrescritos) console.log(`  sobrescrito  ${f}`)
+for (const f of r.mesclados) console.log(`  atualizado   ${f}  (bloco do aidlc acrescentado; o resto do arquivo ficou como estava)`)
+for (const f of r.derivados) console.log(`  regravado    ${f}  (arquivo do kit, nao se edita)`)
 for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
-console.log('\nProximo passo: peca a IA para conduzir a Inception (aidlc/README.md), ou leia docs/GETTING-STARTED.md do kit (em portugues: docs/pt-BR/COMECAR.md).')
+
+console.log('\nProximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:')
+for (const f of ferramentas) {
+  const inv = ADAPTADORES[f].invocar
+  console.log(`  ${ADAPTADORES[f].nome.padEnd(28)} ${inv.inception}${inv.nota ? `  (${inv.nota.pt})` : ''}`)
+}
+console.log('A lista fica em .aidlc/COMANDOS.md. Guia completo: docs/GETTING-STARTED.md do kit.')

@@ -43,7 +43,12 @@
       "enum": [
         "yarn",
         "npm",
+        "pnpm",
+        "bun",
+        "maven",
         "gradle",
+        "dotnet",
+        "go",
         "spm",
         "none"
       ],
@@ -71,7 +76,7 @@
     "detect": {
       "type": "object",
       "additionalProperties": false,
-      "description": "Como reconhecer que um diretorio e desta tecnologia. allFiles e AND, anyFiles e OR.",
+      "description": "Como reconhecer que um diretorio e desta tecnologia. allFiles e AND, anyFiles e OR. Um nome com * casa arquivos da raiz por padrao (ex.: *.csproj).",
       "properties": {
         "allFiles": {
           "type": "array",
@@ -317,6 +322,20 @@
     },
     "notes": {
       "type": "string"
+    },
+    "ci": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Como o CI prepara o projeto antes do gate. O aidlc-init copia estes passos para o .github/workflows/aidlc-gate.yml quando detecta a tecnologia.",
+      "properties": {
+        "setup": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "Passos do GitHub Actions, cada um um bloco YAML que comeca com '- '."
+        }
+      }
     }
   }
 }

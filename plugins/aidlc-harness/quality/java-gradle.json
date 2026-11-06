@@ -1,0 +1,107 @@
+{
+  "tech": "java-gradle",
+  "label": "Java/Kotlin (Gradle)",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-com-build.gradle"
+  ],
+  "pkgManager": "gradle",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "anyFiles": [
+      "build.gradle",
+      "build.gradle.kts",
+      "settings.gradle",
+      "settings.gradle.kts"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "check",
+      "label": "Build e testes (gradle check)",
+      "cmd": "./gradlew check --no-daemon",
+      "blocking": true,
+      "reject": "BUILD FAILED"
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/main/**",
+          "src/test/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "build.gradle",
+          "build.gradle.kts",
+          "gradle/libs.versions.toml",
+          "settings.gradle",
+          "settings.gradle.kts"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com o arquivo de lock regenerado no mesmo diff e com o pacote conferido no registro antes do merge",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "BUILD SUCCESSFUL"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "build.gradle",
+        "build.gradle.kts",
+        "gradle/libs.versions.toml",
+        "settings.gradle",
+        "settings.gradle.kts"
+      ]
+    }
+  ],
+  "ci": {
+    "setup": [
+      "- uses: actions/setup-java@v4\n  with:\n    distribution: temurin\n    java-version: '21'",
+      "- uses: gradle/actions/setup-gradle@v4"
+    ]
+  },
+  "notes": "Manifesto de partida para Gradle com o wrapper (./gradlew). Sem wrapper, troque por gradle check. Ajuste os comandos ao seu projeto copiando este arquivo para .aidlc/quality/ do repo (o do projeto substitui o do kit com o mesmo tech)."
+}

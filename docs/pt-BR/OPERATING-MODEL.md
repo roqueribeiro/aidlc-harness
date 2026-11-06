@@ -61,7 +61,7 @@ Lint e build começam como não bloqueantes nos manifestos genéricos, porque o 
 - **Fechamento de unidade de trabalho:** a linha final `aidlc-limpeza: nada sobrando`.
 - **Fase do AI-DLC:** `aidlc-phase check <fase>` saindo com 0, e a aprovação de uma pessoa nos arquivos.
 
-O `dod-check` grava cada decisão em `.claude/audit/<dia>.jsonl`, e o `aidlc-cycle` lê esse registro. O que não tem registro aparece como "não medido", nunca como zero.
+O `dod-check` grava cada decisão em `aidlc/audit/<dia>.jsonl`, e o `aidlc-cycle` lê esse registro. O que não tem registro aparece como "não medido", nunca como zero.
 
 ## 6. O que fica fora deste modelo
 

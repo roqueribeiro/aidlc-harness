@@ -1,73 +1,105 @@
-# Adapters: Claude Code, Kiro and GitHub Copilot
+# Adapters: what each AI tool gets
 
 *Also available in [Brazilian Portuguese](pt-BR/ADAPTADORES.md).*
 
-The kit works with the three tools, but **not in the same way**. This document says what each one receives, what is guaranteed by a mechanism and what is only instruction, and how you check that in your version.
+The kit runs in 15 AI tools, and **not all of them in the same way**. This document says what is common to all of them, what each one receives, what is guaranteed by a mechanism and what is only instruction, and how to check it in your version. The step by step of each tool is in [TOOLS.md](TOOLS.md).
 
 ## The idea
 
-One source, three copies:
+One method, one set of rules, one thin layer per tool:
 
 ```
-AGENTS.md  ──▶  CLAUDE.md                          (imports AGENTS.md)
-           ──▶  .github/copilot-instructions.md    (generated copy)
-           ──▶  .kiro/steering/aidlc.md            (generated copy, inclusion: always)
+AGENTS.md (the rules, with the kit block)        read by every tool
+.agents/skills/aidlc-inception/SKILL.md          the method of each phase, read by most tools
+.agents/skills/aidlc-construction/SKILL.md
+        │
+        └── per tool: the phase command in its own folder and format,
+            naming its question window, plus hooks where the tool allows
 ```
 
-You edit only `AGENTS.md`. `aidlc-init --check` fails if a copy diverges (and CI runs that `--check`), and `aidlc-init --sync` rewrites them. Instructions copied by hand diverge silently, and divergence is the worst defect of this design, because each tool starts obeying a different rule without anyone noticing.
+`aidlc-init --tools <list>` (or the picker it shows in a terminal) generates the layer of each chosen tool from the adapters in `plugins/aidlc-harness/lib/adaptadores.mjs`. The generated files say they must not be edited: `aidlc-init --check` fails when one of them diverges from what the kit generates, and `aidlc-init --sync` rewrites them. The hook files that the team may already have (`.cursor/hooks.json`, `.codex/hooks.json`) are not replaced: the kit entries are merged next to the team's.
 
 ## Instruction versus mechanism
 
-| Guarantee | Claude Code | Kiro | GitHub Copilot |
+| Guarantee | Claude Code | Copilot, Cursor, Codex | The other 11 tools |
 | --- | --- | --- | --- |
 | The agent **reads** the project rules | yes | yes | yes |
-| "Done" without the gate output is **refused** (Stop hook) | **yes**, via the plugin | no | no |
-| A command with a secret or the wrong package manager is **blocked** (PreToolUse hooks) | **yes**, via the plugin | no | no |
-| Relevant context is **delivered** when editing a file (`path-strategy`) | **yes**, via the plugin | no | no |
+| The Inception asks in the tool's **question window** | yes (`AskUserQuestion`) | yes | where the tool has one (see [TOOLS.md](TOOLS.md)) |
+| "Done" without a green gate is **sent back** to the agent | yes, Stop hook reads the evidence in the chat | yes, `aidlc-hook parada` checks the gate on the current tree | no |
+| A command with a secret or the wrong package manager is **blocked** | yes | yes, `aidlc-hook shell` | no |
 | The `aidlc-*` executables work | yes | yes | yes |
 | CI fails on leaked identity, an incomplete phase and a red gate | yes | yes | yes |
-| Human review of the pull request | yes | yes | yes |
 
-Read the table honestly: **outside Claude Code, the kit instructs, and what stops things is CI and people.** That is a lot (CI really fails), but it is not the same as a hook that cuts the agent's turn in the middle. If your organization requires blocking at the moment of the action in all three tools, the kit does not deliver that today for Kiro and Copilot.
+Read the table honestly: in Claude Code, Copilot, Cursor and Codex the kit blocks; in the others it instructs, and what stops things is CI and people. CI really fails, but it is not the same as a hook that sends the agent back before the end of the turn.
 
-## Claude Code
+## The question window
 
-- Instructions: `CLAUDE.md` with `@AGENTS.md`, which imports the whole file.
-- Plugin: `claude plugin marketplace add roqueribeiro/aidlc-harness` and `claude plugin install aidlc-harness@aidlc`. Hooks, agents, skills and commands come together.
-- Executables: `node scripts/setup.mjs` (the plugin does not put `aidlc-*` on the PATH by itself).
-- Commands: `/aidlc-harness:inception`, `/aidlc-harness:construction`, `/aidlc-harness:gate`, `/aidlc-harness:status`.
-- Check: `claude plugin validate <plugin folder> --strict` and, inside the session, `/reload-plugins` followed by `/context`.
-- Configuration: the plugin's `gate_mode` (`block`, `warn` or `off`) controls the Stop hooks. Start with `warn` if the team is still getting used to it, and move to `block` when the gate is stable.
+The reason this layer exists. Without it, each tool improvises the Inception from `AGENTS.md`, and in some of them that becomes a numbered list that the person answers by typing. Each generated command names the question tool of its tool and forbids the numbered list:
 
-## Kiro
+| Tool | Question tool | Note |
+| --- | --- | --- |
+| Claude Code | `AskUserQuestion` | up to 4 questions per call |
+| OpenCode, Kilo Code | `question` | main agent only; denied in subagents |
+| GitHub Copilot | `askQuestions` (VS Code), `ask_user` (CLI) | none in the cloud agent |
+| Cursor | Ask questions | cannot be declared, the command asks for it in words |
+| Gemini CLI | `ask_user` | |
+| Codex | `request_user_input` | Plan mode only |
+| Devin Desktop | `ask_user_question` | |
+| Cline | `ask_question` | one question per call, single choice |
+| JetBrains Junie | `AskUserQuestion` | |
+| Continue | `AskQuestion` | `cn` CLI only |
+| Antigravity | answer picker | the tool name is not in the public documentation |
+| Kiro, Augment, Zed | none | short text, lettered options, "ok" accepts all |
 
-- Instructions: [Kiro reads steering from `.kiro/steering/`](https://kiro.dev/docs/steering/) and, according to the public documentation, also reads `AGENTS.md` at the workspace root (always included, with no inclusion modes). `aidlc-init` generates `.kiro/steering/aidlc.md` with `inclusion: always`.
-- **Probable duplication:** if your version of Kiro reads `AGENTS.md`, the copy in `.kiro/steering/aidlc.md` is redundant and the rules enter the context twice. In that case run `aidlc-init --tools claude,copilot` and delete the copy. The copy exists for versions that do not yet read `AGENTS.md`.
-- No plugin: the `/inception` and `/construction` commands do not exist. Use the texts in [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese), pasted into the chat.
-- No kit hooks: Kiro has its own hook mechanism, which the kit does **not** use. CI is what enforces the evidence.
+## The hooks outside Claude Code
 
-## GitHub Copilot
+GitHub Copilot, Cursor and Codex document hooks that can block a command and send the agent back at the end of a turn. `aidlc-init` writes `.github/hooks/aidlc.json`, `.cursor/hooks.json` and `.codex/hooks.json` calling `aidlc-hook`, which translates each tool's JSON and applies the plugin rules ([REFERENCE.md](REFERENCE.md#aidlc-hook)). Two things to know:
 
-- Instructions: the [GitHub documentation](https://docs.github.com/en/copilot/concepts/prompting-and-context/custom-instructions) mentions `.github/copilot-instructions.md` (whole repository), `.github/instructions/*.instructions.md` (per path) and `AGENTS.md`, `CLAUDE.md` or `GEMINI.md` as agent instructions. `aidlc-init` generates `.github/copilot-instructions.md`.
-- **Which surface reads which file varies** (chat on GitHub, coding agent, code review, CLI, IDEs) and the page we consulted points to a separate matrix. Before relying on it, run the canary test below on the surface your team uses.
-- No plugin and no kit hooks, as with Kiro. Use [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese).
+- **`aidlc-hook` must be on the `PATH`**: install the kit with `npm install -g github:roqueribeiro/aidlc-harness`.
+- **Codex only runs project hooks after you trust them**: run `/hooks` once in the project.
+
+The end-of-turn check does not read the transcript, whose format differs per tool. It checks what holds in all of them: if the working tree changed, the last `aidlc-gate` on that exact tree must have been green.
 
 ## The canary test
 
 Do not trust anyone's table, including this one. Check in your version, on the surface you use:
 
-1. Add a single line to `AGENTS.md`: `Canary: this project's control word is "marmelada-42".` (and run `aidlc-init --sync`).
+1. Add a single line to `AGENTS.md`, outside the kit block: `Canary: this project's control word is "marmelada-42".` Then run `aidlc-init --sync`.
 2. In a **new** session of the tool, ask: "What is this project's control word?"
-3. If it answers `marmelada-42`, the tool is reading the instructions. If not, it is not, and nothing `AGENTS.md` says is reaching the agent.
-4. For duplication: if the tool reads `AGENTS.md` **and** the generated copy, turn off one of the two.
+3. If it answers `marmelada-42`, the tool is reading the instructions. If not, nothing `AGENTS.md` says is reaching the agent.
+4. For duplication: if the tool reads `AGENTS.md` **and** a generated copy (Kiro reads both `AGENTS.md` and `.kiro/steering/aidlc.md`), turn off one of the two.
 5. Remove the canary.
 
-Do this once per tool and per major version. It is ten minutes that save weeks of a rule nobody was receiving.
+Do this once per tool and per major version. Ten minutes that save weeks of a rule nobody was receiving.
 
 ## Windows
 
-The plugin's hooks are Node scripts (`node "${CLAUDE_PLUGIN_ROOT}/hooks/…"`) and in theory run on Windows. The manifest gates run shell commands (`yarn test`, `uv run pytest`), which depend on the shell you use. **None of this was tested on Windows by whoever wrote the kit.** If you test it, record the result in an issue: it is a valuable contribution.
+CI runs the clean-machine test and the installed package on Windows: `npx`, `npm install -g`, `aidlc-init`, `aidlc-init --check`, `aidlc-gate` and `aidlc-doctor` work there. The manifest gates run the stack's shell commands (`yarn test`, `mvn verify`), which depend on the tools installed on the machine.
 
-## When adding a fourth tool
+## Contributing a verification
 
-Generate the copy from `AGENTS.md` in `lib/init.mjs` (see how `copilot` and `kiro` are wired there), add the divergence check to `--check`, and write at least one test that fails when the copy diverges. A rule without that test becomes the decoration this kit exists to avoid.
+Every tool page says "Verified on a real machine: not yet" until someone runs the kit in that tool and leaves proof. The page only changes with a record and a screenshot, so a "yes" never comes from someone's word:
+
+1. Run steps 1 to 6 of the tool page in a real project, in a recent version of the tool.
+2. Save at least one screenshot of the question window (or of the text questions, where the tool has none) in `docs/assets/compatibilidade/<tool>/`, for example `docs/assets/compatibilidade/cursor/janela.png`. Crop out anything that identifies a person or a company.
+3. Write `docs/compatibilidade/<tool>.json`:
+
+    ```json
+    {
+      "versao": "2.1.0",
+      "data": "2026-11-10",
+      "sistema": "macOS 15",
+      "prints": ["docs/assets/compatibilidade/cursor/janela.png"],
+      "viu": { "regras": true, "janela": true, "hooks": true }
+    }
+    ```
+
+4. Run `node scripts/gerar-ferramentas.mjs` and open a pull request. The page now says which version, system and date were verified, and shows the screenshots under "Evidence".
+
+The generator fails, instead of printing "yes", when the record is missing a field, the date is not `YYYY-MM-DD`, a screenshot does not exist, is not an image or sits outside the tool's folder. `scripts/gerar-ferramentas.test.mjs` has one mutant for each of these.
+
+## Adding a tool
+
+1. Add the adapter to `plugins/aidlc-harness/lib/adaptadores.mjs`: name, question tool, where the command goes and its format, how the request arrives, and the hooks if the tool has them.
+2. Add the tool's notes (official source, how to open it, limits, in both languages) to `NOTAS` in `scripts/gerar-ferramentas.mjs`, and run it.
+3. `lib/adaptadores.test.mjs` fails if the tool has a question window and its command does not name it, and `scripts/gerar-ferramentas.test.mjs` fails if it has no notes. Add a mutant for anything new.

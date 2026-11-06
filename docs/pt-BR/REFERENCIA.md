@@ -12,13 +12,14 @@
 
 ## Executáveis
 
-Programas Node sem dependência, instalados no `PATH` por `node scripts/setup.mjs`. Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
+Programas Node sem dependência, instalados no `PATH` por `npm install -g github:roqueribeiro/aidlc-harness` (ou `node scripts/setup.mjs` a partir de um clone). Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
 
 | Executável | Para que serve |
 | --- | --- |
-| [`aidlc-init`](#aidlc-init) | Prepara um projeto: instruções para as três ferramentas, pastas do ciclo, workflow de CI |
+| [`aidlc-init`](#aidlc-init) | Prepara um projeto: instruções, comandos e hooks para cada ferramenta de IA escolhida, pastas do ciclo, workflow de CI |
 | [`aidlc-phase`](#aidlc-phase) | Estado das fases do AI-DLC, conferido e não declarado |
 | [`aidlc-gate`](#aidlc-gate) | Roda o critério de aceite da tecnologia detectada |
+| [`aidlc-hook`](#aidlc-hook) | Os hooks do kit no GitHub Copilot, no Cursor e no Codex (o Claude Code usa os do plugin) |
 | [`aidlc-scan`](#aidlc-scan) | Lê o relatório de qualquer plataforma de segurança e separa "limpo" de "não rodou" |
 | [`aidlc-secscan`](#aidlc-secscan) | Varre CVE com correção publicada (Trivy embutido) |
 | [`aidlc-lockcheck`](#aidlc-lockcheck) | Dependência fora do lockfile |
@@ -38,11 +39,13 @@ Cria o esqueleto de um projeto a partir dos modelos em `templates/`. Nunca sobre
 ```text
 aidlc-init [pasta] [--name "Nome"] [--desc "uma frase"] [--tools claude,kiro,copilot]
            [--dry-run] [--force]
-aidlc-init --check     # reprova se uma cópia derivada divergiu do AGENTS.md
-aidlc-init --sync      # regenera as cópias a partir do AGENTS.md
+aidlc-init --check     # reprova se o AGENTS.md não tem o bloco do kit ou uma cópia derivada divergiu
+aidlc-init --sync      # atualiza o bloco do kit no AGENTS.md e regenera as cópias
 ```
 
 Cria `AGENTS.md`, `CLAUDE.md` (importa o `AGENTS.md`), `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md`, `context/product.md`, `.aidlc/config.json`, `.aidlc/identity.json`, `.github/workflows/aidlc-gate.yml` e a pasta `aidlc/` (inception, construction, decisions, audit). `--tools` limita quais ferramentas recebem arquivo. Sai 0; `--check` sai 1 em divergência.
+
+Um `AGENTS.md` que já existe nunca é substituído: as regras do kit entram num bloco entre `<!-- aidlc:inicio -->` e `<!-- aidlc:fim -->` acrescentado ao fim, e o texto do time fica como está. O `--sync` atualiza só o miolo desse bloco. O workflow de CI recebe os passos de preparação da tecnologia detectada naquele momento (o campo `ci.setup` do manifesto dela) e instala o `trivy`, que o `aidlc-secscan` usa; sem tecnologia detectada, ele deixa um comentário para preencher.
 
 ### aidlc-phase
 
@@ -52,7 +55,7 @@ aidlc-phase check inception         # sai 1 se a Inception estiver incompleta
 aidlc-phase check construction      # exige a Inception completa E os arquivos da Construction
 ```
 
-Uma fase está completa quando todos os seus arquivos existem, não têm o marcador `<!-- PREENCHER` e terminam com `Aprovado por:` e `Data:` (AAAA-MM-DD) preenchidos. O nome é recusado se for de ferramenta de IA. Sem pasta `aidlc/`, `status` sai 0 e `check` sai 1. O que o comando **não** prova: que o nome é de quem de fato aprovou (veja [AIDLC.md](AIDLC.md)).
+Uma fase está completa quando todos os seus arquivos existem, não têm o marcador `<!-- PREENCHER` e terminam com `Aprovado por:` e `Data:` (AAAA-MM-DD) preenchidos. O nome é recusado se for de ferramenta de IA. No `aidlc/inception/requirements.md` valem mais duas regras: no máximo **5** itens em `## Perguntas em aberto`, e uma seção `## Premissas` que, quando lista alguma, exige `Premissas revisadas por:` preenchido por uma pessoa. Sem pasta `aidlc/`, `status` sai 0 e `check` sai 1. O que o comando **não** prova: que o nome é de quem de fato aprovou (veja [AIDLC.md](AIDLC.md)).
 
 ### aidlc-gate
 
@@ -96,6 +99,20 @@ aidlc-lockcheck [pasta] [--since <ref>] [--json]
 ```
 
 Confere, sem rede: (1) o lockfile do gerenciador declarado existe; (2) toda dependência do `package.json` aparece nele; (3) se as listas de dependência mudaram desde `HEAD` (ou `--since`), o lockfile mudou junto. Não consulta o registry nem mede reputação: isso é do agente `supply-chain-reviewer`. Sem `package.json` com dependências, não há o que travar e sai 0.
+
+### aidlc-hook
+
+```text
+aidlc-hook parada --formato copilot|cursor|codex   # fim do turno
+aidlc-hook shell  --formato copilot|cursor|codex   # antes de um comando de shell
+```
+
+Chamado pelos arquivos de hook que o `aidlc-init` gera (`.github/hooks/aidlc.json`, `.cursor/hooks.json`, `.codex/hooks.json`); você não o roda à mão. Ele traduz o JSON de entrada e de saída de cada ferramenta (como documentado por cada uma em 06/11/2026) e aplica as mesmas regras do plugin:
+
+- **`shell`** roda o `secret-guard` e o `pkg-manager` sobre o comando e o nega no formato da ferramenta (`permissionDecision` no Copilot, `hookSpecificOutput` no Codex, `permission` no Cursor).
+- **`parada`** não lê o transcript, cujo formato muda de ferramenta para ferramenta. Confere o que vale em todas: se a árvore de trabalho mudou e a última execução do `aidlc-gate` **nesta mesma árvore** não saiu verde, o turno volta para o agente com o motivo (`decision: block` no Copilot e no Codex, `followup_message` no Cursor). O `aidlc-gate` grava a impressão da árvore a cada execução (`aidlc/audit/gate-<dia>.jsonl`, que a própria impressão ignora). Depois de 3 devoluções na mesma árvore, ele deixa o turno terminar com um aviso. `AIDLC_GATE=0` desliga; `gate_mode` `warn` só avisa.
+
+Falha para o lado de liberar: sem git, sem tecnologia reconhecida ou com entrada ilegível, sai 0. O Codex só roda hooks de projeto depois que você confia neles com `/hooks`.
 
 ### aidlc-identity
 
@@ -148,7 +165,7 @@ Lista o que sobrou ao fim de uma unidade de trabalho: worktree, branch e contain
 aidlc-cycle [pasta] [--since 30d] [--json]
 ```
 
-Painel do ciclo, lido do que o kit já registra: `.claude/audit/<dia>.jsonl` (decisões do gate de evidência), `git log` em `aidlc/` (tempo entre fases) e `git rev-list` (frequência de entrega). O que não tem registro sai "não medido", nunca zero.
+Painel do ciclo, lido do que o kit já registra: `aidlc/audit/<dia>.jsonl` (decisões do gate de evidência), `git log` em `aidlc/` (tempo entre fases) e `git rev-list` (frequência de entrega). O que não tem registro sai "não medido", nunca zero.
 
 ### aidlc-graph
 
@@ -218,7 +235,7 @@ Recusa encerrar o turno que **promete continuar** ("sigo no próximo ciclo", "na
 
 ### dod-check
 
-O gate de evidência. Lê o transcript desde a última mensagem da pessoa, descobre quais evidências o manifesto da tecnologia exige (`evidence`), e recusa o fim do turno se algum marcador não aparece. Determinista, sem modelo, em milissegundos. Falha para o lado de liberar: tecnologia desconhecida, árvore limpa (salvo quando o turno afirma fechar uma unidade: aí só a evidência `whenSays` é cobrada) ou teto de **3 recusas por sessão**, quando vira aviso e libera. Cada decisão é gravada em `.claude/audit/<dia>.jsonl`; falha ao gravar o registro nunca segura o Stop. Detalhes do fluxo: ![Como o Stop decide](../assets/diagramas/evidencia.claro.svg)
+O gate de evidência. Lê o transcript desde a última mensagem da pessoa, descobre quais evidências o manifesto da tecnologia exige (`evidence`), e recusa o fim do turno se algum marcador não aparece. Determinista, sem modelo, em milissegundos. Falha para o lado de liberar: tecnologia desconhecida, árvore limpa (salvo quando o turno afirma fechar uma unidade: aí só a evidência `whenSays` é cobrada) ou teto de **3 recusas por sessão**, quando vira aviso e libera. Cada decisão é gravada em `aidlc/audit/<dia>.jsonl`; falha ao gravar o registro nunca segura o Stop. Detalhes do fluxo: ![Como o Stop decide](../assets/diagramas/evidencia.claro.svg)
 
 ---
 
@@ -228,7 +245,7 @@ Disponíveis no Claude Code com o plugin instalado. São instruções para o age
 
 | Comando | O que faz |
 | --- | --- |
-| `/inception` | Conduz a Inception: perguntas em rodadas, requisitos, histórias e unidades de trabalho, até uma pessoa aprovar. O agente não aprova nada |
+| `/inception` | Conduz a Inception pela skill `aidlc-inception`: primeiro um rascunho recomendado, depois no máximo cinco perguntas na janela do `AskUserQuestion`, até uma pessoa aprovar. O agente não aprova nada |
 | `/construction` | Conduz a Construction: desenho e plano de testes aprovados antes do código; depois, uma unidade de trabalho por vez. Argumento opcional: número da unidade |
 | `/gate` | Roda `aidlc-gate` e cola a saída crua. Argumento opcional: o id de um gate |
 | `/status` | Panorama do repositório em uma tela (gate, padrão, cofre, grafo, pendências), só leitura |
@@ -255,6 +272,8 @@ Em `plugins/aidlc-harness/skills/<nome>/SKILL.md`. O agente as carrega pela desc
 | --- | --- |
 | `aidlc-context` | Tarefa que exige julgamento de produto: nomear, escrever texto de usuário, avaliar escopo. Lê `context/product.md` |
 | `blast` | **Antes** de editar arquivo que possa ser contrato entre repositórios: usa `aidlc-graph blast` |
+| `aidlc-inception` | Conduzir a Inception: a IA rascunha requisitos, histórias e unidades com as recomendações dela, decide sozinha o que é reversível e faz no máximo 5 perguntas, na janela de perguntas nativa da ferramenta. Lida por todas as ferramentas suportadas, não só o Claude Code |
+| `aidlc-construction` | Conduzir a Construction: desenho e plano de testes recomendados pela IA e aprovados por uma pessoa antes do código, depois uma unidade por vez |
 | `bolts` | Começar ou retomar projeto grande: planejar tudo, separar em unidades (bolts), fechar cada uma com teste, evidência e limpeza |
 | `repo-standard` | Trazer um repositório ao padrão do kit quando o `aidlc-doctor` estiver baixo |
 
@@ -272,8 +291,14 @@ O critério de aceite como dado. Ficam em `plugins/aidlc-harness/quality/<tech>.
 | --- | --- | --- | --- |
 | `node-yarn` | `package.json` + `yarn.lock` | yarn | `test`, `lint`, `build`, `secscan`, `supply-chain` |
 | `node-npm` | `package.json` + `package-lock.json` | npm | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `node-pnpm` | `package.json` + `pnpm-lock.yaml` | pnpm | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `node-bun` | `package.json` + `bun.lock` (ou `bun.lockb`) | bun | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `java-maven` | `pom.xml` | maven | `verify`, `secscan`, `supply-chain` |
+| `java-gradle` | `build.gradle(.kts)` ou `settings.gradle(.kts)` | gradle | `check`, `secscan`, `supply-chain` |
+| `dotnet` | `*.sln`, `*.slnx`, `*.csproj` ou `*.fsproj` na raiz | dotnet | `build`, `test`, `secscan`, `supply-chain` |
+| `go` | `go.mod` | go | `vet`, `test`, `secscan`, `supply-chain` |
 | `python-uv` | `pyproject.toml` + `uv.lock` | uv | `lint`, `format`, `lockfile`, `segredo`, `unit` |
-| `harness-self` | a pasta do plugin + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `identity` |
+| `harness-self` | a pasta do plugin + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `ferramentas`, `diagramas`, `referencia`, `i18n`, `links`, `identity` |
 
 `_org.json` é a **camada da organização**: não é tecnologia, vale para toda stack que casar o `when` (hoje o gate `lockfile` e a evidência de fechamento de unidade). Um manifesto de projeto em `.aidlc/quality/<tech>.json` com o mesmo `tech` **sobrescreve** o do kit. O modelo de gate de segurança está em `templates/security/node-yarn-com-scan.json`.
 
@@ -314,7 +339,7 @@ O que o `aidlc-init` cria e para que serve.
 | --- | --- |
 | `AGENTS.md` | **A fonte única** das regras para qualquer ferramenta de IA. Único arquivo de instrução que se edita à mão |
 | `CLAUDE.md` | Importa `@AGENTS.md` e acrescenta só o que é do Claude Code |
-| `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Cópias **derivadas** do `AGENTS.md` (`aidlc-init --sync`); `--check` reprova divergência |
+| `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Cópias **derivadas** do `AGENTS.md` (`aidlc-init --sync`); `--check` reprova divergência ou bloco do kit ausente |
 | `context/product.md` | O que o produto é, o que já foi decidido, o vocabulário do time |
 | `context/kernel.md` | Três linhas que mudam o enquadramento, injetadas pelo `session-brief` |
 | `aidlc/inception/` | `requirements.md`, `user-stories.md`, `units-of-work.md` |
@@ -324,7 +349,7 @@ O que o `aidlc-init` cria e para que serve.
 | `.aidlc/config.json` | `tools`, `language`, `scratchDir` (todas opcionais) |
 | `.aidlc/identity.json` | Allowlist do `aidlc-identity`, cada entrada com motivo |
 | `.aidlc/quality/<tech>.json` | Manifesto do projeto; sobrescreve o do kit |
-| `.claude/audit/<dia>.jsonl` | Decisões do gate de evidência (alimenta o `aidlc-cycle`) |
+| `aidlc/audit/<dia>.jsonl` | Decisões do gate de evidência (alimenta o `aidlc-cycle`; o antigo `.claude/audit/` continua sendo lido) |
 | `.github/workflows/aidlc-gate.yml` | Roda `aidlc-init --check` e `aidlc-gate` no CI; fixa o kit por `AIDLC_REF` |
 
 ## Variáveis de ambiente e configuração
@@ -338,7 +363,7 @@ O que o `aidlc-init` cria e para que serve.
 | `AIDLC_STRATEGY=0` | Desliga `strategy-map` e `path-strategy` |
 | `AIDLC_SCRATCH_DIR` | Pasta de rascunho; liga o `scratch-guard` sem editar `config.json` |
 | `AIDLC_SCRATCH_GUARD=0` | Desliga o `scratch-guard` |
-| `AIDLC_AUDIT=0` | O `dod-check` deixa de gravar `.claude/audit/` |
+| `AIDLC_AUDIT=0` | O `dod-check` deixa de gravar `aidlc/audit/` |
 | `AIDLC_IDENTITY_TERMS` | Arquivo com os termos que o projeto proíbe, para o `aidlc-identity` |
 | `AIDLC_GRAPH` | Caminho do grafo de repositórios para `aidlc-graph` e `path-strategy` |
 | `AIDLC_REF` | No workflow de CI, a tag ou o commit do kit a usar. **Fixe numa tag ou commit que você revisou** |

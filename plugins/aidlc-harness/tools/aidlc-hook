@@ -1,0 +1,116 @@
+#!/usr/bin/env node
+/*
+ * aidlc-hook: os hooks do kit para as ferramentas que não carregam o plugin do Claude Code.
+ *
+ *   aidlc-hook parada --formato copilot|cursor|codex   # no fim do turno: mudança sem gate verde volta para o agente
+ *   aidlc-hook shell  --formato copilot|cursor|codex   # antes de um comando: segredo na tela e gerenciador errado
+ *
+ * O aidlc-init gera a configuração de hook de cada ferramenta apontando para cá
+ * (.github/hooks/aidlc.json, .cursor/hooks.json, .codex/hooks.json). Cada ferramenta manda um JSON
+ * diferente na entrada e espera outro na saída; aqui fica a tradução, e a regra é a mesma do plugin.
+ *
+ * Parada: fora do Claude Code o transcript tem formato de cada ferramenta, então não se procura
+ * a saída colada no chat. Confere-se o que vale em todas: houve mudança na árvore, e o último
+ * `aidlc-gate` NESTA árvore saiu verde? Se não, o turno volta para o agente com o motivo. Três
+ * devoluções na mesma árvore e o hook libera com aviso: trava que não se satisfaz ensina a desligar.
+ *
+ * Falha para o lado de liberar: sem git, sem tecnologia reconhecida ou JSON ilegível, sai 0.
+ * AIDLC_GATE=0 desliga a parada; AIDLC_SECRET_GUARD=0 desliga a guarda de segredo.
+ */
+import { spawnSync } from 'node:child_process'
+import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join, dirname } from 'node:path'
+import { fileURLToPath } from 'node:url'
+import { detectTech, repoRoot } from '../lib/detect.mjs'
+import { arvoreMudou, gateVerdeNaArvore, impressaoDaArvore } from '../lib/audit.mjs'
+import { gateMode } from '../lib/gate-mode.mjs'
+
+const HOOKS = join(dirname(fileURLToPath(import.meta.url)), '..', 'hooks')
+const argv = process.argv.slice(2)
+const modo = argv[0]
+const i = argv.indexOf('--formato')
+const formato = i >= 0 ? argv[i + 1] : null
+const FORMATOS = ['copilot', 'cursor', 'codex']
+const MAX_DEVOLUCOES = 3
+
+if (!['parada', 'shell'].includes(modo) || !FORMATOS.includes(formato)) {
+  console.error(`uso: aidlc-hook parada|shell --formato ${FORMATOS.join('|')}`)
+  process.exit(2)
+}
+
+let entrada = {}
+try {
+  entrada = JSON.parse(readFileSync(0, 'utf8') || '{}')
+} catch {
+  process.exit(0)
+}
+const cwd = entrada.cwd || process.cwd()
+
+/** O comando de shell, onde quer que a ferramenta o ponha. */
+export function comandoDe(e) {
+  if (e.tool_input?.command) return String(e.tool_input.command)
+  if (e.command) return String(e.command)
+  let args = e.toolArgs
+  if (typeof args === 'string') {
+    try {
+      args = JSON.parse(args)
+    } catch {
+      return args
+    }
+  }
+  return String(args?.command ?? args?.cmd ?? '')
+}
+
+function devolver(motivo) {
+  if (formato === 'cursor') console.log(JSON.stringify({ followup_message: motivo }))
+  else console.log(JSON.stringify({ decision: 'block', reason: motivo }))
+  process.exit(0)
+}
+
+function negar(motivo) {
+  if (formato === 'cursor') console.log(JSON.stringify({ permission: 'deny', agent_message: motivo, user_message: motivo }))
+  else if (formato === 'codex') console.log(JSON.stringify({ hookSpecificOutput: { hookEventName: 'PreToolUse', permissionDecision: 'deny', permissionDecisionReason: motivo } }))
+  else console.log(JSON.stringify({ permissionDecision: 'deny', permissionDecisionReason: motivo }))
+  process.exit(0)
+}
+
+if (modo === 'shell') {
+  const cmd = comandoDe(entrada)
+  if (!cmd.trim()) process.exit(0)
+  // A regra mora nos hooks do plugin; aqui eles recebem a entrada no formato do Claude Code.
+  for (const h of ['secret-guard.mjs', 'pkg-manager.mjs']) {
+    const r = spawnSync(process.execPath, [join(HOOKS, h)], { input: JSON.stringify({ cwd, tool_input: { command: cmd } }), encoding: 'utf8', env: process.env })
+    if (r.status === 2) negar((r.stderr || `bloqueado por ${h}`).trim())
+  }
+  process.exit(0)
+}
+
+// parada
+if (gateMode() === 'off') process.exit(0)
+const raiz = repoRoot(cwd)
+if (!detectTech(raiz) || !arvoreMudou(raiz)) process.exit(0)
+const arvore = impressaoDaArvore(raiz)
+if (gateVerdeNaArvore(raiz, arvore)) process.exit(0)
+
+const contador = join(tmpdir(), 'aidlc-hook', `${arvore ?? 'sem-arvore'}.n`)
+let n = 0
+try {
+  n = Number(readFileSync(contador, 'utf8')) || 0
+} catch {
+  /* primeira vez nesta árvore */
+}
+if (n >= MAX_DEVOLUCOES || gateMode() === 'warn') {
+  process.stderr.write(`aidlc-hook: a arvore mudou e o aidlc-gate nao saiu verde nela; liberado${gateMode() === 'warn' ? ' (gate_mode warn)' : ` depois de ${MAX_DEVOLUCOES} devolucoes`}.\n`)
+  process.exit(0)
+}
+try {
+  mkdirSync(dirname(contador), { recursive: true })
+  writeFileSync(contador, String(n + 1))
+} catch {
+  /* sem tmp gravável: a devolução vale mesmo assim, o teto é o da ferramenta */
+}
+devolver(
+  'Pronto exige evidencia: ha mudanca no codigo e o aidlc-gate nao saiu verde nesta arvore. ' +
+    'Rode aidlc-gate, conserte o que reprovar (sem enfraquecer teste) e cole a saida crua no chat antes de encerrar.',
+)

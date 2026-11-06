@@ -63,7 +63,7 @@ Lint and build start as non-blocking in the generic manifests, because the kit d
 - **Closing a unit of work:** the final line `aidlc-limpeza: nada sobrando` (verbatim, as the executable prints it: "nothing left over").
 - **AI-DLC phase:** `aidlc-phase check <phase>` exiting with 0, and a person's approval in the files.
 
-`dod-check` records each decision in `.claude/audit/<day>.jsonl`, and `aidlc-cycle` reads that record. What has no record shows up as "not measured", never as zero.
+`dod-check` records each decision in `aidlc/audit/<day>.jsonl`, and `aidlc-cycle` reads that record. What has no record shows up as "not measured", never as zero.
 
 ## 6. What stays outside this model
 

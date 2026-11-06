@@ -1,0 +1,96 @@
+{
+  "tech": "java-maven",
+  "label": "Java (Maven)",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-java-com-pom.xml"
+  ],
+  "pkgManager": "maven",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "anyFiles": [
+      "pom.xml"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "verify",
+      "label": "Build e testes (mvn verify)",
+      "cmd": "mvn -B -ntp verify",
+      "blocking": true,
+      "reject": "BUILD FAILURE|Tests run:.*(Failures: [1-9]|Errors: [1-9])"
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/main/**",
+          "src/test/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "pom.xml"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com o arquivo de lock regenerado no mesmo diff e com o pacote conferido no registro antes do merge",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "BUILD SUCCESS",
+        "Tests run: \\d+"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "pom.xml"
+      ]
+    }
+  ],
+  "ci": {
+    "setup": [
+      "- uses: actions/setup-java@v4\n  with:\n    distribution: temurin\n    java-version: '21'\n    cache: maven"
+    ]
+  },
+  "notes": "Manifesto de partida para Java com Maven. Se o projeto usa o wrapper, troque mvn por ./mvnw. Ajuste os comandos ao seu projeto copiando este arquivo para .aidlc/quality/ do repo (o do projeto substitui o do kit com o mesmo tech)."
+}

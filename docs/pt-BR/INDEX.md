@@ -12,7 +12,8 @@ Por onde começar depende do que você quer.
 | **Procurar um comando, hook, campo ou variável** | [REFERENCIA.md](REFERENCIA.md) |
 | **Ligar uma plataforma de segurança** | [INTEGRACOES.md](INTEGRACOES.md) |
 | **Usar com o RoqueShield** | [ROQUESHIELD.md](ROQUESHIELD.md) |
-| **Usar com Claude Code, Kiro ou Copilot** | [ADAPTADORES.md](ADAPTADORES.md) |
+| **Usar com a minha ferramenta de IA, passo a passo** | [FERRAMENTAS.md](FERRAMENTAS.md): uma página por ferramenta, 15 ferramentas |
+| **Entender o que cada ferramenta recebe: instrução versus mecanismo** | [ADAPTADORES.md](ADAPTADORES.md) |
 | **Aplicar numa empresa regulada** | [REGULADO.md](REGULADO.md) |
 | **Acrescentar uma tecnologia, revisor ou regra** | [ESTENDER.md](ESTENDER.md) |
 | **Entender uma falha do gate** | [QUANDO-QUEBRA.md](QUANDO-QUEBRA.md) |
@@ -34,7 +35,7 @@ Todos são gerados do código (`node scripts/gerar-diagramas.mjs`), em tema clar
 | [Hooks](../assets/diagramas/hooks.claro.svg) | [ARQUITETURA, seção 5](ARQUITETURA.md#5-o-caminho-de-uma-edição-hooks-em-ordem) |
 | [Como o Stop decide](../assets/diagramas/evidencia.claro.svg) | [ARQUITETURA, seção 6](ARQUITETURA.md#6-o-stop-como-pronto-ganha-evidência) |
 | [Fases e aprovação humana](../assets/diagramas/fases.claro.svg) | [ARQUITETURA, seção 7](ARQUITETURA.md#7-as-fases-e-a-aprovação-humana) |
-| [Uma fonte, três ferramentas](../assets/diagramas/multiferramenta.claro.svg) | [ARQUITETURA, seção 8](ARQUITETURA.md#8-uma-fonte-de-instruções-três-ferramentas) |
+| [Uma fonte, 15 ferramentas de IA](../assets/diagramas/multiferramenta.claro.svg) | [ARQUITETURA, seção 8](ARQUITETURA.md#8-uma-fonte-15-ferramentas-de-ia) |
 | [Contrato de varredura](../assets/diagramas/varredura.claro.svg) | [INTEGRACOES](INTEGRACOES.md) |
 | [RoqueShield e o kit](../assets/diagramas/roqueshield.claro.svg) | [ROQUESHIELD](ROQUESHIELD.md) |
 | [Instalação](../assets/diagramas/instalacao.claro.svg) | [COMECAR](COMECAR.md) |

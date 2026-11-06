@@ -11,74 +11,90 @@ Os trechos de saída abaixo vieram de uma execução real do kit (Linux, Node 22
 Pré-requisitos: **Node 20.19 ou mais novo** (`node --version`) e **git**.
 
 ```bash
-git clone https://github.com/roqueribeiro/aidlc-harness.git
-node aidlc-harness/scripts/setup.mjs
+npm install -g github:roqueribeiro/aidlc-harness
 ```
 
-O `setup` põe os executáveis `aidlc-*` num diretório do seu PATH (`~/.local/bin` no macOS e Linux, `%USERPROFILE%\.aidlc\bin` no Windows). Ele nunca sobrescreve um arquivo que não seja dele.
+Isso põe todos os executáveis `aidlc-*` no seu `PATH`, em Linux, macOS e Windows (no Windows o npm cria os atalhos `.cmd`). Os hooks do GitHub Copilot, do Cursor e do Codex chamam o `aidlc-hook` pelo nome, então precisam deste passo. Se você só quer experimentar, pule e use `npx github:roqueribeiro/aidlc-harness <comando>` nos próximos passos.
 
-**O que você deve ver:** uma linha por executável e, no fim, `setup: 13 executáveis em <diretório>`. Se o diretório não estiver no PATH, o `setup` avisa: acrescente-o ao PATH do seu shell e abra um terminal novo.
+**Confira:** `aidlc-gate --list` lista as tecnologias que o kit conhece (10 hoje, de Node a Java, .NET e Go).
 
-**Confira:** `aidlc-gate --list` lista as tecnologias que o kit conhece.
+## 2. Ligue o kit à sua ferramenta
 
-**Windows:** o `setup` gera atalhos `.cmd`. Isso **não foi testado** em Windows real. Se falhar, rode os executáveis por `node <caminho>\plugins\aidlc-harness\tools\aidlc-gate` e abra uma issue com a saída.
-
-## 2. Ligue o kit na sua ferramenta
-
-**Claude Code** (onde os hooks bloqueiam de verdade):
+**Claude Code** (plugin com hooks que bloqueiam, agentes e skills):
 
 ```bash
 claude plugin marketplace add roqueribeiro/aidlc-harness
 claude plugin install aidlc-harness@aidlc
 ```
 
-Dentro de uma sessão, `/reload-plugins` e depois `/context` devem mostrar o `aidlc-harness` com os agentes e hooks. Para uma cópia local do repositório, use o caminho em vez de `roqueribeiro/aidlc-harness`.
+Dentro de uma sessão, `/reload-plugins` e depois `/context` devem mostrar o `aidlc-harness` com os agentes e os hooks.
 
-**Kiro e GitHub Copilot** não carregam plugin do Claude Code. Eles recebem as instruções do projeto (passo 3) e usam os executáveis do passo 1 pelo terminal. A diferença de garantia está em [ADAPTADORES.md](ADAPTADORES.md): lá o que cobra o "pronto" é o CI, não um hook.
+**As outras 14 ferramentas** não precisam de nada além do passo 3: o `aidlc-init` grava no projeto o comando, as skills e, onde a ferramenta deixa, os hooks. O que cada uma recebe, passo a passo, está em [FERRAMENTAS.md](FERRAMENTAS.md); a diferença de garantia está em [ADAPTADORES.md](ADAPTADORES.md).
 
 ## 3. Prepare o projeto
 
 ```bash
-cd meu-projeto            # um repositório git; pode ser novo ou existente
+cd meu-projeto            # um repositório git; novo ou existente
 aidlc-init --name "Meu Projeto" --desc "Cadastro de clientes"
 ```
 
-`aidlc-init` cria o que falta e **nunca sobrescreve**. Para ver antes, use `--dry-run`. Para gerar instruções só de algumas ferramentas, `--tools claude,copilot`.
+Num terminal, o `aidlc-init` pergunta com quais ferramentas de IA o time trabalha, com as que ele achou na pasta já marcadas; no CI ou com `--tools claude,cursor,copilot` ele não pergunta. Ele cria o que falta e **nunca sobrescreve** o que é seu: um `AGENTS.md` que já existe ganha as regras do kit num bloco gerenciado no fim, e arquivos de hook que já existem ganham as entradas do kit ao lado das suas. Para ver antes, use `--dry-run`.
 
-**O que você deve ver:**
+**O que você deve ver** (com Claude Code, Cursor e Copilot escolhidos):
 
 ```
 aidlc-init  /caminho/meu-projeto
   criado       AGENTS.md
   criado       CLAUDE.md
   criado       .github/copilot-instructions.md
-  criado       .kiro/steering/aidlc.md
   criado       context/product.md
   criado       context/kernel.md
   criado       .aidlc/config.json
   criado       .aidlc/identity.json
   criado       .github/workflows/aidlc-gate.yml
   criado       aidlc/README.md
-  criado       aidlc/inception/requirements.md   (e user-stories.md, units-of-work.md)
-  criado       aidlc/construction/design.md      (e test-plan.md)
+  criado       aidlc/construction/design.md
+  criado       aidlc/construction/test-plan.md
   criado       aidlc/decisions.md
+  criado       aidlc/inception/insumos/README.md
+  criado       aidlc/inception/requirements.md
+  criado       aidlc/inception/units-of-work.md
+  criado       aidlc/inception/user-stories.md
+  criado       aidlc/audit/.gitkeep
+  criado       .agents/skills/aidlc-inception/SKILL.md
+  criado       .agents/skills/aidlc-construction/SKILL.md
+  criado       .cursor/commands/aidlc-inception.md
+  criado       .cursor/commands/aidlc-construction.md
+  criado       .cursor/hooks.json
+  criado       .github/prompts/aidlc-inception.prompt.md
+  criado       .github/prompts/aidlc-construction.prompt.md
+  criado       .github/hooks/aidlc.json
+  criado       .aidlc/COMANDOS.md
+
+Proximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:
+  Claude Code                  /inception
+  Cursor                       /aidlc-inception
+  GitHub Copilot               /aidlc-inception  (no VS Code; no Copilot CLI, peça a skill aidlc-inception)
 ```
 
-O que cada coisa é:
+(As últimas linhas dizem o que digitar em cada ferramenta.)
 
-| Arquivo | Para quê |
+O que é cada coisa:
+
+| Arquivo | Para que serve |
 | --- | --- |
-| `AGENTS.md` | **A fonte única** das instruções. Edite só este. |
-| `CLAUDE.md`, `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Derivados do `AGENTS.md`. `aidlc-init --check` falha se divergirem; `--sync` regrava. |
-| `context/product.md` | O que o produto é, para quem, o que já foi decidido e o vocabulário. **Preencha na mão**: a IA não deve inventar isto. |
-| `aidlc/` | Os artefatos do ciclo, versionados com o código. |
-| `.aidlc/config.json` | Configuração do kit neste projeto (todas as chaves são opcionais). |
-| `.aidlc/identity.json` | Exceções ao scanner de identidade, cada uma com motivo. |
-| `.github/workflows/aidlc-gate.yml` | O CI: identidade, estado das fases e gate. |
+| `AGENTS.md` | **A fonte única** das regras. Edite fora do bloco do kit (`aidlc:inicio` a `aidlc:fim`). |
+| `CLAUDE.md`, `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Derivados do `AGENTS.md` para as ferramentas que precisam deles. `aidlc-init --check` reprova se divergirem; `--sync` regrava. |
+| `.agents/skills/`, os arquivos de comando e de hook de cada ferramenta | Gerados pelos adaptadores do kit. Não edite: o `--check` reprova, o `--sync` regrava. |
+| `context/product.md` | O que o produto é, para quem, o que já foi decidido e o vocabulário. **Preencha à mão**: a IA não pode inventar isso. |
+| `aidlc/` | Os artefatos do ciclo, versionados com o código. `aidlc/inception/insumos/` é onde você põe o que a IA deve ler primeiro. |
+| `.aidlc/config.json`, `.aidlc/COMANDOS.md` | As ferramentas escolhidas, e o que digitar em cada uma. |
+| `.aidlc/identity.json` | Exceções do scanner de identidade, cada uma com motivo. |
+| `.github/workflows/aidlc-gate.yml` | O CI: identidade, estado das fases e gate, com os passos de preparação da stack detectada. |
 
-Comite isto num commit só, antes de começar o trabalho.
+Faça o commit disso num commit só, antes de começar o trabalho.
 
-**Edite `context/product.md` agora.** Duas frases bastam para começar. Sem isso, o agente trabalha sem saber o que o produto é, e nas primeiras respostas você vai ver a consequência.
+**Edite o `context/product.md` agora.** Duas frases bastam para começar. Sem ele, o agente trabalha sem saber o que o produto é, e nas primeiras respostas você vai ver a consequência.
 
 ## 4. Inception: requisitos, histórias, unidades
 
@@ -88,18 +104,18 @@ Aqui a IA conduz e a equipe responde. No Claude Code:
 /aidlc-harness:inception Quero um cadastro de clientes com busca e histórico de alterações
 ```
 
-Em Kiro ou Copilot, cole o texto de [PROMPTS.md](PROMPTS.md#inception) no chat do agente.
+Nas outras ferramentas, o `aidlc-init` gerou o comando no formato de cada uma: o `.aidlc/COMANDOS.md` do seu projeto lista o que digitar em cada ferramenta (por exemplo `/aidlc-inception` no OpenCode, no Cursor e no VS Code, `/aidlc:inception` no Gemini CLI).
 
 A IA deve:
 
-1. ler `AGENTS.md`, `context/product.md` e `aidlc/decisions.md`;
-2. perguntar **em rodadas de no máximo cinco perguntas**, com opções e uma recomendação, esperando suas respostas;
-3. registrar as respostas, nas suas palavras, em `aidlc/inception/requirements.md`;
-4. propor histórias com critérios de aceite verificáveis, e depois as unidades de trabalho.
+1. ler `AGENTS.md`, `context/product.md`, `aidlc/decisions.md`, o código e o que você puser em `aidlc/inception/insumos/` (transcrição de reunião, briefing, print);
+2. escrever **primeiro um rascunho completo**: requisitos, histórias com critérios de aceite verificáveis e unidades de trabalho, com as recomendações dela, listando em **Premissas** cada escolha que fez sozinha;
+3. perguntar **só o que não pode decidir**, no máximo cinco perguntas, na janela de perguntas da própria ferramenta quando ela tem uma, com a opção recomendada primeiro; "aceitar todas as recomendações" é sempre uma resposta válida;
+4. registrar suas respostas, nas suas palavras, e ajustar o rascunho.
 
-**Seu papel:** responder, corrigir, cortar escopo. Se a IA inventar um requisito que ninguém disse, apague. Se um critério vier com adjetivo ("rápido"), exija um número.
+**Seu papel:** responder, conferir as premissas, corrigir, cortar escopo. Se a IA inventar um requisito que ninguém disse, apague. Se um critério vier com adjetivo ("rápido"), exija um número.
 
-**Fechamento da fase:** quando os três arquivos estiverem preenchidos, **uma pessoa** escreve o nome e a data em `Aprovado por:` e `Data:` de cada arquivo. Depois:
+**Fechamento da fase:** quando os três arquivos estiverem preenchidos, **uma pessoa** escreve o nome e a data em `Aprovado por:` e `Data:` de cada arquivo, e em `Premissas revisadas por:` no `requirements.md` quando ele lista premissas. Depois:
 
 ```bash
 aidlc-phase check inception

@@ -18,6 +18,7 @@
 import { existsSync, mkdirSync, readFileSync, writeFileSync, chmodSync } from 'node:fs'
 import { spawnSync } from 'node:child_process'
 import { join, resolve } from 'node:path'
+import { ehPrincipal } from './lib/principal.mjs'
 
 export const MARCADOR = '# aidlc-harness: pre-push'
 
@@ -60,7 +61,7 @@ function aplicar(raiz, so) {
   return { raiz, destino, estado: 'instalado' }
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (ehPrincipal(import.meta.url)) {
   const args = process.argv.slice(2)
   const so = args.includes('--check')
   const pastas = args.filter((a) => !a.startsWith('--'))

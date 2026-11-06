@@ -21,23 +21,32 @@
  */
 import { existsSync, lstatSync, mkdirSync, readdirSync, readFileSync, readlinkSync, rmSync, symlinkSync, writeFileSync } from 'node:fs'
 import { homedir, platform } from 'node:os'
-import { delimiter, dirname, join, resolve } from 'node:path'
+import { dirname, join, posix, resolve, win32 } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ehPrincipal } from './lib/principal.mjs'
+
+/*
+ * Os caminhos seguem a plataforma de DESTINO, não a da máquina que planeja: `planejar` com
+ * plat 'win32' monta caminho com barra invertida mesmo rodando no Linux, e vice-versa.
+ */
+const caminhos = (plat) => (plat === 'win32' ? win32 : posix)
 
 export const MARCADOR_CMD = 'REM aidlc-harness: gerado por scripts/setup.mjs'
 
 export function dirPadrao(plat = platform(), home = homedir()) {
-  return plat === 'win32' ? join(home, '.aidlc', 'bin') : join(home, '.local', 'bin')
+  const p = caminhos(plat)
+  return plat === 'win32' ? p.join(home, '.aidlc', 'bin') : p.join(home, '.local', 'bin')
 }
 
 /** O que instalar, sem tocar no disco. `tools` são nomes de arquivo; `toolsDir` é o caminho absoluto. */
 export function planejar({ tools, toolsDir, dir, plat = platform() }) {
+  const p = caminhos(plat)
   return tools.map((nome) => {
-    const alvo = join(toolsDir, nome)
+    const alvo = p.join(toolsDir, nome)
     if (plat === 'win32') {
-      return { nome, tipo: 'cmd', destino: join(dir, `${nome}.cmd`), alvo, conteudo: `@echo off\r\n${MARCADOR_CMD}\r\nnode "${alvo}" %*\r\n` }
+      return { nome, tipo: 'cmd', destino: p.join(dir, `${nome}.cmd`), alvo, conteudo: `@echo off\r\n${MARCADOR_CMD}\r\nnode "${alvo}" %*\r\n` }
     }
-    return { nome, tipo: 'symlink', destino: join(dir, nome), alvo }
+    return { nome, tipo: 'symlink', destino: p.join(dir, nome), alvo }
   })
 }
 
@@ -72,11 +81,21 @@ function aplicarItem(item, est) {
   return est === 'falta' ? 'instalado' : 'atualizado'
 }
 
-export function noPath(dir, envPath = process.env.PATH ?? '') {
-  return envPath.split(delimiter).some((p) => p && resolve(p) === resolve(dir))
+/** No Windows a variável chama `Path`; a comparação de pasta ignora maiúscula e barra final. */
+const pathDoAmbiente = () => process.env[Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH'] ?? ''
+
+export function noPath(dir, envPath = pathDoAmbiente(), plat = platform()) {
+  const p = caminhos(plat)
+  const norm = (x) => (plat === 'win32' ? p.resolve(x).toLowerCase() : p.resolve(x))
+  return envPath.split(p.delimiter).some((x) => x && norm(x) === norm(dir))
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+/*
+ * Antes: `import.meta.url === \`file://${process.argv[1]}\``. No Windows o argv vem com barra
+ * invertida e letra de unidade, a comparação nunca batia, e o setup saía com 0 sem instalar nada.
+ * O ehPrincipal compara os dois caminhos reais.
+ */
+if (ehPrincipal(import.meta.url)) {
   const args = process.argv.slice(2)
   const so = args.includes('--check')
   const remover = args.includes('--uninstall')
@@ -104,7 +123,13 @@ if (import.meta.url === `file://${process.argv[1]}`) {
   if (!remover) {
     const n = plano.length
     console.log(falhou ? `\nsetup: pendências acima (${n} executáveis em ${dir})` : `\nsetup: ${n} executáveis em ${dir}`)
-    if (!noPath(dir)) console.log(`\natenção: ${dir} não está no PATH. Acrescente-o ao PATH do seu shell e abra um terminal novo.`)
+    if (!noPath(dir)) {
+      const como =
+        platform() === 'win32'
+          ? `  PowerShell: [Environment]::SetEnvironmentVariable('Path', "$env:Path;${dir}", 'User')`
+          : `  bash/zsh: echo 'export PATH="${dir}:$PATH"' >> ~/.zshrc   (ou ~/.bashrc)`
+      console.log(`\natenção: ${dir} não está no PATH. Acrescente-o e abra um terminal novo:\n${como}`)
+    }
   }
   process.exit(falhou ? 1 : 0)
 }

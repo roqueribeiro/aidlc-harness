@@ -63,7 +63,7 @@ node scripts/install-git-hooks.mjs --check     # only reports, exit 1 if missing
 node scripts/install-git-hooks.mjs             # installs the pre-push
 ```
 
-The `pre-push` runs `aidlc-gate` before letting the push out. It does not overwrite someone else's hook and respects `core.hooksPath` and husky. If `aidlc-gate` is not on the `PATH`, the hook lets it pass: installing the kit (`scripts/setup.mjs`) is part of the prerequisites.
+The `pre-push` runs `aidlc-gate` before letting the push out. It does not overwrite someone else's hook and respects `core.hooksPath` and husky. If `aidlc-gate` is not on the `PATH`, the hook lets it pass: installing the kit (`npm install -g github:roqueribeiro/aidlc-harness`) is part of the prerequisites.
 
 ⚠️ **The hook disappears on its own.** `.git/hooks/` is not versioned, so it vanishes on a fresh clone and a new machine, silently. That is why `--check` exists.
 

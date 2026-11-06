@@ -18,6 +18,7 @@ import { execFileSync } from 'node:child_process'
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ehPrincipal } from './lib/principal.mjs'
 
 export const MARCADORES = { owner: 'SEU-USUARIO', email: 'SEU-EMAIL-DE-CONTATO' }
 
@@ -53,7 +54,7 @@ export function valido({ owner, email }) {
   return erros
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (ehPrincipal(import.meta.url)) {
   const args = process.argv.slice(2)
   const val = (n) => {
     const i = args.indexOf(n)

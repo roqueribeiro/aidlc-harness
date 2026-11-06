@@ -1,0 +1,103 @@
+{
+  "tech": "go",
+  "label": "Go",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-com-go.mod"
+  ],
+  "pkgManager": "go",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "go.mod"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "vet",
+      "label": "go vet",
+      "cmd": "go vet ./...",
+      "blocking": true
+    },
+    {
+      "id": "test",
+      "label": "Testes (go test)",
+      "cmd": "go test ./...",
+      "blocking": true,
+      "reject": "^(FAIL|--- FAIL)"
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "**/*.go"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "go.mod",
+          "go.sum"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com o arquivo de lock regenerado no mesmo diff e com o pacote conferido no registro antes do merge",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "^ok\\s",
+        "(^|\\n)PASS"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "go.mod",
+        "go.sum"
+      ]
+    }
+  ],
+  "ci": {
+    "setup": [
+      "- uses: actions/setup-go@v5\n  with:\n    go-version-file: go.mod"
+    ]
+  },
+  "notes": "Manifesto de partida para Go. Ajuste os comandos ao seu projeto copiando este arquivo para .aidlc/quality/ do repo (o do projeto substitui o do kit com o mesmo tech)."
+}

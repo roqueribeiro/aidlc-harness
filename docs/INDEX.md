@@ -12,13 +12,14 @@ Where to start depends on what you want.
 | **Look up a command, hook, field or variable** | [REFERENCE.md](REFERENCE.md) |
 | **Connect a security platform** | [INTEGRATIONS.md](INTEGRATIONS.md) |
 | **Use it with RoqueShield** | [ROQUESHIELD.md](ROQUESHIELD.md) |
-| **Use it with Claude Code, Kiro or Copilot** | [ADAPTERS.md](ADAPTERS.md) |
+| **Use it with my AI tool, step by step** | [TOOLS.md](TOOLS.md): one page per tool, 15 tools |
+| **Understand what each tool gets: instruction versus mechanism** | [ADAPTERS.md](ADAPTERS.md) |
 | **Apply it in a regulated company** | [REGULATED.md](REGULATED.md) |
 | **Add a technology, reviewer or rule** | [EXTENDING.md](EXTENDING.md) |
 | **Understand a gate failure** | [WHEN-IT-BREAKS.md](WHEN-IT-BREAKS.md) |
 | **Understand why the design is the way it is** | [STRATEGY.md](STRATEGY.md) |
 | **Find a term or a quick answer** | [GLOSSARY.md](GLOSSARY.md) |
-| **See the text of the `/inception`, `/construction`... commands** | [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese, generated) |
+| **See the text of the Claude Code `/inception`, `/construction`... commands** | [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese, generated) |
 | **Contribute** | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
 | **Report a vulnerability** | [../SECURITY.md](../SECURITY.md) |
 
@@ -34,7 +35,7 @@ All of them are generated from code (`node scripts/gerar-diagramas.mjs`), in lig
 | [Hooks](assets/diagramas/hooks.en.claro.svg) | [ARCHITECTURE, section 5](ARCHITECTURE.md#5-the-path-of-an-edit-hooks-in-order) |
 | [How Stop decides](assets/diagramas/evidencia.en.claro.svg) | [ARCHITECTURE, section 6](ARCHITECTURE.md#6-stop-how-done-earns-evidence) |
 | [Phases and human approval](assets/diagramas/fases.en.claro.svg) | [ARCHITECTURE, section 7](ARCHITECTURE.md#7-phases-and-human-approval) |
-| [One source, three tools](assets/diagramas/multiferramenta.en.claro.svg) | [ARCHITECTURE, section 8](ARCHITECTURE.md#8-one-source-of-instructions-three-tools) |
+| [One source, 15 AI tools](assets/diagramas/multiferramenta.en.claro.svg) | [ARCHITECTURE, section 8](ARCHITECTURE.md#8-one-source-15-ai-tools) |
 | [Scan contract](assets/diagramas/varredura.en.claro.svg) | [INTEGRATIONS](INTEGRATIONS.md) |
 | [RoqueShield and the kit](assets/diagramas/roqueshield.en.claro.svg) | [ROQUESHIELD](ROQUESHIELD.md) |
 | [Installation](assets/diagramas/instalacao.en.claro.svg) | [GETTING-STARTED](GETTING-STARTED.md) |

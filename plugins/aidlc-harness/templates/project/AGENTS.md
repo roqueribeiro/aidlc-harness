@@ -2,6 +2,7 @@
 
 {{DESCRICAO}}
 
+<!-- aidlc:inicio · bloco mantido pelo aidlc-init; edite fora dele. Atualize com aidlc-init --sync -->
 Este projeto segue o método AI-DLC com o aidlc-harness: a IA propõe, a equipe valida, e nada é "pronto" sem evidência. As regras abaixo valem para qualquer ferramenta de IA que trabalhe aqui (Claude Code, Kiro, GitHub Copilot).
 
 ## O fluxo
@@ -36,3 +37,4 @@ Estado das fases: `aidlc-phase status`. A fase seguinte não começa com a anter
 `context/product.md` diz o que o produto é, para quem, o que já foi decidido e o vocabulário do time. Leia antes de nomear algo, escrever texto para usuário ou avaliar escopo. Decisão nova que fechar na conversa vai para esse arquivo antes de a conversa acabar.
 
 > Este arquivo é lido em toda sessão. Mantenha-o curto: invariantes aqui, detalhe em `context/` e `docs/`.
+<!-- aidlc:fim -->

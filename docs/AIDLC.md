@@ -13,7 +13,7 @@ According to the post, AI-DLC organizes the work into three phases. In **Incepti
 | In AI-DLC | In the kit | Mechanism |
 | --- | --- | --- |
 | Inception phase | `aidlc/inception/`: requirements, stories, units of work | `/inception` drives it; `aidlc-phase check inception` checks it |
-| Mob Elaboration | The AI asks in rounds of at most five, with options and a recommendation; the team answers | command instruction; the kit does **not** bring people together, it records what the team answered |
+| Mob Elaboration | The AI drafts everything first with its recommendations, records what it decided alone as assumptions, and asks at most five questions, only what the team must decide; the team answers and reviews the assumptions | command instruction; the kit does **not** bring people together, it records what the team answered |
 | Units of work | `aidlc/inception/units-of-work.md`, each with the evidence that makes it done | `aidlc-phase` requires the file without any unfilled field |
 | Human validation | `Aprovado por:` and `Data:` at the end of each artifact, filled in by a person | `aidlc-phase` fails on blank and on an AI name; it does not prove the name belongs to whoever approved |
 | Construction phase | `aidlc/construction/`: design and test plan before the code | `/construction` drives it; `aidlc-phase check construction` requires a complete Inception first |
@@ -31,14 +31,14 @@ The post describes the *what* of the cycle; the kit adds controls that make "don
 - **Identity scanner**: nothing that identifies a person or infrastructure goes into the repository.
 - **Secrets vault** that the agent uses without seeing.
 - **Supply chain review** for a new dependency.
-- **Instructions for three tools** from one source, with a drift check.
+- **Instructions and phase commands for 15 AI tools** from one source, with a drift check.
 
 ## Where the kit departs from the method, or falls short
 
 Stated so you can decide with open eyes:
 
 1. **Operations is the thinnest part.** The kit records decisions, measures the cycle (`aidlc-cycle`) and cleans the bench. It does **not** generate infrastructure as code, deploy or observe production. The method's promise that the AI applies the accumulated context to deployments and infrastructure is left to your pipeline.
-2. **The "mob" rituals are team practices.** The kit provides the structure (questions in rounds, approval in the file), but does not bring anyone together. An Inception answered by one person, in a hurry, passes `aidlc-phase` the same way as one discussed by the whole team. The quality of the ritual is the team's.
+2. **The "mob" rituals are team practices.** The kit provides the structure (a recommended draft, at most five questions, assumptions and approval in the file), but does not bring anyone together. An Inception answered by one person, in a hurry, passes `aidlc-phase` the same way as one discussed by the whole team. The quality of the ritual is the team's.
 3. **Validation is checked in form.** `aidlc-phase` guarantees that an approval exists and is not from an AI. What requires the approval to come from someone with the authority to give it is your organization's process (for example, mandatory review of the pull request that commits the signature).
 4. **The vocabulary is adapted.** "Bolt" in the kit is the unit of work with the closing sequence of the `bolts` skill. It is not a cycle measured in hours by the method's definition; if your unit takes a week, the kit does not prevent it.
 5. **The kit has two phases (Inception and Construction)** in `aidlc-phase`, because Operations has no approval artifact of its own here.

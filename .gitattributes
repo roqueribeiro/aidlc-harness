@@ -1,0 +1,5 @@
+# Os moldes e os scripts do kit ficam com fim de linha LF em qualquer sistema: os marcadores
+# do AGENTS.md e os cabeçalhos casam "\n", e um clone no Windows com autocrlf os convertia.
+* text=auto eol=lf
+*.png binary
+*.svg text eol=lf

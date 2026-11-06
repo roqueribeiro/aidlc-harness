@@ -54,6 +54,12 @@
       "blocking": true
     },
     {
+      "id": "ferramentas",
+      "label": "As paginas por ferramenta e a tabela dos READMEs acompanham os adaptadores",
+      "cmd": "node scripts/gerar-ferramentas.mjs --check",
+      "blocking": true
+    },
+    {
       "id": "diagramas",
       "label": "Os diagramas SVG acompanham o código",
       "cmd": "node scripts/gerar-diagramas.mjs --check",

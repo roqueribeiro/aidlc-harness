@@ -20,6 +20,7 @@
  *   - ja bloqueou MAX_BLOCKS vezes nesta sessao      -> avisa e libera
  */
 
+import { AUDIT_DIR } from '../lib/audit.mjs'
 import { readFileSync, existsSync, writeFileSync, mkdirSync, appendFileSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { createHash } from 'node:crypto'
@@ -36,7 +37,7 @@ const KIT_DIR = join(fileURLToPath(new URL('.', import.meta.url)), '..')
  *
  * No inicio o que autorizou uma entrega vivia em dois lugares: o transcript do chat e
  * um contador em tmp com TTL de 6h. Nenhum dos dois responde, semanas depois, "sob qual
- * criterio esta mudanca passou". O registro vai para `.claude/audit/<dia>.jsonl` do repo,
+ * criterio esta mudanca passou". O registro vai para `aidlc/audit/<dia>.jsonl` do repo (lib/audit.mjs),
  * append-only, uma linha por decisao do gate, com a versao do kit e o hash do manifesto
  * (configuracao congelada por execucao, emprestado do Collaborative AI-DLC). O que fazer
  * com o arquivo (commitar ou ignorar) e decisao do repo; o kit so garante que ele existe.
@@ -59,7 +60,7 @@ function manifestHash(tech) {
 function auditRecord(root, rec) {
   if (process.env.AIDLC_AUDIT === '0') return
   try {
-    const dir = join(root, '.claude', 'audit')
+    const dir = join(root, AUDIT_DIR)
     mkdirSync(dir, { recursive: true })
     const day = new Date().toISOString().slice(0, 10)
     appendFileSync(join(dir, `${day}.jsonl`), JSON.stringify({ at: new Date().toISOString(), ...rec }) + '\n')

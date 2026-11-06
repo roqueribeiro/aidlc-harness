@@ -8,7 +8,10 @@ import { fileURLToPath } from 'node:url'
 import { planejar, estado, dirPadrao, noPath, MARCADOR_CMD } from './setup.mjs'
 
 const SCRIPT = join(dirname(fileURLToPath(import.meta.url)), 'setup.mjs')
-const rodar = (...a) => spawnSync('node', [SCRIPT, ...a], { encoding: 'utf8' })
+const rodar = (...a) => spawnSync(process.execPath, [SCRIPT, ...a], { encoding: 'utf8' })
+const WIN = process.platform === 'win32'
+// Os testes de symlink só fazem sentido onde o setup cria symlink; no Windows ele cria .cmd.
+const soPosix = { skip: WIN && 'no Windows o setup cria .cmd, não symlink' }
 
 describe('planejar', () => {
   const base = { tools: ['aidlc-gate', 'aidlc-init'], toolsDir: '/kit/tools', dir: '/bin' }
@@ -28,7 +31,7 @@ describe('planejar', () => {
   })
   test('diretório padrão por plataforma', () => {
     assert.equal(dirPadrao('linux', '/h'), '/h/.local/bin')
-    assert.equal(dirPadrao('win32', '/h'), '/h/.aidlc/bin')
+    assert.equal(dirPadrao('win32', 'C:\\Users\\fulano'), 'C:\\Users\\fulano\\.aidlc\\bin', 'caminho do Windows, mesmo planejado no Linux')
   })
 })
 
@@ -47,13 +50,31 @@ describe('estado', () => {
 
 describe('noPath', () => {
   test('acha e não acha', () => {
-    assert.ok(noPath('/a/b', '/x:/a/b:/y'))
-    assert.ok(!noPath('/a/c', '/x:/a/b:/y'))
+    assert.ok(noPath('/a/b', '/x:/a/b:/y', 'linux'))
+    assert.ok(!noPath('/a/c', '/x:/a/b:/y', 'linux'))
+  })
+  test('Windows: separador ; e sem diferença de maiúscula', () => {
+    assert.ok(noPath('C:\\Users\\fulano\\.aidlc\\bin', 'C:\\Windows;c:\\users\\fulano\\.aidlc\\bin', 'win32'))
+    assert.ok(!noPath('C:\\Users\\fulano\\.aidlc\\bin', 'C:\\Windows', 'win32'))
   })
 })
 
 describe('instalação de verdade', () => {
-  test('instala, repete sem mudar nada, confere e desinstala', () => {
+  test('Windows: instala um .cmd que roda o executável de verdade', { skip: !WIN && 'só no Windows' }, () => {
+    const d = join(mkdtempSync(join(tmpdir(), 'aidlc-setup-')), 'bin')
+    const r1 = rodar('--dir', d)
+    assert.equal(r1.status, 0, r1.stdout + r1.stderr)
+    const cmd = join(d, 'aidlc-gate.cmd')
+    assert.ok(readFileSync(cmd, 'utf8').includes(MARCADOR_CMD))
+    const r = spawnSync(cmd, ['--list'], { encoding: 'utf8', shell: true })
+    assert.equal(r.status, 0, r.stdout + r.stderr)
+    assert.match(r.stdout, /node-yarn/)
+    assert.equal(rodar('--check', '--dir', d).status, 0)
+    assert.equal(rodar('--uninstall', '--dir', d).status, 0)
+    assert.ok(!existsSync(cmd))
+  })
+
+  test('instala, repete sem mudar nada, confere e desinstala', soPosix, () => {
     const d = join(mkdtempSync(join(tmpdir(), 'aidlc-setup-')), 'bin')
     const r1 = rodar('--dir', d)
     assert.equal(r1.status, 0, r1.stdout + r1.stderr)
@@ -68,7 +89,7 @@ describe('instalação de verdade', () => {
     assert.equal(rodar('--check', '--dir', d).status, 1)
   })
 
-  test('não sobrescreve arquivo alheio e sai com erro', () => {
+  test('não sobrescreve arquivo alheio e sai com erro', soPosix, () => {
     const d = join(mkdtempSync(join(tmpdir(), 'aidlc-setup-')), 'bin')
     rodar('--dir', d)
     const alvo = join(d, 'aidlc-doctor')
@@ -80,7 +101,7 @@ describe('instalação de verdade', () => {
     assert.equal(readFileSync(alvo, 'utf8'), 'meu script')
   })
 
-  test('link que aponta para outra coisa não é tocado', () => {
+  test('link que aponta para outra coisa não é tocado', soPosix, () => {
     const d = join(mkdtempSync(join(tmpdir(), 'aidlc-setup-')), 'bin')
     rodar('--dir', d)
     rodar('--uninstall', '--dir', d)
@@ -90,7 +111,7 @@ describe('instalação de verdade', () => {
     assert.equal(readlinkSync(join(d, 'aidlc-gate')), '/usr/bin/env')
   })
 
-  test('link para uma cópia antiga do kit é atualizado', () => {
+  test('link para uma cópia antiga do kit é atualizado', soPosix, () => {
     const d = join(mkdtempSync(join(tmpdir(), 'aidlc-setup-')), 'bin')
     rodar('--dir', d)
     rodar('--uninstall', '--dir', d)

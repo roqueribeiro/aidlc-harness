@@ -40,6 +40,12 @@ function fixtureRepo(kind) {
   if (kind === 'yarn') {
     writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'amostra', scripts: { test: 'node --test' } }))
     writeFileSync(join(dir, 'yarn.lock'), '# yarn lockfile v1\n')
+  } else if (kind === 'pnpm') {
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'amostra', scripts: { test: 'node --test' } }))
+    writeFileSync(join(dir, 'pnpm-lock.yaml'), "lockfileVersion: '9.0'\n")
+  } else if (kind === 'bun') {
+    writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'amostra', scripts: { test: 'node --test' } }))
+    writeFileSync(join(dir, 'bun.lock'), '{}')
   } else if (kind === 'npm') {
     writeFileSync(join(dir, 'package.json'), JSON.stringify({ name: 'amostra', scripts: { test: 'node --test' } }))
     writeFileSync(join(dir, 'package-lock.json'), '{}')
@@ -113,6 +119,18 @@ describe('pkg-manager', () => {
     const r = runHook('pkg-manager.mjs', { cwd: dir, tool_input: { command: 'npm install' } })
     assert.equal(r.code, 0)
     rmSync(dir, { recursive: true, force: true })
+  })
+
+  test('pnpm e bun: o gerenciador do repo passa, o dos outros é negado', () => {
+    for (const [kind, passa, nega] of [
+      ['pnpm', ['pnpm add zod', 'pnpm dlx tsx a.ts', 'npx tsc'], ['npm install zod', 'yarn add zod']],
+      ['bun', ['bun add zod', 'bunx tsc'], ['npm install zod', 'yarn add zod', 'pnpm add zod']],
+    ]) {
+      const dir = fixtureRepo(kind)
+      for (const cmd of passa) assert.equal(runHook('pkg-manager.mjs', { cwd: dir, tool_input: { command: cmd } }).code, 0, `${kind}: ${cmd}`)
+      for (const cmd of nega) assert.equal(runHook('pkg-manager.mjs', { cwd: dir, tool_input: { command: cmd } }).code, 2, `${kind}: ${cmd}`)
+      rmSync(dir, { recursive: true, force: true })
+    }
   })
 
   test('nao bloqueia yarn num repo yarn', () => {
@@ -448,18 +466,19 @@ describe('dod-check', () => {
   /*
    * Trilha de auditoria que sobrevive. Antes
    * o que autorizou uma entrega vivia no transcript e num contador em tmp com TTL de 6h.
-   * Agora cada decisao do gate vira uma linha em .claude/audit/<dia>.jsonl do repo, com a
+   * Agora cada decisao do gate vira uma linha em aidlc/audit/<dia>.jsonl do repo (antes .claude/audit/, pasta de uma ferramenta so), com a
    * versao do kit e o hash do manifesto: duas runs sob criterios diferentes ficam
    * distinguiveis depois.
    */
-  test('grava a decisao em .claude/audit com versao do kit e hash do manifesto', () => {
+  test('grava a decisao em aidlc/audit com versao do kit e hash do manifesto', () => {
     const dir = fixtureRepo('yarn')
     mkdirSync(join(dir, 'src'), { recursive: true })
     writeFileSync(join(dir, 'src/Z.js'), 'z\n')
     const tp = transcript(dir, [userMsg('faz'), asstMsg('feito')])
     const r = runHook('dod-check.mjs', { cwd: dir, transcript_path: tp, session_id: sid() })
     assert.equal(r.code, 2)
-    const auditDir = join(dir, '.claude', 'audit')
+    const auditDir = join(dir, 'aidlc', 'audit')
+    assert.equal(existsSync(join(dir, '.claude', 'audit')), false, 'nada mais vai para a pasta do Claude Code')
     const files = readdirSync(auditDir).filter((f) => f.endsWith('.jsonl'))
     assert.equal(files.length, 1, 'um arquivo por dia')
     const rec = JSON.parse(readFileSync(join(auditDir, files[0]), 'utf8').trim().split('\n').at(-1))
@@ -478,7 +497,7 @@ describe('dod-check', () => {
     const tp = transcript(dir, [userMsg('faz'), asstMsg('feito')])
     const r = runHook('dod-check.mjs', { cwd: dir, transcript_path: tp, session_id: sid() }, { AIDLC_AUDIT: '0' })
     assert.equal(r.code, 2, 'o gate continua barrando')
-    assert.equal(existsSync(join(dir, '.claude', 'audit')), false)
+    assert.equal(existsSync(join(dir, 'aidlc', 'audit')), false)
     rmSync(dir, { recursive: true, force: true })
   })
 })

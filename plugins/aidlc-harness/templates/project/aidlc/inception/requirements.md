@@ -2,6 +2,10 @@
 
 > Fase Inception. A IA conduz as perguntas, a equipe responde, e este arquivo registra o que foi acordado. Enquanto houver campo marcado para preencher aqui, a fase não está concluída (`aidlc-phase check inception`).
 
+## Profundidade
+
+<!-- PREENCHER: rápida, padrão ou completa, e o motivo em uma frase -->
+
 ## Intenção de negócio
 
 <!-- PREENCHER: em uma ou duas frases, o problema que existe hoje e o resultado esperado -->
@@ -26,11 +30,16 @@
 
 <!-- PREENCHER: o que foi pedido e ficou de fora, com o motivo -->
 
+## Premissas
+
+<!-- PREENCHER: o que a IA decidiu sem a equipe, uma por linha com o motivo ("- Login sem SSO na primeira versão (motivo: ...)"). Escreva "nenhuma" se não houver -->
+
 ## Perguntas em aberto
 
-<!-- PREENCHER: o que ainda não se sabe, quem responde e até quando. Escreva "nenhuma" se não houver -->
+<!-- PREENCHER: no máximo 5. O que ainda não se sabe, quem responde e até quando. Escreva "nenhuma" se não houver -->
 
 ## Aprovação
 
+Premissas revisadas por: <!-- PREENCHER: nome de quem conferiu as premissas (pode ser quem aprova) -->
 Aprovado por: <!-- PREENCHER: nome de quem validou -->
 Data: <!-- PREENCHER: AAAA-MM-DD -->
