@@ -148,7 +148,7 @@ describe('configuração de hooks gerada pelo aidlc-init', () => {
     assert.ok(r.mesclados.includes('.cursor/hooks.json'))
     const depois = JSON.parse(readFileSync(join(d, '.cursor/hooks.json'), 'utf8'))
     assert.equal(depois.hooks.afterFileEdit[0].command, '.cursor/hooks/formatar.sh')
-    assert.deepEqual(depois.hooks.stop.map((e) => e.command), ['.cursor/hooks/avisar.sh', 'aidlc-hook parada --formato cursor'])
+    assert.deepEqual(depois.hooks.stop.map((e) => e.command), ['.cursor/hooks/avisar.sh', 'node .aidlc/kit/tools/aidlc-hook parada --formato cursor'])
     writeFileSync(join(d, '.cursor/hooks.json'), JSON.stringify(doTime))
     assert.match(conferirSincronia(d).join(' '), /\.cursor\/hooks\.json: sem as entradas do aidlc-hook/)
     sincronizar(d)

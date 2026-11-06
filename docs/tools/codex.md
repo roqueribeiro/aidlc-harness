@@ -28,6 +28,7 @@
     - `.agents/skills/aidlc-construction/SKILL.md`
     - `.codex/hooks.json`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: a copy of the kit, from which hooks, gate and phases run (`node .aidlc/kit/tools/aidlc-gate`), with nothing to install. Commit it; it is not edited by hand
 
 3. Run `codex` in the project, then `/hooks` to review and trust the kit hooks (Codex skips project hooks until you trust them).
 4. Check that the rules arrive (canary test): add the line `Canary: this project's control word is "marmelada-42".` to `AGENTS.md` outside the kit block, open a **new** session and ask for the control word. If it answers `marmelada-42`, the rules arrive. Remove the line.
@@ -38,7 +39,7 @@
 ## Limits
 
 - `request_user_input` exists only in Plan mode: enter `/plan` before the Inception.
-- The hooks need `aidlc-hook` on the `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).
+- Codex runs hooks in the session folder and only after you trust them: open Codex at the project root (the hook calls `node .aidlc/kit/tools/aidlc-hook`, relative to it) and run `/hooks` once.
 
 ## Source
 

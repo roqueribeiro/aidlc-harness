@@ -231,13 +231,13 @@ function multiferramenta(d) {
 
 // 8 ------------------------------------------------------------------------------------------
 function instalacao(d) {
-  d.titulo('Instalação, do zero ao primeiro gate', 'Um comando por máquina; depois, um comando por projeto.')
+  d.titulo('Instalação, do zero ao primeiro gate', 'Um comando por projeto. Nada para instalar na máquina.')
   const passos = [
-    ['Instalar o kit', ['npm install -g, com', 'o pacote do GitHub'], 'destaque'],
-    ['Plugin no Claude Code', ['só para quem usa', 'o Claude Code'], 'neutro'],
-    ['aidlc-init', ['pergunta as ferramentas e', 'gera a camada de cada uma'], 'verde'],
+    ['npx ... init', ['um comando, na pasta', 'do projeto'], 'destaque'],
+    ['Cópia do kit', ['.aidlc/kit/ vai no git;', 'hooks e gate rodam dela'], 'verde'],
+    ['Abrir a ferramenta', ['Claude Code: aceite a', 'confiança e o plugin vem'], 'verde'],
     ['Inception', ['o comando da ferramenta,', 'com uma frase do pedido'], 'verde'],
-    ['doctor e gate', ['nota do repositório e o', 'critério de aceite rodando'], 'verde'],
+    ['Primeiro gate', ['o Trivy é baixado e', 'conferido por sha256'], 'verde'],
   ]
   passos.forEach(([titulo, linhas, tipo], i) => {
     const x = 40 + i * 226
@@ -245,8 +245,8 @@ function instalacao(d) {
     d.passo(x + 12, 118, i + 1)
     if (i < passos.length - 1) d.seta([[x + 210, 185], [x + 226, 185]])
   })
-  d.caixa(40, 300, 540, 130, 'Só experimentar', ['npx github:roqueribeiro/aidlc-harness init', 'roda sem instalar nada; os hooks do Copilot,', 'do Cursor e do Codex pedem a instalação'], { mono: false })
-  d.caixa(620, 300, 540, 130, 'Linux, macOS e Windows', ['o npm cria os atalhos de cada sistema;', 'o CI testa a instalação do pacote', 'nos três, a cada push'], { mono: false })
+  d.caixa(40, 300, 540, 130, 'O colega que só clona', ['tudo funciona sem instalar: a cópia do kit', 'vem no git, e o CI reprova cópia alterada', 'com o kit fixado na versão'], { mono: false })
+  d.caixa(620, 300, 540, 130, 'Linux, macOS e Windows', ['o CI roda essa primeira execução sem', 'aidlc no PATH e com o home vazio,', 'nos três, a cada push'], { mono: false })
   d.caixa(40, 470, 1120, 100, 'Sem dependências de execução', ['O kit é Node puro: não instala nenhum pacote de terceiros. Requer Node 20.19 ou mais novo e git.'], { tipo: 'verde' })
 }
 
@@ -302,112 +302,84 @@ function roqueshield(d) {
   d.caixa(620, 495, 540, 120, 'O que o kit não presume', ['Que a plataforma esteja no ar: sem relatório,', 'a saída é 2 (não rodou), nunca limpo.', 'Integração validada contra a documentação dela.'], { tipo: 'ambar' })
 }
 
+// O ciclo, animado ---------------------------------------------------------------------------
+/**
+ * O fluxo que o kit cobra, em movimento: um pacote de trabalho anda do pedido ao pronto, passa por
+ * cada portão e, no gate, um "pronto" sem evidência volta antes de passar. Só CSS dentro do SVG
+ * (o GitHub roda animação de SVG em <img>, nunca script). Quem pede menos movimento no sistema
+ * (prefers-reduced-motion) vê o quadro final parado: o pacote já no pronto.
+ */
+function ciclo(d) {
+  d.titulo('O ciclo que o kit cobra', 'Um pedido só chega a pronto passando por cada portão; sem evidência, o gate devolve.')
+  const estacoes = [
+    ['Pedido', ['uma frase do', 'que se quer'], 'neutro'],
+    ['Inception', ['rascunho completo,', 'até 5 perguntas'], 'destaque'],
+    ['Aprovação', ['uma pessoa assina', 'o arquivo'], 'roxo'],
+    ['Construction', ['código e teste', 'no mesmo diff'], 'destaque'],
+    ['Gate', ['saída crua do', 'teste no chat'], 'ambar'],
+    ['Pronto', ['com evidência', 'registrada'], 'verde'],
+  ]
+  const X = (i) => 40 + i * 192
+  estacoes.forEach(([t, l, tipo], i) => d.caixa(X(i), 104, 160, 96, t, l, { tipo }))
+  const Y = 254
+  const rejeita = d.tr('sem evidência: volta para o agente')
+  const nota = d.tr('No Claude Code, Copilot, Cursor e Codex quem devolve é o hook; em todas, o CI barra o merge.')
+  const realce = (i, cor, nome) => `<rect class="cc-a ${nome}" x="${X(i) - 3}" y="101" width="166" height="102" rx="11" fill="none" stroke="${cor}" stroke-width="3"/>`
+  d.bruto((t) =>
+    `<style>` +
+    `.cc-a{animation-duration:12s;animation-iteration-count:infinite;animation-timing-function:cubic-bezier(.4,0,.2,1)}` +
+    `.cc-pk{transform:translateX(960px);fill:${t.verde};animation-name:cc-anda,cc-cor}` +
+    `@keyframes cc-anda{0%{transform:translateX(0);opacity:0}3%{opacity:1}8%,14%{transform:translateX(192px)}20%,28%{transform:translateX(384px)}34%,42%{transform:translateX(576px)}48%{transform:translateX(742px)}50%{transform:translateX(752px)}55%,59%{transform:translateX(600px)}65%{transform:translateX(768px)}73%,94%{transform:translateX(960px);opacity:1}99%,100%{transform:translateX(960px);opacity:0}}` +
+    `@keyframes cc-cor{0%,46%{fill:${t.destaque}}48%,56%{fill:${t.vermelho}}60%,64%{fill:${t.destaque}}68%,100%{fill:${t.verde}}}` +
+    `.cc-r{opacity:0}.cc-r1{animation-name:cc-r1}.cc-r2{animation-name:cc-r2}.cc-r3{animation-name:cc-r3}.cc-g1{animation-name:cc-g1}.cc-g2{animation-name:cc-g2}.cc-p{opacity:1;animation-name:cc-p}.cc-x{opacity:0;animation-name:cc-x}` +
+    `@keyframes cc-r1{0%,6%{opacity:0}9%,14%{opacity:1}18%,100%{opacity:0}}` +
+    `@keyframes cc-r2{0%,18%{opacity:0}21%,28%{opacity:1}32%,100%{opacity:0}}` +
+    `@keyframes cc-r3{0%,32%{opacity:0}35%,42%{opacity:1}46%,100%{opacity:0}}` +
+    `@keyframes cc-g1{0%,47%{opacity:0}50%,56%{opacity:1}60%,100%{opacity:0}}` +
+    `@keyframes cc-g2{0%,63%{opacity:0}66%,72%{opacity:1}76%,100%{opacity:0}}` +
+    `@keyframes cc-p{0%,71%{opacity:0}75%,94%{opacity:1}99%,100%{opacity:0}}` +
+    `@keyframes cc-x{0%,48%{opacity:0}50%,59%{opacity:1}62%,100%{opacity:0}}` +
+    `@media (prefers-reduced-motion: reduce){.cc-a{animation:none!important}}` +
+    `</style>` +
+    `<line x1="120" y1="${Y}" x2="1080" y2="${Y}" stroke="${t.borda}" stroke-width="2"/>` +
+    estacoes.map((_, i) => `<circle cx="${120 + i * 192}" cy="${Y}" r="5" fill="${t.fundo}" stroke="${t.suave}" stroke-width="1.6"/>`).join('') +
+    realce(1, t.destaque, 'cc-r cc-r1') + realce(2, t.roxo, 'cc-r cc-r2') + realce(3, t.destaque, 'cc-r cc-r3') +
+    realce(4, t.vermelho, 'cc-r cc-g1') + realce(4, t.verde, 'cc-r cc-g2') + realce(5, t.verde, 'cc-r cc-p') +
+    `<text class="cc-a cc-x" x="888" y="${Y + 34}" font-size="13" font-weight="700" text-anchor="middle" fill="${t.vermelho}">${rejeita}</text>` +
+    `<circle class="cc-a cc-pk" cx="120" cy="${Y}" r="10"/>` +
+    `<text x="32" y="${Y + 82}" font-size="13" fill="${t.suave}">${nota}</text>`,
+  )
+}
+
 // Marca ---------------------------------------------------------------------------------------
 /**
- * A marca: um ciclo de tres fases (o AI-DLC) fechando em volta de uma verificacao (o gate).
- * Original e geometrica; cores fixas da marca, iguais nos temas claro e escuro. Base de 256x256.
+ * A marca: três chevrons subindo (as fases do AI-DLC) através de um anel aberto embaixo (o gate).
+ * A fase só avança passando pelo portão. Conceito explorado com geração de imagem e redesenhado
+ * aqui com geometria exata, para ser vetor de verdade em qualquer tamanho.
+ *
+ * Cores do design system (superfície do site): acento #007aff no anel e o gradiente da marca
+ * (#667eea) chegando ao acento nos chevrons. Iguais nos temas claro e escuro. Base de 256x256.
  */
 const ponto = (g, r) => [128 + r * Math.cos((g * Math.PI) / 180), 128 + r * Math.sin((g * Math.PI) / 180)]
 const fmt = (pt) => pt.map((n) => n.toFixed(2)).join(' ')
-const arco = (ini, fim, r = 78) => `M${fmt(ponto(ini, r))} A${r} ${r} 0 0 1 ${fmt(ponto(fim, r))}`
-/** Ponta de seta no fim do arco, no sentido horario: o ciclo anda para frente. */
-const seta = (g, r = 78) => {
-  const rad = (g * Math.PI) / 180
-  const [ex, ey] = ponto(g, r)
-  const t = [-Math.sin(rad), Math.cos(rad)]
-  const n = [Math.cos(rad), Math.sin(rad)]
-  const pt = (a, b) => `${(ex + t[0] * a + n[0] * b).toFixed(2)} ${(ey + t[1] * a + n[1] * b).toFixed(2)}`
-  return `M${pt(20, 0)} L${pt(-2, 18)} L${pt(-2, -18)} Z`
-}
-const marca = (cx, cy, r) => () =>
+/** Chevron de largura 112 com a ponta em (128, y): braço de 26 de espessura. */
+const chevron = (y) => `M72 ${y + 30} L128 ${y} L184 ${y + 30} L184 ${y + 56} L128 ${y + 26} L72 ${y + 56} Z`
+export const MARCA = { acento: '#007aff', inicio: '#667eea', palco: '#07080f', tinta: '#f2f4fa' }
+const marca = (cx, cy, r, { id = 'mk' } = {}) => () =>
   `<g transform="translate(${cx - r} ${cy - r}) scale(${r / 128})">` +
-  `<defs>` +
-  `<linearGradient id="mk-fundo" x1="0.1" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="0.55" stop-color="#2447d6"/><stop offset="1" stop-color="#1b2a86"/></linearGradient>` +
-  `<linearGradient id="mk-anel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c7d8ff"/></linearGradient>` +
-  `<linearGradient id="mk-ok" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#10b981"/></linearGradient>` +
-  `<radialGradient id="mk-luz" cx="0.3" cy="0.12" r="0.8"><stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>` +
-  `</defs>` +
-  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-fundo)"/>` +
-  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-luz)"/>` +
-  `<rect x="7.5" y="7.5" width="241" height="241" rx="56.5" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="3"/>` +
-  [[-130, -60], [-10, 60], [110, 180]]
-    .map(([i, f]) => `<path d="${arco(i, f)}" fill="none" stroke="url(#mk-anel)" stroke-width="20" stroke-linecap="round"/><path d="${seta(f)}" fill="#e4edff" stroke="#e4edff" stroke-width="6" stroke-linejoin="round"/>`)
-    .join('') +
-  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="#0b1f4d" stroke-opacity="0.35" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)"/>` +
-  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="url(#mk-ok)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>` +
+  `<defs><linearGradient id="${id}-chev" x1="0" y1="62" x2="0" y2="208" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${MARCA.acento}"/><stop offset="1" stop-color="${MARCA.inicio}"/></linearGradient></defs>` +
+  // Anel aberto embaixo: 64 graus de vão, centrado no fundo.
+  `<path d="M${fmt(ponto(122, 104))} A104 104 0 1 1 ${fmt(ponto(58, 104))}" fill="none" stroke="${MARCA.acento}" stroke-width="22"/>` +
+  [62, 106, 150].map((y) => `<path d="${chevron(y)}" fill="url(#${id}-chev)"/>`).join('') +
   `</g>`
 
 function logo(d) {
   d.bruto(marca(128, 128, 112))
 }
 
-/**
- * O banner do README. Cores fixas da marca (igual nos dois temas): um hero escuro funciona sobre
- * o fundo claro e o escuro do GitHub. Os numeros vem do disco (`inv`), nunca escritos a mao.
- */
-function banner(d, inv) {
-  const L = 1280
-  const H = 440
-  const pilula = (x, y, txt, { cor = '#93c5fd', fundo = '#ffffff', op = 0.08, tam = 14 } = {}) => {
-    txt = d.tr(txt)
-    const w = Math.ceil(largura(txt, tam)) + 26
-    return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="30" rx="15" fill="${fundo}" fill-opacity="${op}" stroke="${cor}" stroke-opacity="0.55"/><text x="${x + 13}" y="${y + 20}" font-size="${tam}" fill="${cor}" font-weight="600">${txt}</text>` }
-  }
-  d.bruto(() =>
-    `<defs>` +
-    `<linearGradient id="bn-fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a1128"/><stop offset="0.6" stop-color="#14246a"/><stop offset="1" stop-color="#1d3a9e"/></linearGradient>` +
-    `<radialGradient id="bn-brilho" cx="0.88" cy="0.05" r="0.6"><stop offset="0" stop-color="#60a5fa" stop-opacity="0.42"/><stop offset="1" stop-color="#60a5fa" stop-opacity="0"/></radialGradient>` +
-    `<pattern id="bn-pontos" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" fill-opacity="0.09"/></pattern>` +
-    `</defs>` +
-    `<rect width="${L}" height="${H}" fill="url(#bn-fundo)"/><rect width="${L}" height="${H}" fill="url(#bn-pontos)"/><rect width="${L}" height="${H}" fill="url(#bn-brilho)"/>`,
-  )
-  d.bruto(marca(150, 128, 74))
-  d.texto(250, 118, 'aidlc-harness', { tam: 66, cor: '#ffffff', negrito: true })
-  d.texto(252, 160, 'Pronto exige evidência. Regra sem mecanismo é decoração.', { tam: 25, cor: '#dbe7ff' })
-  d.texto(252, 194, 'Kit de qualidade de código aberto para desenvolver com agentes de IA no ciclo AI-DLC.', { tam: 17, cor: '#9fb3d9' })
-
-  let x = 252
-  let svg = ''
-  for (const [txt, cor] of [['15 ferramentas de IA', '#93c5fd'], ['Claude Code', '#93c5fd'], ['Copilot', '#93c5fd'], ['Cursor', '#93c5fd'], ['Kiro', '#93c5fd'], ['10 stacks', '#86efac'], ['SARIF', '#86efac'], ['RoqueShield', '#86efac']]) {
-    const p = pilula(x, 214, txt, { cor })
-    svg += p.svg
-    x += p.w + 10
-  }
-  d.bruto(() => svg)
-  const aut = pilula(0, 0, 'Método: levelhard.com.br/aidlc', { cor: '#fcd34d', op: 0.1 })
-  d.bruto(() => `<g transform="translate(${L - 72 - aut.w} 44)">${aut.svg}</g>`)
-
-  // A esteira: o que o kit cobra, em ordem.
-  d.texto(72, 276, 'O QUE O KIT COBRA, EM ORDEM', { tam: 12, cor: '#7f95c4', negrito: true })
-  const passos = [
-    ['Inception', 'requisitos e unidades', '#93c5fd'],
-    ['Aprovação', 'assinada por pessoa', '#c4b5fd'],
-    ['Construction', 'bolts, teste e código', '#86efac'],
-    ['Gate', 'saída crua no chat', '#86efac'],
-    ['Scan', 'limpo ≠ não rodou', '#fcd34d'],
-  ]
-  const bw = 190
-  const gap = (L - 144 - passos.length * bw) / (passos.length - 1)
-  let esteira = ''
-  passos.forEach(([t, sub, cor], i) => {
-    const bx = 72 + i * (bw + gap)
-    esteira += `<rect x="${bx}" y="290" width="${bw}" height="78" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="${cor}" stroke-opacity="0.6"/>`
-    esteira += `<text x="${bx + 16}" y="322" font-size="19" font-weight="700" fill="#ffffff">${d.tr(t)}</text>`
-    esteira += `<text x="${bx + 16}" y="346" font-size="13" fill="${cor}">${d.tr(sub)}</text>`
-    if (i < passos.length - 1) {
-      const ax = bx + bw + 6
-      esteira += `<path d="M${ax} 329 H${ax + gap - 16}" stroke="#9fb3d9" stroke-width="2" stroke-linecap="round"/><path d="M${ax + gap - 18} 322 L${ax + gap - 8} 329 L${ax + gap - 18} 336 Z" fill="#9fb3d9"/>`
-    }
-  })
-  d.bruto(() => esteira)
-
-  const numeros = [`${inv.hooks.length} hooks`, `${inv.agentes.length} agentes`, `${inv.skills.length} skills`, `${inv.comandos.length} comandos`, `${inv.tools.length} executáveis`, `${inv.tecnologias.length} manifestos de stack`, 'MIT', `v${inv.versao}`]
-  d.texto(72, 412, numeros.map((n) => d.tr(n)).join('   ·   '), { tam: 15, cor: '#c7d8ff', negrito: true, traduzido: true })
-}
-
 function social(d) {
   d.bruto((t) => `<rect width="1280" height="640" fill="${t.fundo}"/>`)
-  d.bruto(marca(220, 320, 130))
+  d.bruto(marca(220, 320, 130, { id: 'sp' }))
   d.texto(400, 290, 'aidlc-harness', { tam: 72, cor: 'texto', negrito: true })
   d.texto(402, 345, 'Pronto exige evidência. Regra sem mecanismo é decoração.', { tam: 28, cor: 'suave' })
   let x = 402
@@ -427,8 +399,8 @@ export const DIAGRAMAS = [
   { arquivo: 'multiferramenta', desc: 'Uma fonte, 15 ferramentas de IA', largura: 1200, altura: 570, desenha: multiferramenta },
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
-  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true },
-  { arquivo: 'banner', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA no ciclo AI-DLC', largura: 1280, altura: 440, desenha: banner },
+  { arquivo: 'ciclo', desc: 'O ciclo que o kit cobra, animado', largura: 1200, altura: 360, desenha: ciclo },
+  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true, transparente: true },
   { arquivo: 'social-preview', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA', largura: 1280, altura: 640, desenha: social },
   { arquivo: 'roqueshield', desc: 'RoqueShield e o kit: o laço de varredura', largura: 1200, altura: 650, desenha: roqueshield },
 ]

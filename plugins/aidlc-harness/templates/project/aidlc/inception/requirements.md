@@ -1,6 +1,6 @@
 # Requisitos
 
-> Fase Inception. A IA conduz as perguntas, a equipe responde, e este arquivo registra o que foi acordado. Enquanto houver campo marcado para preencher aqui, a fase não está concluída (`aidlc-phase check inception`).
+> Fase Inception. A IA conduz as perguntas, a equipe responde, e este arquivo registra o que foi acordado. Enquanto houver campo marcado para preencher aqui, a fase não está concluída (`node .aidlc/kit/tools/aidlc-phase check inception`).
 
 ## Profundidade
 

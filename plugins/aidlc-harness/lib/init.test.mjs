@@ -7,6 +7,7 @@ import { test, describe } from 'node:test'
 import assert from 'node:assert/strict'
 import { mkdtempSync, writeFileSync, readFileSync, existsSync, rmSync } from 'node:fs'
 import { tmpdir } from 'node:os'
+import { VERSAO as TRIVY_VERSAO } from './trivy.mjs'
 import { join, dirname } from 'node:path'
 import { spawnSync } from 'node:child_process'
 import { fileURLToPath } from 'node:url'
@@ -33,7 +34,7 @@ describe('criação', () => {
   })
 
   test('nenhum arquivo gerado deixa placeholder {{...}} para trás', () => {
-    for (const p of planejar(base)) assert.doesNotMatch(p.conteudo, /\{\{[A-Z_]+\}\}/, p.destino)
+    for (const p of planejar(base).filter((x) => !x.destino.startsWith('.aidlc/kit/'))) assert.doesNotMatch(p.conteudo, /\{\{[A-Z_]+\}\}/, p.destino)
   })
 
   test('.aidlc/config.json gerado é JSON válido e lista as ferramentas escolhidas', () => {
@@ -207,14 +208,15 @@ describe('AGENTS.md que já existe (bloco gerenciado)', () => {
 })
 
 describe('CI gerado', () => {
-  test('instala o trivy fixado por commit e os passos da tecnologia detectada', () => {
+  test('não instala trivy por action de terceiro (o kit baixa o dele, com hash), guarda o cache por versão e prepara a tecnologia', () => {
     const d = novoDir()
     writeFileSync(join(d, 'go.mod'), 'module exemplo\n')
     aplicar(d, planejar({ ...base, tech: detectTech(d) }))
     const yml = readFileSync(join(d, '.github/workflows/aidlc-gate.yml'), 'utf8')
-    assert.match(yml, /aquasecurity\/setup-trivy@[0-9a-f]{40}/)
+    assert.doesNotMatch(yml, /setup-trivy/)
+    assert.match(yml, new RegExp(`key: aidlc-trivy-${TRIVY_VERSAO.replace(/\./g, '\\.')}-`))
     assert.match(yml, /\n      - uses: actions\/setup-go@v5\n        with:\n          go-version-file: go.mod/)
-    assert.doesNotMatch(yml, /\{\{/)
+    assert.doesNotMatch(yml, /\{\{[A-Z_]+\}\}/)
     rmSync(d, { recursive: true, force: true })
   })
   test('sem tecnologia, o CI deixa o lembrete em vez de inventar passo', () => {

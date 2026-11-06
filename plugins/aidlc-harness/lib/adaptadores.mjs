@@ -66,7 +66,7 @@ export const ADAPTADORES = {
     nome: 'GitHub Copilot',
     hooks: {
       destino: '.github/hooks/aidlc.json',
-      json: { version: 1, hooks: { preToolUse: [{ type: 'command', command: 'aidlc-hook shell --formato copilot', timeoutSec: 15 }], agentStop: [{ type: 'command', command: 'aidlc-hook parada --formato copilot', timeoutSec: 120 }] } },
+      json: { version: 1, hooks: { preToolUse: [{ type: 'command', command: 'node .aidlc/kit/tools/aidlc-hook shell --formato copilot', cwd: '.', timeoutSec: 15 }], agentStop: [{ type: 'command', command: 'node .aidlc/kit/tools/aidlc-hook parada --formato copilot', cwd: '.', timeoutSec: 120 }] } },
     },
     ferramentaDePergunta: 'askQuestions',
     pergunta: 'a ferramenta de perguntas do VS Code, #tool:vscode/askQuestions (escolha única ou múltipla, texto livre, recomendada destacada); no Copilot CLI, a ferramenta `ask_user`',
@@ -79,7 +79,7 @@ export const ADAPTADORES = {
     nome: 'Cursor',
     hooks: {
       destino: '.cursor/hooks.json',
-      json: { version: 1, hooks: { beforeShellExecution: [{ command: 'aidlc-hook shell --formato cursor' }], stop: [{ command: 'aidlc-hook parada --formato cursor', loop_limit: 3 }] } },
+      json: { version: 1, hooks: { beforeShellExecution: [{ command: 'node .aidlc/kit/tools/aidlc-hook shell --formato cursor' }], stop: [{ command: 'node .aidlc/kit/tools/aidlc-hook parada --formato cursor', loop_limit: 3 }] } },
     },
     ferramentaDePergunta: 'Ask questions',
     pergunta: 'a ferramenta "Ask questions" do Cursor (o cartão de perguntas com opções e campo "Other")',
@@ -119,8 +119,8 @@ export const ADAPTADORES = {
       destino: '.codex/hooks.json',
       json: {
         hooks: {
-          PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'aidlc-hook shell --formato codex', timeout: 15 }] }],
-          Stop: [{ hooks: [{ type: 'command', command: 'aidlc-hook parada --formato codex', timeout: 120 }] }],
+          PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'node .aidlc/kit/tools/aidlc-hook shell --formato codex', timeout: 15 }] }],
+          Stop: [{ hooks: [{ type: 'command', command: 'node .aidlc/kit/tools/aidlc-hook parada --formato codex', timeout: 120 }] }],
         },
       },
     },
@@ -215,8 +215,8 @@ export function corpoDoComando(fase, id) {
     : `- Esta ferramenta não tem janela de perguntas: use o formato em texto da seção 5 da skill \`aidlc-inception\` (opções com letras, a recomendada marcada, e "ok" aceita todas as recomendações).`
   const fechar =
     fase === 'inception'
-      ? '- Você não aprova: `Aprovado por:`, `Data:` e `Premissas revisadas por:` ficam em branco, e `aidlc-phase check inception` com a saída crua fecha o turno.'
-      : '- A porta de entrada é `aidlc-phase check inception`: se sair com erro, pare e mostre a saída. Você não aprova: `Aprovado por:` e `Data:` ficam em branco.'
+      ? '- Você não aprova: `Aprovado por:`, `Data:` e `Premissas revisadas por:` ficam em branco, e `node .aidlc/kit/tools/aidlc-phase check inception` com a saída crua fecha o turno.'
+      : '- A porta de entrada é `node .aidlc/kit/tools/aidlc-phase check inception`: se sair com erro, pare e mostre a saída. Você não aprova: `Aprovado por:` e `Data:` ficam em branco.'
   return [
     `Conduza a **${NOME_FASE[fase]}** deste projeto seguindo a skill \`aidlc-${fase}\`: leia o arquivo \`${SKILL(fase)}\` inteiro antes de qualquer outra coisa. Ele é a fonte do método; este comando só fixa o que vale no ${a.nome}.`,
     '',
@@ -244,6 +244,44 @@ function arquivoDoComando(fase, id) {
   return { destino: c.destino, conteudo: frenteYaml(c.frente) + corpo, derivado: true }
 }
 
+/** Arquivo JSON que pode ser do time: o kit acrescenta o que é dele (`mesclar`) e confere (`presente`). */
+const entradaJson = (destino, json, presente, mesclar, falta) => ({ destino, json, conteudo: JSON.stringify(json, null, 2) + '\n', mesclarJson: true, presente, mesclar, falta })
+
+/*
+ * Claude Code: o plugin do kit vem do próprio projeto. `.claude/settings.json` registra o
+ * marketplace do kit fixado na tag desta versão e habilita o plugin; quando a pessoa confia na pasta,
+ * o Claude Code registra o marketplace e carrega o plugin, que o marketplace lista por caminho
+ * relativo (https://code.claude.com/docs/en/plugins/org). Sem isso o /inception que o init anuncia
+ * não existia numa sessão nova. A permissão deixa o agente rodar a cópia do kit sem perguntar.
+ */
+export const VERSAO_DO_KIT = JSON.parse(readFileSync(join(KIT, '.claude-plugin', 'plugin.json'), 'utf8')).version
+const MARKETPLACE = 'aidlc'
+const PLUGIN = `aidlc-harness@${MARKETPLACE}`
+const PERMISSAO = 'Bash(node .aidlc/kit/tools/*)'
+export const configDoClaude = () => ({
+  extraKnownMarketplaces: { [MARKETPLACE]: { source: { source: 'github', repo: 'roqueribeiro/aidlc-harness', ref: `v${VERSAO_DO_KIT}` } } },
+  enabledPlugins: { [PLUGIN]: true },
+  permissions: { allow: [PERMISSAO] },
+})
+export function configDoClaudePresente(atual) {
+  const nosso = configDoClaude()
+  return (
+    JSON.stringify(atual?.extraKnownMarketplaces?.[MARKETPLACE]) === JSON.stringify(nosso.extraKnownMarketplaces[MARKETPLACE]) &&
+    atual?.enabledPlugins?.[PLUGIN] === true &&
+    Array.isArray(atual?.permissions?.allow) && atual.permissions.allow.includes(PERMISSAO)
+  )
+}
+export function mesclarConfigDoClaude(atual) {
+  const out = structuredClone(atual && typeof atual === 'object' ? atual : {})
+  const nosso = configDoClaude()
+  out.extraKnownMarketplaces = { ...(out.extraKnownMarketplaces ?? {}), ...nosso.extraKnownMarketplaces }
+  out.enabledPlugins = { ...(out.enabledPlugins ?? {}), [PLUGIN]: true }
+  out.permissions ??= {}
+  const allow = Array.isArray(out.permissions.allow) ? out.permissions.allow : []
+  out.permissions.allow = allow.includes(PERMISSAO) ? allow : [...allow, PERMISSAO]
+  return out
+}
+
 /** Tudo o que as ferramentas escolhidas recebem além do AGENTS.md e das cópias de instrução. */
 export function planoDosAdaptadores(ferramentas) {
   const plano = []
@@ -256,8 +294,9 @@ export function planoDosAdaptadores(ferramentas) {
     if (a.skillsEm) for (const fase of FASES_COMANDO) plano.push({ destino: `${a.skillsEm}/aidlc-${fase}/SKILL.md`, conteudo: textoDaSkill(fase), derivado: true })
     if (a.comandos) for (const fase of FASES_COMANDO) plano.push(arquivoDoComando(fase, id))
     if (a.extras) plano.push(...a.extras())
-    if (a.hooks) plano.push({ destino: a.hooks.destino, json: a.hooks.json, conteudo: JSON.stringify(a.hooks.json, null, 2) + '\n', mesclarJson: true })
+    if (a.hooks) plano.push(entradaJson(a.hooks.destino, a.hooks.json, (x) => hooksPresentes(x, a.hooks.json), (x) => mesclarHooks(x, a.hooks.json), 'sem as entradas do aidlc-hook (rode aidlc-init --sync; os hooks do time ficam)'))
   }
+  if (ferramentas.includes('claude')) plano.push(entradaJson('.claude/settings.json', configDoClaude(), configDoClaudePresente, mesclarConfigDoClaude, 'sem o marketplace e o plugin do kit, entao o Claude Code nao carrega /inception (rode aidlc-init --sync; o resto do arquivo fica)'))
   if (ferramentas.length) plano.push({ destino: '.aidlc/COMANDOS.md', conteudo: guiaDeComandos(ferramentas), derivado: true })
   return plano
 }
@@ -273,7 +312,7 @@ export function guiaDeComandos(ferramentas) {
   return [
     '# Comandos do AI-DLC neste projeto',
     '',
-    'Gerado pelo `aidlc-init` para as ferramentas escolhidas. Para incluir outra: `aidlc-init --tools <lista>`.',
+    'Gerado pelo `aidlc-init` para as ferramentas escolhidas. Para incluir outra: `npx github:roqueribeiro/aidlc-harness init --tools <lista>`. Os executáveis do kit rodam da cópia em `.aidlc/kit/`, sem instalar nada: `node .aidlc/kit/tools/aidlc-gate`, `node .aidlc/kit/tools/aidlc-phase status`.',
     '',
     '| Ferramenta | Inception | Construction | Perguntas |',
     '| --- | --- | --- | --- |',
@@ -287,14 +326,23 @@ export function guiaDeComandos(ferramentas) {
 /*
  * Arquivo de hooks que o time pode já ter (.cursor/hooks.json, .codex/hooks.json): o kit não o
  * substitui, acrescenta as entradas dele. Uma entrada do kit é reconhecida pelo comando
- * `aidlc-hook`, em qualquer profundidade (o formato do Codex aninha `hooks` dentro do evento).
+ * do `aidlc-hook`, em qualquer profundidade (o formato do Codex aninha `hooks` dentro do evento).
  */
 const comandosDe = (x) => (Array.isArray(x) ? x.flatMap(comandosDe) : x && typeof x === 'object' ? [...(typeof x.command === 'string' ? [x.command] : []), ...Object.values(x).flatMap(comandosDe)] : [])
+
+/*
+ * Até a 0.2.0 o kit gravava `aidlc-hook ...` pelo PATH, que só existia com `npm install -g`; sem ele
+ * o hook saía com 127 em todo comando. Essas entradas antigas saem na mescla, para não ficarem ao
+ * lado das novas falhando.
+ */
+const ehLegado = (c) => /^aidlc-hook\s/.test(c)
+const semLegado = (entradas) => entradas.filter((e) => !comandosDe(e).some(ehLegado))
 
 export function mesclarHooks(existente, nosso) {
   const out = structuredClone(existente ?? {})
   for (const [k, v] of Object.entries(nosso)) if (k !== 'hooks' && !(k in out)) out[k] = v
   out.hooks ??= {}
+  for (const [evento, lista] of Object.entries(out.hooks)) if (Array.isArray(lista)) out.hooks[evento] = semLegado(lista)
   for (const [evento, entradas] of Object.entries(nosso.hooks)) {
     const atuais = Array.isArray(out.hooks[evento]) ? out.hooks[evento] : []
     const tem = new Set(comandosDe(atuais))
@@ -305,6 +353,8 @@ export function mesclarHooks(existente, nosso) {
 
 /** As entradas do kit estão todas no arquivo? */
 export function hooksPresentes(existente, nosso) {
-  const tem = new Set(comandosDe(existente?.hooks ?? {}))
+  const atuais = comandosDe(existente?.hooks ?? {})
+  if (atuais.some(ehLegado)) return false
+  const tem = new Set(atuais)
   return comandosDe(nosso.hooks).every((c) => tem.has(c))
 }

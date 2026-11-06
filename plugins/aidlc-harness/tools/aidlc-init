@@ -13,11 +13,11 @@
  *   aidlc-init --check                           # confere que as instruções das ferramentas não divergem
  *   aidlc-init --sync                            # atualiza o bloco do AGENTS.md, as cópias, as skills e os comandos
  */
-import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs'
 import { join, resolve } from 'node:path'
 import { createInterface } from 'node:readline/promises'
 import { detectTech } from '../lib/detect.mjs'
-import { aplicar, conferirSincronia, eDiretorio, ferramentasDoProjeto, nomePadrao, planejar, sincronizar } from '../lib/init.mjs'
+import { PASTA_DO_KIT, aplicar, conferirSincronia, eDiretorio, ferramentasDoProjeto, nomePadrao, planejar, sincronizar, sobrasDoKit } from '../lib/init.mjs'
 import { ADAPTADORES, FERRAMENTAS, FERRAMENTAS_PADRAO, resolverFerramentas } from '../lib/adaptadores.mjs'
 
 const argv = process.argv.slice(2)
@@ -91,6 +91,9 @@ try {
   process.exit(2)
 }
 const r = aplicar(raiz, plano, { force: flag('--force'), dryRun: flag('--dry-run') })
+// Arquivo de uma versão antiga do kit que esta não tem mais: sai, senão o --check reprovaria logo depois.
+const sobras = flag('--dry-run') ? [] : sobrasDoKit(raiz)
+for (const d of sobras) rmSync(join(raiz, d))
 
 // .aidlc/config.json é do kit: a lista de ferramentas acompanha o que foi gerado, para o --check e o --sync.
 const cfgP = join(raiz, '.aidlc', 'config.json')
@@ -108,11 +111,15 @@ if (!flag('--dry-run') && r.mantidos.includes('.aidlc/config.json')) {
   }
 }
 console.log(`\naidlc-init  ${raiz}${flag('--dry-run') ? '  (dry-run: nada foi gravado)' : ''}`)
-for (const f of r.criados) console.log(`  criado       ${f}`)
-for (const f of r.sobrescritos) console.log(`  sobrescrito  ${f}`)
+// A cópia do kit são ~100 arquivos: uma linha só, para o resto da lista continuar legível.
+const doKit = (f) => f.startsWith(`${PASTA_DO_KIT}/`)
+const nKit = [...r.criados, ...r.sobrescritos, ...r.derivados].filter(doKit).length
+for (const f of r.criados.filter((x) => !doKit(x))) console.log(`  criado       ${f}`)
+for (const f of r.sobrescritos.filter((x) => !doKit(x))) console.log(`  sobrescrito  ${f}`)
 for (const f of r.mesclados) console.log(`  atualizado   ${f}  (bloco do aidlc acrescentado; o resto do arquivo ficou como estava)`)
-for (const f of r.derivados) console.log(`  regravado    ${f}  (arquivo do kit, nao se edita)`)
-for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
+for (const f of r.derivados.filter((x) => !doKit(x))) console.log(`  regravado    ${f}  (arquivo do kit, nao se edita)`)
+for (const f of r.mantidos.filter((x) => !doKit(x))) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
+if (nKit || sobras.length) console.log(`  kit          ${PASTA_DO_KIT}/  (${nKit} arquivo(s) gravado(s)${sobras.length ? `, ${sobras.length} de versao antiga removido(s)` : ''}; hooks e gate rodam daqui, sem instalar nada)`)
 
 console.log('\nProximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:')
 for (const f of ferramentas) {

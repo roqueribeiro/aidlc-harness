@@ -167,7 +167,7 @@ process.stdin.on('end', () => {
       const fonte =
         manifest.pkgManagerFrom === 'package.json'
           ? 'o campo packageManager do package.json do repo, que vence o do manifesto da stack.'
-          : `plugins/aidlc-harness/quality/${manifest.tech}.json, campo pkgManager.`
+          : `o manifesto quality/${manifest.tech}.json do kit, campo pkgManager.`
       process.stderr.write(
         `${manifest.label} usa ${rule.use}, nao ${rule.banned}.\n` +
           `Fonte: ${fonte}\n` +

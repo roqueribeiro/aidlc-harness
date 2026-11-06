@@ -23,6 +23,7 @@ import { execFileSync } from 'node:child_process'
 import { existsSync, readFileSync, mkdtempSync, rmSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
+import { resolverTrivy } from '../lib/trivy.mjs'
 
 const ARGS = process.argv.slice(2)
 const JSON_OUT = ARGS.includes('--json')
@@ -70,12 +71,12 @@ function lerAllowlist() {
   return mapa
 }
 
-function rodarTrivy() {
+function rodarTrivy(trivy) {
   const dir = mkdtempSync(join(tmpdir(), 'secscan-'))
   const saida = join(dir, 'r.json')
   try {
     execFileSync(
-      'trivy',
+      trivy,
       ['fs', '--scanners', 'vuln,misconfig,secret', '--severity', 'HIGH,CRITICAL',
        '--format', 'json', '--output', saida, '--quiet', '--exit-code', '0', RAIZ],
       { stdio: ['ignore', 'ignore', 'pipe'], timeout: 600_000 },
@@ -112,7 +113,9 @@ const hoje = new Date().toISOString().slice(0, 10)
 
 let rel
 try {
-  rel = rodarTrivy()
+  // Sem trivy instalado, o kit baixa a versão fixada (sha256 conferido) para o cache, uma vez por máquina.
+  const trivy = await resolverTrivy({ log: (m) => process.stderr.write(`${m}\n`) })
+  rel = rodarTrivy(trivy)
 } catch (e) {
   // Scanner que nao roda NAO pode virar "nada encontrado": e o contrato do silencio
   // do proprio o scanner, e vale para quem o chama tambem.
@@ -152,7 +155,7 @@ if (JSON_OUT) {
 
 const linha = (a) => `  [${a.sev.padEnd(8)}] ${a.tipo.padEnd(7)} ${String(a.id).padEnd(20)} ${a.onde.slice(0, 40).padEnd(40)} ${a.corrige ? '-> ' + String(a.corrige).slice(0, 22) : ''}  ${a.alvo.replace(RAIZ + '/', '')}`
 
-console.log(`\nroqueos-secscan  ${RAIZ}`)
+console.log(`\naidlc-secscan  ${RAIZ}`)
 console.log(`  ${todos.length} achado(s) HIGH/CRITICAL, ${nossos.length} em codigo nosso\n`)
 
 if (bloqueiam.length) {

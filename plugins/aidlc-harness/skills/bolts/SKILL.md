@@ -12,14 +12,14 @@ O vocabulário é inspirado no AI-DLC, e não é a documentação da AWS. A rela
 
 ## 1. Planejar antes da primeira linha de código
 
-- Leia o que já existe: `aidlc/` do projeto (`aidlc-phase status` mostra o que está aprovado), `context/product.md` (via `aidlc-context`) e o histórico do repositório.
+- Leia o que já existe: `aidlc/` do projeto (`node .aidlc/kit/tools/aidlc-phase status` mostra o que está aprovado), `context/product.md` (via `aidlc-context`) e o histórico do repositório.
 - Escreva o plano em `aidlc/inception/units-of-work.md`. Para cada unidade:
   - número e nome curto;
   - objetivo em uma frase;
   - critério de aceite **medível** (número, teste ou captura de tela, nunca adjetivo);
   - a evidência que vai provar o critério;
   - o risco e o que fica de fora.
-- Mostre o plano a quem aprova. A fase de Inception só fecha com `Aprovado por:` preenchido por uma pessoa, e `aidlc-phase check inception` barra a Construction enquanto isso não acontecer.
+- Mostre o plano a quem aprova. A fase de Inception só fecha com `Aprovado por:` preenchido por uma pessoa, e `node .aidlc/kit/tools/aidlc-phase check inception` barra a Construction enquanto isso não acontecer.
 
 ## 2. Executar
 
@@ -29,15 +29,15 @@ O vocabulário é inspirado no AI-DLC, e não é a documentação da AWS. A rela
 ## 3. Fechar cada unidade (todos os passos, sempre)
 
 1. **Branch curta** `unidade-NN-<nome>` saindo da principal.
-2. **Código com teste.** Mecanismo novo nasce com mutante: quebre de propósito e confirme que o teste reprova (`aidlc-mutation`).
-3. **Gate verde, saída crua colada no chat:** `aidlc-gate`. Não resuma a saída.
+2. **Código com teste.** Mecanismo novo nasce com mutante: quebre de propósito e confirme que o teste reprova (`node .aidlc/kit/tools/aidlc-mutation`).
+3. **Gate verde, saída crua colada no chat:** `node .aidlc/kit/tools/aidlc-gate`. Não resuma a saída.
 4. **Evidência visual lida**, quando a mudança é visível: capturas abertas e examinadas à procura de defeito, não só geradas.
 5. **Publicação** pelo caminho oficial do projeto, nunca por comando avulso "só desta vez".
 6. **Principal atualizada.** Merge na branch principal e push.
-7. **Limpeza:** `aidlc-limpeza --apagar` e a linha final colada. Ela só diz "nada sobrando" com o HEAD na principal, sem worktree ou branch de sobra. O que cair em "decidir" se resolve agora: commit e push, ou a pergunta a quem decide.
+7. **Limpeza:** `node .aidlc/kit/tools/aidlc-limpeza --apagar` e a linha final colada. Ela só diz "nada sobrando" com o HEAD na principal, sem worktree ou branch de sobra. O que cair em "decidir" se resolve agora: commit e push, ou a pergunta a quem decide.
 8. **Registro.** O que mudou, o que foi medido e quando, o que não foi verificado. Decisão vai para `aidlc/decisions.md`.
 
-O `dod-check` cobra o passo 7 quando a mensagem diz que uma unidade fechou, e não aceita "unidade fechada" sem a linha do `aidlc-limpeza`.
+O `dod-check` cobra o passo 7 quando a mensagem diz que uma unidade fechou, e não aceita "unidade fechada" sem a linha do `node .aidlc/kit/tools/aidlc-limpeza`.
 
 ## 4. Higiene durante o trabalho
 

@@ -14,25 +14,27 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      # O aidlc-secscan usa o trivy. Sem ele o gate sai com "nao rodou", que reprova: scan que nao
-      # rodou nao e scan limpo. A action fica fixada por commit, nao por tag.
-      - name: Instalar o trivy
-        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+      # O aidlc-secscan baixa o trivy da versão fixada no kit, conferido por sha256; o cache poupa o
+      # download nas execuções seguintes. Nenhuma action de terceiro instala executável aqui.
+      - name: Cache do trivy do kit
+        uses: actions/cache@v4
         with:
-          version: v0.70.0
+          path: ~/.cache/aidlc-harness
+          key: aidlc-trivy-{{TRIVY_VERSAO}}-${{ runner.os }}-${{ runner.arch }}
       # Preparar o projeto (gerado a partir da tecnologia detectada pelo aidlc-init)
 {{CI_SETUP}}
       # Fixe AIDLC_REF numa tag ou commit do kit que você revisou. "main" aceitaria, a cada execução,
       # qualquer código novo do kit dentro do seu CI.
       - name: Instalar o aidlc-harness
         env:
-          AIDLC_REF: v0.2.0
+          AIDLC_REF: v0.2.1
         run: |
           git clone https://github.com/roqueribeiro/aidlc-harness "$RUNNER_TEMP/aidlc"
           git -C "$RUNNER_TEMP/aidlc" checkout --detach "$AIDLC_REF"
       - name: Identidade (IP, e-mail, caminho de home, hostname interno)
         run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-identity" .
-      - name: Instruções das ferramentas não divergem do AGENTS.md
+      # O --check roda do kit fixado acima, não da cópia em .aidlc/kit/: cópia editada para o gate passar reprova aqui.
+      - name: Instruções das ferramentas e a cópia do kit batem com a versão fixada
         run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-init" --check
       - name: Fases AI-DLC (informativo)
         run: node "$RUNNER_TEMP/aidlc/plugins/aidlc-harness/tools/aidlc-phase" status

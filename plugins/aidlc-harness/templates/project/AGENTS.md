@@ -11,7 +11,7 @@ Este projeto segue o método AI-DLC com o aidlc-harness: a IA propõe, a equipe 
 2. **Construction** (`aidlc/construction/`): desenho e plano de testes aprovados antes do código. Depois, código e testes no mesmo diff.
 3. **Operations**: entrega, observação e o que foi aprendido, registrado em `aidlc/decisions.md`.
 
-Estado das fases: `aidlc-phase status`. A fase seguinte não começa com a anterior incompleta: `aidlc-phase check inception` reprova enquanto houver campo por preencher ou aprovação em branco.
+Estado das fases: `node .aidlc/kit/tools/aidlc-phase status`. A fase seguinte não começa com a anterior incompleta: `node .aidlc/kit/tools/aidlc-phase check inception` reprova enquanto houver campo por preencher ou aprovação em branco.
 
 ## Regras que não se negociam
 
@@ -21,16 +21,16 @@ Estado das fases: `aidlc-phase status`. A fase seguinte não começa com a anter
 - **Nunca enfraqueça um teste para o gate passar.** Se o teste falhou, o código está errado.
 - **Segredo não aparece em tela.** Nem por echo, nem em log, nem codificado. Valor entra pelo ambiente do processo e some com ele.
 - **Dependência nova: confira antes.** O pacote existe, tem dono, o nome não imita outro, está fixado no lockfile.
-- **Nada de dado pessoal ou de infraestrutura no repositório.** `aidlc-identity` varre IP, e-mail, caminho de home e hostname interno.
+- **Nada de dado pessoal ou de infraestrutura no repositório.** `node .aidlc/kit/tools/aidlc-identity` varre IP, e-mail, caminho de home e hostname interno.
 - **Decisão fechada não se reabre.** Está em `aidlc/decisions.md` e em `context/product.md`. Discorda? Diga em uma linha e siga o que está escrito.
 - **Antes de apagar, sobrescrever ou mover, liste e mostre.** Em ação irreversível, pare e peça confirmação.
 
 ## Comandos
 
 - Gate: `{{COMANDO_GATE}}`
-- Fases: `aidlc-phase status`
-- Identidade: `aidlc-identity`
-- Saúde do repositório: `aidlc-doctor`
+- Fases: `node .aidlc/kit/tools/aidlc-phase status`
+- Identidade: `node .aidlc/kit/tools/aidlc-identity`
+- Saúde do repositório: `node .aidlc/kit/tools/aidlc-doctor`
 
 ## Contexto do produto
 

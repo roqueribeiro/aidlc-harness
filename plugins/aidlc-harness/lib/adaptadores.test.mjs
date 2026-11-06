@@ -11,7 +11,7 @@ import assert from 'node:assert/strict'
 import { mkdtempSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ADAPTADORES, FERRAMENTAS, planoDosAdaptadores, resolverFerramentas, corpoDoComando, textoDaSkill } from './adaptadores.mjs'
+import { ADAPTADORES, FERRAMENTAS, planoDosAdaptadores, configDoClaude, configDoClaudePresente, mesclarConfigDoClaude, VERSAO_DO_KIT, resolverFerramentas, corpoDoComando, textoDaSkill } from './adaptadores.mjs'
 import { planejar, aplicar, conferirSincronia, sincronizar } from './init.mjs'
 
 const base = { nome: 'App Exemplo', descricao: 'Exemplo.' }
@@ -82,8 +82,29 @@ describe('arquivos no formato e no caminho de cada ferramenta', () => {
   })
   test('só Claude Code não gera skill copiada (o plugin traz) e o guia lista o comando', () => {
     const p = planoDosAdaptadores(['claude'])
-    assert.deepEqual(p.map((x) => x.destino), ['.aidlc/COMANDOS.md'])
-    assert.match(p[0].conteudo, /\| Claude Code \| `\/inception` \|/)
+    assert.deepEqual(p.map((x) => x.destino).sort(), ['.aidlc/COMANDOS.md', '.claude/settings.json'])
+    assert.match(p.find((x) => x.destino === '.aidlc/COMANDOS.md').conteudo, /\| Claude Code \| `\/inception` \|/)
+  })
+  test('Claude Code: o projeto registra o marketplace do kit fixado na tag desta versão e habilita o plugin', () => {
+    const c = configDoClaude()
+    assert.deepEqual(c.extraKnownMarketplaces.aidlc.source, { source: 'github', repo: 'roqueribeiro/aidlc-harness', ref: `v${VERSAO_DO_KIT}` })
+    assert.equal(c.enabledPlugins['aidlc-harness@aidlc'], true)
+    assert.ok(c.permissions.allow.includes('Bash(node .aidlc/kit/tools/*)'))
+  })
+  test('Claude Code: settings do time ficam; marketplace de versão antiga é trocado; mutantes reprovam', () => {
+    const doTime = { model: 'opus', permissions: { allow: ['Bash(yarn test*)'], deny: ['Bash(env)'] }, enabledPlugins: { 'outro@x': true }, extraKnownMarketplaces: { aidlc: { source: { source: 'github', repo: 'roqueribeiro/aidlc-harness', ref: 'v0.1.0' } } } }
+    assert.equal(configDoClaudePresente(doTime), false, 'ref antiga não conta como presente')
+    const m = mesclarConfigDoClaude(doTime)
+    assert.equal(m.model, 'opus')
+    assert.deepEqual(m.permissions.deny, ['Bash(env)'])
+    assert.deepEqual(m.permissions.allow, ['Bash(yarn test*)', 'Bash(node .aidlc/kit/tools/*)'])
+    assert.equal(m.enabledPlugins['outro@x'], true)
+    assert.equal(m.extraKnownMarketplaces.aidlc.source.ref, `v${VERSAO_DO_KIT}`)
+    assert.equal(configDoClaudePresente(m), true)
+    assert.equal(configDoClaudePresente({ ...m, enabledPlugins: {} }), false, 'plugin desabilitado')
+    assert.equal(configDoClaudePresente({ ...m, permissions: {} }), false, 'sem a permissão da cópia do kit')
+    assert.equal(configDoClaudePresente({ ...m, extraKnownMarketplaces: {} }), false, 'sem marketplace')
+    assert.equal(configDoClaudePresente({ ...m, extraKnownMarketplaces: doTime.extraKnownMarketplaces }), false, 'só a ref antiga difere')
   })
 })
 

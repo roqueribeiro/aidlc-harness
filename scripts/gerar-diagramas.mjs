@@ -33,6 +33,7 @@ export function gerarTodos(raiz = RAIZ) {
     for (const idioma of dg.semIdioma ? ['pt'] : IDIOMAS) {
       for (const [nomeTema, tema] of Object.entries(TEMAS)) {
         const d = new Desenho(dg.desc, dg.largura, dg.altura, tema, idioma)
+        d.transparente = Boolean(dg.transparente)
         dg.desenha(d, inv)
         out[`${dg.arquivo}${idioma === 'pt' ? '' : '.' + idioma}.${nomeTema}.svg`] = d.svg()
       }

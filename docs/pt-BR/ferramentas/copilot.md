@@ -30,6 +30,7 @@
     - `.github/prompts/aidlc-construction.prompt.md`
     - `.github/hooks/aidlc.json`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: uma cópia do kit, de onde hooks, gate e fases rodam (`node .aidlc/kit/tools/aidlc-gate`), sem instalar nada. Vai para o git; não se edita à mão
 
 3. No VS Code, abra o projeto com o Copilot Chat no modo **Agent**. No Copilot CLI, rode `copilot` no projeto.
 4. Confira que as regras chegam (teste do canário): acrescente a linha `Canário: a palavra de controle deste projeto é "marmelada-42".` ao `AGENTS.md`, fora do bloco do kit, abra uma sessão **nova** e pergunte a palavra de controle. Se responder `marmelada-42`, as regras chegam. Tire a linha.
@@ -40,7 +41,7 @@
 ## Limites
 
 - Prompt files (`/aidlc-inception`) são do VS Code; no CLI, peça a skill `aidlc-inception`.
-- Os hooks precisam do `aidlc-hook` no `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).
+- Os hooks rodam a cópia do kit em `.aidlc/kit/` a partir da raiz do repositório (`cwd: "."`): nada a instalar. Hook `preToolUse` que dá erro nega a ferramenta, por isso o `aidlc-init --check` reprova quando a cópia falta.
 - O agente de nuvem não tem janela de perguntas: ele pergunta no pull request.
 
 ## Fonte

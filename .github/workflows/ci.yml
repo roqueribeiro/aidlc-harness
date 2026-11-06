@@ -52,7 +52,8 @@ jobs:
       - name: Nenhum dado pessoal ou de infraestrutura
         run: node plugins/aidlc-harness/tools/aidlc-identity
 
-  # O caminho de quem acabou de chegar, nos tres sistemas: setup, init, check, gate e doctor pelo PATH.
+  # O caminho de quem acabou de chegar, nos tres sistemas: setup, init, check, gate e doctor pelo PATH,
+  # e a primeira execucao sem nada instalado (copia do kit no projeto, hooks, trivy baixado de verdade).
   maquina-limpa:
     runs-on: ${{ matrix.os }}
     timeout-minutes: 15
@@ -66,17 +67,32 @@ jobs:
         with:
           node-version: 22
       - name: Maquina limpa
-        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs scripts/pacote.test.mjs
+        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs scripts/pacote.test.mjs scripts/primeira-execucao.test.mjs plugins/aidlc-harness/lib/kit-no-projeto.test.mjs plugins/aidlc-harness/lib/trivy.test.mjs
 
-  # O workflow que o aidlc-init gera instala o trivy por esta action: confere que ele fica no PATH.
+  # O trivy que o kit baixa sozinho (versao e sha256 fixados em lib/trivy.mjs) existe e roda em
+  # cada sistema oficial: o hash fixado de um sistema que nenhum teste baixa poderia estar errado.
   ci-gerado-trivy:
-    runs-on: ubuntu-latest
-    timeout-minutes: 5
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, ubuntu-24.04-arm, macos-latest, windows-latest]
     steps:
-      - uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
         with:
-          version: v0.70.0
-      - run: trivy --version
+          node-version: 22
+      - name: O kit baixa o trivy, confere o hash e ele roda
+        shell: bash
+        run: |
+          node --input-type=module -e "
+            import { resolverTrivy } from './plugins/aidlc-harness/lib/trivy.mjs'
+            import { execFileSync } from 'node:child_process'
+            const env = { ...process.env, PATH: '' }
+            const p = await resolverTrivy({ env, log: console.log })
+            console.log(execFileSync(p, ['--version'], { encoding: 'utf8' }))
+          "
 
   plugin-oficial:
     runs-on: ubuntu-latest

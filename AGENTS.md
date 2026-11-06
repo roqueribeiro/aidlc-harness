@@ -17,7 +17,7 @@ The quality kit for software development with AI agents in the AI-DLC cycle. Thi
 
 - `plugins/aidlc-harness/`: the plugin (hooks, agents, skills, commands, `tools/`, `lib/`, `quality/`, `templates/`).
 - `scripts/`: the repository's own checks and utilities (`setup`, `install-git-hooks`, `definir-dono`, `gerar-prompts`).
-- `docs/`: documentation in English; `docs/pt-BR/`: the Brazilian Portuguese pair. `docs/pt-BR/PROMPTS.md` is **generated** from `commands/` and `docs/assets/diagramas/*.svg` is **generated** by `scripts/gerar-diagramas.mjs`: do not edit them by hand.
+- `docs/`: documentation in English; `docs/pt-BR/`: the Brazilian Portuguese pair. `docs/pt-BR/PROMPTS.md` is **generated** from `commands/` and `docs/assets/diagramas/*.svg` is **generated** by `scripts/gerar-diagramas.mjs`: do not edit them by hand. The banner, the social preview and the logo PNGs in `docs/assets/marca/` are **generated** by `scripts/gerar-arte.mjs` (needs Playwright, not run in CI) from the mark in the diagram generator, `arte-esteira.jpg` (background art made with an image model, no text in it) and the design system fonts in `docs/assets/marca/fontes/` (OFL).
 - `OPERATING-MODEL.md`: the operating model, with the mechanism behind each rule.
 
 ## Commands

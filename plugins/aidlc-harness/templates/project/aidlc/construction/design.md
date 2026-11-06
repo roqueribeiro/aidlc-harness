@@ -12,7 +12,7 @@
 
 ## Contratos
 
-<!-- PREENCHER: APIs, eventos e arquivos que outros sistemas consomem. Mudar um contrato exige `aidlc-graph blast` -->
+<!-- PREENCHER: APIs, eventos e arquivos que outros sistemas consomem. Mudar um contrato exige `node .aidlc/kit/tools/aidlc-graph blast` -->
 
 ## Alternativas descartadas
 

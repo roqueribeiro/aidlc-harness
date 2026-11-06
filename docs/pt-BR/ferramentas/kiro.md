@@ -31,6 +31,7 @@
     - `.kiro/steering/aidlc-inception.md`
     - `.kiro/steering/aidlc-construction.md`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: uma cópia do kit, de onde hooks, gate e fases rodam (`node .aidlc/kit/tools/aidlc-gate`), sem instalar nada. Vai para o git; não se edita à mão
 
 3. Abra o projeto no Kiro (IDE ou CLI).
 4. Confira que as regras chegam (teste do canário): acrescente a linha `Canário: a palavra de controle deste projeto é "marmelada-42".` ao `AGENTS.md`, fora do bloco do kit, abra uma sessão **nova** e pergunte a palavra de controle. Se responder `marmelada-42`, as regras chegam. Tire a linha.

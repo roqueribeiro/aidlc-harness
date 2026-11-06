@@ -1,17 +1,17 @@
 <p align="center">
   <a href="https://levelhard.com.br/aidlc">
-    <img src="docs/assets/diagramas/banner.claro.svg" alt="aidlc-harness: kit de qualidade para construir com agentes de IA no ciclo AI-DLC. Pronto exige evidência. Regra sem mecanismo é decoração." width="100%">
+    <img src="docs/assets/marca/banner.pt.jpg" alt="aidlc-harness: o kit de qualidade para construir software com agentes de IA no ciclo AI-DLC. Pronto exige evidência. Regra sem mecanismo é decoração." width="100%">
   </a>
 </p>
 
 <p align="center">
   <a href="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=vers%C3%A3o&sort=semver&color=2563eb"></a>
+  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=vers%C3%A3o&sort=semver&color=007aff"></a>
   <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-16a34a"></a>
   <a href="docs/pt-BR/CONTRIBUTING.md#dco"><img alt="DCO" src="https://img.shields.io/badge/commits-DCO-16a34a"></a>
   <img alt="Node 20.19 ou mais novo" src="https://img.shields.io/badge/node-%E2%89%A5%2020.19-5fa04e">
-  <img alt="Linux, macOS e Windows" src="https://img.shields.io/badge/sistemas-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-6d28d9">
-  <a href="docs/pt-BR/FERRAMENTAS.md"><img alt="15 ferramentas de IA" src="https://img.shields.io/badge/ferramentas%20de%20IA-15-6d28d9"></a>
+  <img alt="Linux, macOS e Windows" src="https://img.shields.io/badge/sistemas-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-667eea">
+  <a href="docs/pt-BR/FERRAMENTAS.md"><img alt="15 ferramentas de IA" src="https://img.shields.io/badge/ferramentas%20de%20IA-15-667eea"></a>
 </p>
 
 <p align="center">
@@ -25,10 +25,18 @@
 
 ---
 
+> [!TIP]
+> **O método por trás do kit:** [AI-DLC na prática: do sinal do usuário à loja](https://levelhard.com.br/aidlc), no LEVELHARD. A página percorre, fase a fase, o ciclo que este kit cobra.
+
 **O aidlc-harness leva um pedido de uma frase a requisitos aprovados e depois a código que só conta como pronto com evidência, dentro da ferramenta de IA que o time já usa.** A IA rascunha tudo com as recomendações dela e pergunta só o que não pode decidir, na janela de perguntas da própria ferramenta; uma pessoa aprova cada fase; e um gate recusa o "pronto" sem a saída crua dos testes. Funciona em **15 ferramentas de IA** (Claude Code, GitHub Copilot, Cursor, Kiro, OpenCode, Codex, Gemini CLI, Antigravity e outras) e em **10 stacks**, de Node a Java, .NET e Go.
 
 > [!NOTE]
 > **Versão 0.2, pré-lançamento.** Tudo o que está descrito aqui existe e tem teste, e o CI roda em Linux, macOS e Windows. Quais ferramentas de IA foram exercidas numa máquina de verdade está dito ferramenta por ferramenta em [Estado do projeto](#estado-do-projeto). Este projeto é uma interpretação prática do AI-DLC; não é documentação nem produto da AWS ([docs/pt-BR/AIDLC.md](docs/pt-BR/AIDLC.md)). Também em [inglês](README.md).
+
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/ciclo.escuro.svg">
+  <img alt="O ciclo que o kit cobra: o pedido passa pela Inception, pela aprovação de uma pessoa, pela Construction e pelo gate; sem evidência o gate devolve, e só então fica pronto." src="docs/assets/diagramas/ciclo.claro.svg">
+</picture>
 
 ## Conteúdo
 
@@ -55,13 +63,13 @@ npx github:roqueribeiro/aidlc-harness init
 
 Num terminal, ele pergunta com quais ferramentas de IA o time trabalha (as que ele acha na pasta já vêm marcadas) e cria, para cada uma, os comandos no formato da própria ferramenta. Depois abra a sua ferramenta e rode a Inception com uma frase do que você quer, por exemplo `/aidlc-inception Quero um cadastro de clientes com busca e histórico de alterações`. O comando exato de cada ferramenta está na tabela abaixo e no `.aidlc/COMANDOS.md` do seu projeto.
 
-Para deixar todos os comandos `aidlc-*` no seu `PATH` (os hooks do Copilot, do Cursor e do Codex precisam):
+É o único comando. Não há mais nada para instalar:
 
-```bash
-npm install -g github:roqueribeiro/aidlc-harness
-```
+- **O kit se copia para o projeto** (`.aidlc/kit/`, versionado com o resto), e hooks, gate e fases rodam dessa cópia: `node .aidlc/kit/tools/aidlc-gate`. O colega que clona o repositório tem tudo funcionando.
+- **O Claude Code carrega o plugin pelo projeto**: o `.claude/settings.json` registra o marketplace do kit, fixado nesta versão, e o plugin carrega quando você aceita o diálogo de confiança da pasta.
+- **O Trivy vem sozinho**: o primeiro gate baixa a versão fixada no kit, conferida por sha256, para um cache.
 
-No Claude Code, instale também o plugin: `claude plugin marketplace add roqueribeiro/aidlc-harness` e `claude plugin install aidlc-harness@aidlc`. O caminho completo, com o que esperar em cada passo, está em **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)**.
+O CI testa exatamente isso em Linux, macOS e Windows: uma máquina sem `aidlc` no `PATH` e com o home vazio, do `init` ao gate verde, e um clone novo. O caminho completo, com o que esperar em cada passo, está em **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)**. Para ter também os comandos `aidlc-*` no `PATH` para outros projetos, o `npm install -g github:roqueribeiro/aidlc-harness` é opcional.
 
 ## Sua ferramenta de IA
 
@@ -156,9 +164,10 @@ A lista de achados desse relatório está vazia, e mesmo assim o resultado **nã
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **473 passam, 0 falham** | Linux, Node 22, 06/11/2026 |
+| Suíte de testes (`node --test`) | **512 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
 | Integração contínua | verde em **Linux, macOS e Windows**, Node 20, 22 e 24 | GitHub Actions a cada push, com o teste de máquina limpa e o pacote instalado |
 | Instalar com `npx github:…` e `npm install -g github:…` | funciona | rodado a partir do GitHub em 06/11/2026, e no CI a partir do pacote empacotado, nos três sistemas |
+| Primeira execução sem nada instalado | `init`, hooks, fases e gate verde (Trivy baixado e conferido) a partir da cópia no projeto, e um clone novo | `scripts/primeira-execucao.test.mjs`, no CI em Linux, macOS e Windows, sem `aidlc` no `PATH` e com o home vazio |
 | Gates das stacks novas | Go, bun, Maven, pnpm e yarn rodam verde e vermelho num projeto de verdade | Linux, 06/11/2026; Gradle só o vermelho (a rede bloqueou o verde); .NET não rodou |
 | Mecanismos novos | cada um com um **mutante** que reprova | os testes de mutação ficam ao lado do código |
 | As 15 ferramentas de IA numa máquina de verdade | **ainda não exercidas** | os arquivos e a janela de perguntas de cada uma foram conferidos na documentação oficial em 06/11/2026; os prints de sessões reais vão para `docs/compatibilidade/` |
