@@ -368,7 +368,7 @@ function banner(d, inv) {
 
   let x = 252
   let svg = ''
-  for (const [txt, cor] of [['Claude Code', '#93c5fd'], ['Kiro', '#93c5fd'], ['GitHub Copilot', '#93c5fd'], ['SARIF', '#86efac'], ['RoqueShield', '#86efac'], ['qualquer plataforma de segurança', '#86efac']]) {
+  for (const [txt, cor] of [['15 ferramentas de IA', '#93c5fd'], ['Claude Code', '#93c5fd'], ['Copilot', '#93c5fd'], ['Cursor', '#93c5fd'], ['Kiro', '#93c5fd'], ['10 stacks', '#86efac'], ['SARIF', '#86efac'], ['RoqueShield', '#86efac']]) {
     const p = pilula(x, 214, txt, { cor })
     svg += p.svg
     x += p.w + 10

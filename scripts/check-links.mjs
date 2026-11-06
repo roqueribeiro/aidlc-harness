@@ -19,11 +19,14 @@ const argv = process.argv.slice(2)
 const i = argv.indexOf('--root')
 const RAIZ = i >= 0 ? resolve(argv[i + 1]) : join(fileURLToPath(new URL('.', import.meta.url)), '..')
 const PULA = new Set(['node_modules', '.git', 'fresh'])
+// Gerados pelo site a partir de docs/ (e fora do git): os links de lá são rotas do site, não arquivos.
+const PULA_CAMINHOS = new Set(['site/src/content', 'site/dist', 'site/public', 'site/.astro'])
 
 function markdowns(dir, out = []) {
   for (const e of readdirSync(dir, { withFileTypes: true })) {
     if (PULA.has(e.name)) continue
     const p = join(dir, e.name)
+    if (PULA_CAMINHOS.has(relative(RAIZ, p).split('\\').join('/'))) continue
     if (e.isDirectory()) markdowns(p, out)
     else if (e.isFile() && e.name.endsWith('.md')) out.push(p)
   }

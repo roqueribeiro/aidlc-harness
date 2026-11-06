@@ -1,0 +1,15 @@
+{
+  "name": "aidlc-harness-site",
+  "private": true,
+  "type": "module",
+  "description": "Site de documentação do aidlc-harness (Astro Starlight), gerado a partir de docs/. Não tem conteúdo próprio: o texto mora em docs/ e no README.",
+  "scripts": {
+    "sync": "node scripts/sync-docs.mjs",
+    "dev": "node scripts/sync-docs.mjs && astro dev",
+    "build": "node scripts/sync-docs.mjs && astro build"
+  },
+  "dependencies": {
+    "@astrojs/starlight": "0.42.9",
+    "astro": "7.4.7"
+  }
+}

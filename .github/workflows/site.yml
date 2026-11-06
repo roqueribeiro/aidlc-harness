@@ -1,0 +1,54 @@
+# Site de documentacao (Astro Starlight) gerado de docs/. Constroi em todo pull request e push;
+# publica no GitHub Pages so a partir da main, e so depois que o Pages for ativado no repositorio
+# (Settings > Pages > Source: GitHub Actions) e a variavel SITE_PAGES valer "ativo".
+name: site
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: site-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: yarn
+          cache-dependency-path: site/yarn.lock
+      - name: Links do site resolvem
+        run: node site/scripts/sync-docs.mjs --check
+      - name: Instalar
+        working-directory: site
+        run: yarn install --frozen-lockfile
+      - name: Construir
+        working-directory: site
+        run: yarn build
+      - uses: actions/upload-pages-artifact@v3
+        if: github.ref == 'refs/heads/main' && vars.SITE_PAGES == 'ativo'
+        with:
+          path: site/dist
+
+  publicar:
+    needs: build
+    if: github.ref == 'refs/heads/main' && vars.SITE_PAGES == 'ativo'
+    runs-on: ubuntu-latest
+    permissions:
+      pages: write
+      id-token: write
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - id: deploy
+        uses: actions/deploy-pages@v4

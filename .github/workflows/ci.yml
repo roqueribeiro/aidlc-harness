@@ -39,6 +39,8 @@ jobs:
         run: node scripts/gerar-prompts.mjs --check
       - name: Paginas por ferramenta em dia
         run: node scripts/gerar-ferramentas.mjs --check
+      - name: Links do site resolvem
+        run: node site/scripts/sync-docs.mjs --check
       - name: Diagramas em dia
         run: node scripts/gerar-diagramas.mjs --check
       - name: Referência cobre o que existe

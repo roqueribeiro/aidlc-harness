@@ -244,6 +244,10 @@ export default {
   'fora do ar parece uma base limpa.': 'a platform that is down looks like a clean codebase.',
 
   // ---- v0.2: multiferramenta e instalacao
+  "15 ferramentas de IA": "15 AI tools",
+  "Copilot": "Copilot",
+  "Cursor": "Cursor",
+  "10 stacks": "10 stacks",
   "Uma fonte, 15 ferramentas de IA": "One source, 15 AI tools",
   "O método mora em um lugar; o aidlc-init gera a camada de cada ferramenta, e o CI reprova divergência.": "The method lives in one place; aidlc-init generates each tool's layer, and CI fails on drift.",
   "A fonte": "The source",
