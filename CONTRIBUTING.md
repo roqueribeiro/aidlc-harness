@@ -55,6 +55,10 @@ CI fails the pull request if a commit is unsigned.
 
 Short message in the imperative, with a prefix: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`. The body explains why, not what.
 
+## Releasing a version
+
+Bump `version` in `package.json` and `plugins/aidlc-harness/.claude-plugin/plugin.json`, set `AIDLC_REF` in `plugins/aidlc-harness/templates/project/aidlc-gate.yml` to the same `vX.Y.Z`, and turn `## [Unreleased]` in `CHANGELOG.md` into `## [X.Y.Z] - YYYY-MM-DD`. `node scripts/notas-da-versao.mjs --check` (also a gate of this repository) fails while any of the four disagree. When the merge reaches `main`, the `release` workflow creates the `vX.Y.Z` tag and the GitHub release with the CHANGELOG section as notes; nobody tags by hand.
+
 ## Reporting a security issue
 
 **Do not open a public issue.** See [SECURITY.md](SECURITY.md).

@@ -60,6 +60,12 @@
       "blocking": true
     },
     {
+      "id": "versao",
+      "label": "A versão fecha no package.json, no plugin.json, no AIDLC_REF gerado e no CHANGELOG",
+      "cmd": "node scripts/notas-da-versao.mjs --check",
+      "blocking": true
+    },
+    {
       "id": "diagramas",
       "label": "Os diagramas SVG acompanham o código",
       "cmd": "node scripts/gerar-diagramas.mjs --check",

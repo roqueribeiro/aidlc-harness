@@ -1,0 +1,44 @@
+# Release: quando uma versão nova chega à main, cria a tag vX.Y.Z e a release com as notas do
+# CHANGELOG. A versão vem do package.json; scripts/notas-da-versao.mjs reprova se ela não bate no
+# plugin.json, no AIDLC_REF do workflow gerado e numa seção datada do CHANGELOG. Sem isso o workflow
+# gerado nos projetos apontaria para uma tag que não existe.
+name: release
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: release
+  cancel-in-progress: false
+
+jobs:
+  tag:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: A versão fecha
+        run: node scripts/notas-da-versao.mjs --check
+      - name: Criar tag e release se a versão ainda não existe
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          node scripts/notas-da-versao.mjs > "$RUNNER_TEMP/saida.txt"
+          versao=$(head -1 "$RUNNER_TEMP/saida.txt")
+          tail -n +3 "$RUNNER_TEMP/saida.txt" > "$RUNNER_TEMP/notas.md"
+          if git ls-remote --exit-code --tags origin "refs/tags/$versao" >/dev/null; then
+            echo "$versao já existe; nada a fazer"
+            exit 0
+          fi
+          gh release create "$versao" --target "$GITHUB_SHA" --title "$versao" --notes-file "$RUNNER_TEMP/notas.md"
+          echo "publicada $versao em $GITHUB_SHA"

@@ -55,6 +55,10 @@ O CI reprova o pull request com commit sem assinatura.
 
 Mensagem curta no imperativo, com prefixo: `feat:`, `fix:`, `docs:`, `test:`, `refactor:`, `chore:`. O corpo explica o porquê, não o quê.
 
+## Publicando uma versão
+
+Suba `version` no `package.json` e no `plugins/aidlc-harness/.claude-plugin/plugin.json`, ponha o mesmo `vX.Y.Z` no `AIDLC_REF` de `plugins/aidlc-harness/templates/project/aidlc-gate.yml` e troque `## [Unreleased]` do `CHANGELOG.md` por `## [X.Y.Z] - AAAA-MM-DD`. O `node scripts/notas-da-versao.mjs --check` (também um gate deste repositório) reprova enquanto os quatro não baterem. Quando o merge chega à `main`, o workflow `release` cria a tag `vX.Y.Z` e a release do GitHub com a seção do CHANGELOG como notas; ninguém cria tag à mão.
+
 ## Reportando falha de segurança
 
 **Não abra issue pública.** Veja [../../SECURITY.md](../../SECURITY.md).
