@@ -40,7 +40,10 @@ after(() => rmSync(base, { recursive: true, force: true }))
 
 /** Roda um executável do kit como o usuário rodaria: pelo nome, achado no PATH. */
 function kit(nome, args, cwd) {
-  const r = spawnSync(WIN ? `${nome}.cmd` : nome, args, { cwd, env, encoding: 'utf8', shell: WIN })
+  // No Windows o .cmd só roda pelo shell, e o shell junta os argumentos com espaço: quem tem
+  // espaço vai entre aspas, como a pessoa digitaria no terminal.
+  const argv = WIN ? args.map((x) => (/\s/.test(x) ? `"${x}"` : x)) : args
+  const r = spawnSync(WIN ? `${nome}.cmd` : nome, argv, { cwd, env, encoding: 'utf8', shell: WIN })
   return { code: r.status, out: `${r.stdout ?? ''}${r.stderr ?? ''}` }
 }
 
