@@ -1,15 +1,23 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "aidlc",
-  "owner": { "name": "aidlc-harness contributors" },
-  "metadata": { "description": "Quality harness for software development with AI agents in the AI-DLC cycle." },
+  "owner": {
+    "name": "aidlc-harness contributors"
+  },
+  "metadata": {
+    "description": "Quality harness for software development with AI agents in the AI-DLC cycle."
+  },
   "plugins": [
     {
       "name": "aidlc-harness",
       "source": "./plugins/aidlc-harness",
-      "description": "Executable acceptance criteria, evidence gate, AI-DLC phases with human approval, and an identity scanner.",
+      "description": "AI-DLC quality kit: an Inception that recommends first, phases approved by a person, an evidence gate and an identity scanner. 15 AI tools, 10 stacks.",
       "category": "development",
-      "tags": ["aidlc", "quality-gate", "governance"]
+      "tags": [
+        "aidlc",
+        "quality-gate",
+        "governance"
+      ]
     }
   ]
 }

@@ -36,6 +36,7 @@ test('a última seção do CHANGELOG também é lida inteira', () => {
 test('mutantes: cada divergência de versão reprova', () => {
   const casos = [
     ['plugin.json atrás', { ...BOM, plugin: '1.3.0' }, /plugin\.json/],
+    ['manifesto do Codex atrás', { ...BOM, portatil: '1.3.0' }, /\(Codex\)/],
     ['AIDLC_REF antigo', { ...BOM, workflow: 'AIDLC_REF: v1.3.0' }, /AIDLC_REF/],
     ['AIDLC_REF ausente', { ...BOM, workflow: '' }, /AIDLC_REF/],
     ['sem seção no CHANGELOG', { ...BOM, changelog: '## [Unreleased]\n\n- x\n' }, /falta a seção/],

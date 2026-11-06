@@ -71,6 +71,22 @@ That is the only command. Nothing else to install:
 
 CI tests exactly this on Linux, macOS and Windows: a machine with no `aidlc` on the `PATH` and an empty home, from `init` to a green gate, and a fresh clone. The full path, with what to expect at each step, is in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**. To also have the `aidlc-*` commands on your `PATH` for other projects, `npm install -g github:roqueribeiro/aidlc-harness` is optional.
 
+### From a plugin marketplace
+
+The repository is a plugin marketplace for Claude Code and for Codex. Installing the plugin gives the tool the kit's skills and, in Claude Code, its hooks and agents; the project still needs `npx github:roqueribeiro/aidlc-harness init` once, because that is what writes the phases, the kit copy and the CI.
+
+```bash
+# Claude Code (or /plugin marketplace add inside a session)
+claude plugin marketplace add roqueribeiro/aidlc-harness
+claude plugin install aidlc-harness@aidlc
+
+# Codex
+codex plugin marketplace add roqueribeiro/aidlc-harness
+codex plugin add aidlc-harness@aidlc
+```
+
+A project prepared by `aidlc-init` with Claude Code chosen does the Claude Code part by itself, through `.claude/settings.json`.
+
 ## Your AI tool
 
 Each tool receives the Inception and Construction commands in its own folder and format, and each command names that tool's question window. Where the tool allows hooks, the kit also holds a "done" that has no green gate behind it.
@@ -164,7 +180,7 @@ The list of findings in that report is empty, and the result is still **not** cl
 
 | Item | Status | How it was measured |
 | --- | --- | --- |
-| Test suite (`node --test`) | **512 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
+| Test suite (`node --test`) | **514 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
 | Continuous integration | green on **Linux, macOS and Windows**, Node 20, 22 and 24 | GitHub Actions on every push, including the clean-machine test and the installed package |
 | Install with `npx github:…` and `npm install -g github:…` | works | run from GitHub on 2026-11-06, and in CI from a packed tarball on the three systems |
 | First run with nothing installed | `init`, hooks, phases and a green gate (Trivy downloaded and checked) from the project copy, and a fresh clone | `scripts/primeira-execucao.test.mjs`, in CI on Linux, macOS and Windows with no `aidlc` on the `PATH` and an empty home |

@@ -1,0 +1,42 @@
+{
+  "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
+  "name": "aidlc-harness",
+  "version": "0.2.2",
+  "description": "Quality kit for building software with AI agents in the AI-DLC cycle: an Inception that drafts everything and asks at most five questions in the tool's own question window, phases approved by a person, a gate that refuses \"done\" without the raw test output, and an identity scanner. One command prepares a project for 15 AI tools (Claude Code, GitHub Copilot, Cursor, Codex, Kiro, OpenCode, Gemini CLI and more) and 10 stacks. The kit's messages and prompts are in Brazilian Portuguese.",
+  "author": {
+    "name": "aidlc-harness contributors",
+    "url": "https://github.com/roqueribeiro/aidlc-harness"
+  },
+  "homepage": "https://github.com/roqueribeiro/aidlc-harness",
+  "repository": "https://github.com/roqueribeiro/aidlc-harness",
+  "license": "MIT",
+  "keywords": [
+    "aidlc",
+    "ai-dlc",
+    "quality-gate",
+    "evidence",
+    "inception",
+    "claude-code",
+    "codex",
+    "copilot",
+    "cursor",
+    "kiro",
+    "governance"
+  ],
+  "extensions": {
+    "com.openai": {
+      "hooks": [],
+      "interface": {
+        "displayName": "AI-DLC Harness",
+        "shortDescription": "Inception that recommends first, phases approved by a person, and a gate that refuses done without evidence.",
+        "developerName": "aidlc-harness contributors",
+        "category": "Coding",
+        "websiteURL": "https://github.com/roqueribeiro/aidlc-harness",
+        "brandColor": "#007aff",
+        "composerIcon": "./assets/logo-512.png",
+        "logo": "./assets/logo-512.png",
+        "defaultPrompt": "Use $aidlc-inception to start the Inception for: "
+      }
+    }
+  }
+}
