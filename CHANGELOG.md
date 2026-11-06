@@ -31,6 +31,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 - Manifests for `node-pnpm`, `node-bun`, `java-maven`, `java-gradle`, `dotnet` and `go`. Detection accepts root-level patterns such as `*.csproj`.
 - The generated CI workflow installs `trivy` (pinned by commit) and the dependencies of the detected technology, from the new `ci.setup` manifest field. Before, a clean runner failed `aidlc-secscan` and the tests for reasons that were not the project's.
 - **Verification records.** A tool page says "Verified on a real machine: yes" only when `docs/compatibilidade/<tool>.json` lists the version, system, date and screenshots that exist in `docs/assets/compatibilidade/<tool>/`; a broken record fails the generator. No tool has a record yet: every page says "not yet".
+- **Releases from the version.** The `release` workflow creates the `vX.Y.Z` tag and the GitHub release when a new version reaches `main`, with the CHANGELOG section as notes; `scripts/notas-da-versao.mjs --check` fails when `package.json`, `plugin.json`, the generated workflow's `AIDLC_REF` and the CHANGELOG disagree.
 - `scripts/e2e-maquina-limpa.test.mjs`: setup, init, check, gate and doctor through the `PATH`, with an empty `HOME`, for seven technologies; CI runs it on Linux, macOS and Windows.
 
 ### Limits
