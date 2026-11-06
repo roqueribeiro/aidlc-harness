@@ -10,7 +10,7 @@ import { createHash } from 'node:crypto'
 import { chmodSync, existsSync, mkdirSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs'
 import { tmpdir } from 'node:os'
 import { join } from 'node:path'
-import { ATIVOS, VERSAO, pastaDeCache, resolverTrivy } from './trivy.mjs'
+import { ATIVOS, VERSAO, pastaDeCache, resolverTrivy, tarDoSistema } from './trivy.mjs'
 
 const windows = process.platform === 'win32'
 const nome = windows ? 'trivy.exe' : 'trivy'
@@ -94,5 +94,12 @@ describe('trivy sob demanda', () => {
     const home = mkdtempSync(join(tmpdir(), 'aidlc-trivy-home-'))
     await assert.rejects(resolverTrivy({ env: semProxy(home), plataforma: 'freebsd', arq: 'x64' }), /instale o trivy/)
     rmSync(home, { recursive: true, force: true })
+  })
+
+  test('Windows usa o tar.exe do sistema, com SystemRoot em qualquer caixa (o Git Bash exporta SYSTEMROOT)', () => {
+    assert.equal(tarDoSistema({ SystemRoot: 'C:\\Windows' }, 'win32'), join('C:\\Windows', 'System32', 'tar.exe'))
+    assert.equal(tarDoSistema({ SYSTEMROOT: 'D:\\Win' }, 'win32'), join('D:\\Win', 'System32', 'tar.exe'))
+    assert.equal(tarDoSistema({}, 'win32'), join('C:\\Windows', 'System32', 'tar.exe'))
+    assert.equal(tarDoSistema({ SYSTEMROOT: 'x' }, 'linux'), 'tar')
   })
 })

@@ -45,6 +45,17 @@ export function noPath(env = process.env, plataforma = process.platform) {
   return null
 }
 
+/*
+ * No Windows, o tar.exe do sistema (bsdtar) abre zip; o tar do Git (GNU), que pode vir antes no PATH,
+ * não abre e ainda lê `C:` como host remoto. A variável vem como `SystemRoot` no PowerShell e como
+ * `SYSTEMROOT` no Git Bash: a busca não depende de maiúsculas.
+ */
+export function tarDoSistema(env = process.env, plataforma = process.platform) {
+  if (plataforma !== 'win32') return 'tar'
+  const raiz = Object.entries(env).find(([k]) => k.toUpperCase() === 'SYSTEMROOT')?.[1] || 'C:\\Windows'
+  return join(raiz, 'System32', 'tar.exe')
+}
+
 export const sha256 = (arquivo) => createHash('sha256').update(readFileSync(arquivo)).digest('hex')
 
 /** Baixa com curl (respeita HTTPS_PROXY, existe no Linux, no macOS e no Windows 10+); sem curl, fetch. */
@@ -91,7 +102,7 @@ export async function resolverTrivy({ env = process.env, plataforma = process.pl
     rmSync(tmp, { recursive: true, force: true })
     mkdirSync(tmp)
     // No Windows, o tar.exe do sistema (bsdtar) abre zip; o tar do Git, que pode vir antes no PATH, não.
-    const tar = plataforma === 'win32' && env.SystemRoot ? join(env.SystemRoot, 'System32', 'tar.exe') : 'tar'
+    const tar = tarDoSistema(env, plataforma)
     execFileSync(tar, [ativo.arquivo.endsWith('.zip') ? '-xf' : '-xzf', pacote, '-C', tmp, exe(plataforma)], { stdio: ['ignore', 'ignore', 'pipe'] })
     if (plataforma !== 'win32') chmodSync(join(tmp, exe(plataforma)), 0o755)
     renameSync(join(tmp, exe(plataforma)), alvo)
