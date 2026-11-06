@@ -31,7 +31,7 @@ O post descreve o *quê* do ciclo; o kit acrescenta controles que fazem o "pront
 - **Scanner de identidade**: nada que identifique pessoa ou infraestrutura vai para o repositório.
 - **Cofre de segredos** que o agente usa sem ver.
 - **Revisão de cadeia de suprimento** para dependência nova.
-- **Instruções para três ferramentas** a partir de uma fonte, com conferência de divergência.
+- **Instruções e comandos de fase para 15 ferramentas de IA** a partir de uma fonte, com conferência de divergência.
 
 ## Onde o kit se afasta do método, ou fica aquém
 

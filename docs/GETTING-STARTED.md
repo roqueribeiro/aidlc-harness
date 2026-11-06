@@ -13,30 +13,25 @@ The output excerpts below came from a real run of the kit (Linux, Node 22). On a
 Prerequisites: **Node 20.19 or newer** (`node --version`) and **git**.
 
 ```bash
-git clone https://github.com/roqueribeiro/aidlc-harness.git
-node aidlc-harness/scripts/setup.mjs
+npm install -g github:roqueribeiro/aidlc-harness
 ```
 
-`setup` puts the `aidlc-*` executables in a directory on your PATH (`~/.local/bin` on macOS and Linux, `%USERPROFILE%\.aidlc\bin` on Windows). It never overwrites a file that is not its own.
+This puts every `aidlc-*` executable on your `PATH`, on Linux, macOS and Windows (npm creates the `.cmd` shortcuts on Windows). The hooks of GitHub Copilot, Cursor and Codex call `aidlc-hook` by name, so they need this step. If you only want to try it, skip it and use `npx github:roqueribeiro/aidlc-harness <command>` in the next steps.
 
-**What you should see:** one line per executable and, at the end, `setup: 13 executáveis em <diretório>` (13 executables in <directory>). If the directory is not on your PATH, `setup` warns you: add it to your shell's PATH and open a new terminal.
-
-**Check:** `aidlc-gate --list` lists the technologies the kit knows.
-
-**Windows:** `setup` generates `.cmd` shortcuts. This has **not been tested** on a real Windows machine. If it fails, run the executables through `node <path>\plugins\aidlc-harness\tools\aidlc-gate` and open an issue with the output.
+**Check:** `aidlc-gate --list` lists the technologies the kit knows (10 today, from Node to Java, .NET and Go).
 
 ## 2. Connect the kit to your tool
 
-**Claude Code** (where the hooks really block):
+**Claude Code** (plugin with blocking hooks, agents and skills):
 
 ```bash
 claude plugin marketplace add roqueribeiro/aidlc-harness
 claude plugin install aidlc-harness@aidlc
 ```
 
-Inside a session, `/reload-plugins` and then `/context` should show `aidlc-harness` with its agents and hooks. For a local copy of the repository, use the path instead of `roqueribeiro/aidlc-harness`.
+Inside a session, `/reload-plugins` and then `/context` should show `aidlc-harness` with its agents and hooks.
 
-**Kiro and GitHub Copilot** do not load Claude Code plugins. They receive the project instructions (step 3) and use the step 1 executables from the terminal. The difference in guarantee is in [ADAPTERS.md](ADAPTERS.md): there, what enforces "done" is the CI, not a hook.
+**The other 14 tools** need nothing beyond step 3: `aidlc-init` writes the command, the skills and, where the tool allows, the hooks into the project. What each one gets, step by step, is in [TOOLS.md](TOOLS.md); the difference in guarantee is in [ADAPTERS.md](ADAPTERS.md).
 
 ## 3. Prepare the project
 
@@ -45,40 +40,59 @@ cd meu-projeto            # a git repository; new or existing
 aidlc-init --name "Meu Projeto" --desc "Cadastro de clientes"
 ```
 
-`aidlc-init` creates what is missing and **never overwrites**. To preview, use `--dry-run`. To generate instructions for only some tools, `--tools claude,copilot`.
+In a terminal, `aidlc-init` asks which AI tools the team uses, with the ones it found in the folder already checked; in CI or with `--tools claude,cursor,copilot` it does not ask. It creates what is missing and **never overwrites** what is yours: an existing `AGENTS.md` gets the kit rules in a managed block at the end, and existing hook files get the kit entries next to yours. To preview, use `--dry-run`.
 
-**What you should see:**
+**What you should see** (with Claude Code, Cursor and Copilot chosen):
 
 ```
 aidlc-init  /caminho/meu-projeto
   criado       AGENTS.md
   criado       CLAUDE.md
   criado       .github/copilot-instructions.md
-  criado       .kiro/steering/aidlc.md
   criado       context/product.md
   criado       context/kernel.md
   criado       .aidlc/config.json
   criado       .aidlc/identity.json
   criado       .github/workflows/aidlc-gate.yml
   criado       aidlc/README.md
-  criado       aidlc/inception/requirements.md   (e user-stories.md, units-of-work.md)
-  criado       aidlc/construction/design.md      (e test-plan.md)
+  criado       aidlc/construction/design.md
+  criado       aidlc/construction/test-plan.md
   criado       aidlc/decisions.md
+  criado       aidlc/inception/insumos/README.md
+  criado       aidlc/inception/requirements.md
+  criado       aidlc/inception/units-of-work.md
+  criado       aidlc/inception/user-stories.md
+  criado       aidlc/audit/.gitkeep
+  criado       .agents/skills/aidlc-inception/SKILL.md
+  criado       .agents/skills/aidlc-construction/SKILL.md
+  criado       .cursor/commands/aidlc-inception.md
+  criado       .cursor/commands/aidlc-construction.md
+  criado       .cursor/hooks.json
+  criado       .github/prompts/aidlc-inception.prompt.md
+  criado       .github/prompts/aidlc-construction.prompt.md
+  criado       .github/hooks/aidlc.json
+  criado       .aidlc/COMANDOS.md
+
+Proximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:
+  Claude Code                  /inception
+  Cursor                       /aidlc-inception
+  GitHub Copilot               /aidlc-inception  (no VS Code; no Copilot CLI, peça a skill aidlc-inception)
 ```
 
-(`criado` = created; `e` = and.)
+(`criado` = created. The last lines say what to type in each tool.)
 
 What each thing is:
 
 | File | What it is for |
 | --- | --- |
-| `AGENTS.md` | **The single source** of the instructions. Edit only this one. |
-| `CLAUDE.md`, `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Derived from `AGENTS.md`. `aidlc-init --check` fails if they diverge; `--sync` rewrites them. |
+| `AGENTS.md` | **The single source** of the rules. Edit outside the kit block (`aidlc:inicio` to `aidlc:fim`). |
+| `CLAUDE.md`, `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | Derived from `AGENTS.md` for the tools that need them. `aidlc-init --check` fails if they diverge; `--sync` rewrites them. |
+| `.agents/skills/`, the command and hook files of each tool | Generated from the kit adapters. Do not edit: `--check` fails, `--sync` rewrites. |
 | `context/product.md` | What the product is, who it is for, what has already been decided, and the vocabulary. **Fill it in by hand**: the AI must not invent this. |
-| `aidlc/` | The cycle's artifacts, versioned with the code. |
-| `.aidlc/config.json` | The kit's configuration for this project (all keys are optional). |
+| `aidlc/` | The cycle's artifacts, versioned with the code. `aidlc/inception/insumos/` is where you put what the AI should read first. |
+| `.aidlc/config.json`, `.aidlc/COMANDOS.md` | The chosen tools, and what to type in each one. |
 | `.aidlc/identity.json` | Exceptions to the identity scanner, each with a reason. |
-| `.github/workflows/aidlc-gate.yml` | The CI: identity, phase state and gate. |
+| `.github/workflows/aidlc-gate.yml` | The CI: identity, phase state and gate, with the setup steps of the detected stack. |
 
 Commit this in a single commit, before starting the work.
 

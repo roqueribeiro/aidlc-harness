@@ -83,7 +83,7 @@ describe('arquivos no formato e no caminho de cada ferramenta', () => {
   test('só Claude Code não gera skill copiada (o plugin traz) e o guia lista o comando', () => {
     const p = planoDosAdaptadores(['claude'])
     assert.deepEqual(p.map((x) => x.destino), ['.aidlc/COMANDOS.md'])
-    assert.match(p[0].conteudo, /\| Claude Code \| \/inception \|/)
+    assert.match(p[0].conteudo, /\| Claude Code \| `\/inception` \|/)
   })
 })
 

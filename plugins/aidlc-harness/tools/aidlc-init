@@ -115,5 +115,8 @@ for (const f of r.derivados) console.log(`  regravado    ${f}  (arquivo do kit, 
 for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
 
 console.log('\nProximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:')
-for (const f of ferramentas) console.log(`  ${ADAPTADORES[f].nome.padEnd(28)} ${ADAPTADORES[f].invocar.inception}`)
+for (const f of ferramentas) {
+  const inv = ADAPTADORES[f].invocar
+  console.log(`  ${ADAPTADORES[f].nome.padEnd(28)} ${inv.inception}${inv.nota ? `  (${inv.nota.pt})` : ''}`)
+}
 console.log('A lista fica em .aidlc/COMANDOS.md. Guia completo: docs/GETTING-STARTED.md do kit.')

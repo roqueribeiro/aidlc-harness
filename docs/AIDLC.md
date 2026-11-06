@@ -31,7 +31,7 @@ The post describes the *what* of the cycle; the kit adds controls that make "don
 - **Identity scanner**: nothing that identifies a person or infrastructure goes into the repository.
 - **Secrets vault** that the agent uses without seeing.
 - **Supply chain review** for a new dependency.
-- **Instructions for three tools** from one source, with a drift check.
+- **Instructions and phase commands for 15 AI tools** from one source, with a drift check.
 
 ## Where the kit departs from the method, or falls short
 

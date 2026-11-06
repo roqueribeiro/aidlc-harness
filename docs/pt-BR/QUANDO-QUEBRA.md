@@ -61,7 +61,7 @@ node scripts/install-git-hooks.mjs --check     # só reporta, exit 1 se faltar
 node scripts/install-git-hooks.mjs             # instala o pre-push
 ```
 
-O `pre-push` roda o `aidlc-gate` antes de deixar o push sair. Ele não sobrescreve hook alheio e respeita `core.hooksPath` e husky. Se `aidlc-gate` não está no `PATH`, o hook deixa passar: instalar o kit (`scripts/setup.mjs`) é parte do pré-requisito.
+O `pre-push` roda o `aidlc-gate` antes de deixar o push sair. Ele não sobrescreve hook alheio e respeita `core.hooksPath` e husky. Se `aidlc-gate` não está no `PATH`, o hook deixa passar: instalar o kit (`npm install -g github:roqueribeiro/aidlc-harness`) é parte do pré-requisito.
 
 ⚠️ **O gancho some sozinho.** `.git/hooks/` não é versionado, então ele desaparece em clone novo e máquina nova, calado. Por isso existe o `--check`.
 

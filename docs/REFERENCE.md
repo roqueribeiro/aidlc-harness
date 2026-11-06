@@ -12,7 +12,7 @@ Index: [Executables](#executables) · [Hooks](#hooks) · [Commands](#slash-comma
 
 ## Executables
 
-Dependency-free Node programs, installed on the `PATH` by `node scripts/setup.mjs`. They cost no tokens: they run outside the model. All of them accept `--json` when there is machine-readable output.
+Dependency-free Node programs, installed on the `PATH` by `npm install -g github:roqueribeiro/aidlc-harness` (or `node scripts/setup.mjs` from a clone). They cost no tokens: they run outside the model. All of them accept `--json` when there is machine-readable output.
 
 Note: the messages the executables print (for example `nada sobrando`, "não rodou", `PASSOU`, `FALHOU`, `PULADO`, `PENDENTE`) are in Portuguese, because that is what the programs actually print. This document quotes them verbatim and explains them in English.
 
@@ -300,7 +300,7 @@ The acceptance criteria as data. They live in `plugins/aidlc-harness/quality/<te
 | `dotnet` | `*.sln`, `*.slnx`, `*.csproj` or `*.fsproj` at the root | dotnet | `build`, `test`, `secscan`, `supply-chain` |
 | `go` | `go.mod` | go | `vet`, `test`, `secscan`, `supply-chain` |
 | `python-uv` | `pyproject.toml` + `uv.lock` | uv | `lint`, `format`, `lockfile`, `segredo`, `unit` |
-| `harness-self` | the plugin folder + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `identity` |
+| `harness-self` | the plugin folder + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `ferramentas`, `diagramas`, `referencia`, `i18n`, `links`, `identity` |
 
 `_org.json` is the **organization layer**: it is not a technology, it applies to every stack that matches its `when` (today the `lockfile` gate and the unit-closing evidence). A project manifest in `.aidlc/quality/<tech>.json` with the same `tech` **overrides** the kit one. The security gate template is in `templates/security/node-yarn-com-scan.json`.
 

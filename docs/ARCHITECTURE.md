@@ -15,7 +15,7 @@
 5. [The path of an edit: hooks in order](#5-the-path-of-an-edit-hooks-in-order)
 6. [Stop: how "done" earns evidence](#6-stop-how-done-earns-evidence)
 7. [Phases and human approval](#7-phases-and-human-approval)
-8. [One source of instructions, three tools](#8-one-source-of-instructions-three-tools)
+8. [One source, 15 AI tools](#8-one-source-15-ai-tools)
 9. [Security: the scan contract](#9-security-the-scan-contract)
 10. [Principles that run through the code](#10-principles-that-run-through-the-code)
 11. [Security of the kit itself](#11-security-of-the-kit-itself)
@@ -117,22 +117,22 @@ What the lock **proves** is the form: it exists, it is filled in, it has a name 
 
 The **Operations** phase is the thinnest in the kit: delivery and observation are left to your process; the kit offers `aidlc-cycle` (measure) and `aidlc-limpeza` (close the unit of work with no leftovers).
 
-## 8. One source of instructions, three tools
+## 8. One source, 15 AI tools
 
-![One source, three tools](assets/diagramas/multiferramenta.en.claro.svg)
+![One source, 15 AI tools](assets/diagramas/multiferramenta.en.claro.svg)
 
-`AGENTS.md` is the only instruction file you edit. `CLAUDE.md` imports it (`@AGENTS.md`) and adds only what belongs to Claude Code; the copies for Kiro (`.kiro/steering/aidlc.md`) and Copilot (`.github/copilot-instructions.md`) are **derived** by `aidlc-init --sync`, and `aidlc-init --check` in CI fails on divergence.
+The rules live in `AGENTS.md`, which every tool reads (Claude Code through `CLAUDE.md`, which imports it; Kiro and Copilot also get a derived copy). The method of each phase lives in the `aidlc-inception` and `aidlc-construction` skills, copied to `.agents/skills/`. For each chosen tool, `aidlc-init` generates the phase command in that tool's folder and format, naming its question window, and the hook file where the tool has hooks. The adapters are data, in `plugins/aidlc-harness/lib/adaptadores.mjs`; `aidlc-init --check` in CI fails when a generated file diverges.
 
 The difference that matters is **instruction versus mechanism**:
 
-| | Claude Code | Kiro | GitHub Copilot |
+| | Claude Code | GitHub Copilot, Cursor, Codex | The other 11 tools |
 | --- | --- | --- | --- |
-| Project instructions | yes | yes | yes |
-| Hooks that block (evidence at Stop, secret, package manager) | **yes** | no | no |
+| Project instructions and phase command | yes | yes | yes |
+| Hooks that block (evidence or green gate at the end, secret, package manager) | **yes** (plugin) | **yes** (`aidlc-hook`) | no |
 | `aidlc-*` executables | yes | yes | yes |
 | Gate in CI | yes | yes | yes |
 
-In Kiro and Copilot, what plays the role of the hooks is **CI** (`aidlc-gate.yml`) and human review. This is a limit, stated in the [REFERENCE](REFERENCE.md) and in [ADAPTERS.md](ADAPTERS.md), not a detail to discover later.
+Where there are no hooks, what plays their role is **CI** (`aidlc-gate.yml`) and human review. This is a limit, stated in [ADAPTERS.md](ADAPTERS.md) and in the page of each tool ([TOOLS.md](TOOLS.md)), not a detail to discover later.
 
 ## 9. Security: the scan contract
 

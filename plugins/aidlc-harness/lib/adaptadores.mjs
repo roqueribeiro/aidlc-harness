@@ -72,7 +72,7 @@ export const ADAPTADORES = {
     pergunta: 'a ferramenta de perguntas do VS Code, #tool:vscode/askQuestions (escolha única ou múltipla, texto livre, recomendada destacada); no Copilot CLI, a ferramenta `ask_user`',
     args: '${input:pedido:o que se quer construir, em uma frase}',
     comandos: (f) => ({ destino: `.github/prompts/aidlc-${f}.prompt.md`, formato: 'md', frente: { description: descricao(f), agent: 'agent' } }),
-    invocar: { inception: '/aidlc-inception (VS Code) ou "use a skill aidlc-inception" (CLI)', construction: '/aidlc-construction (VS Code)' },
+    invocar: { inception: '/aidlc-inception', construction: '/aidlc-construction', nota: { pt: 'no VS Code; no Copilot CLI, peça a skill aidlc-inception', en: 'in VS Code; in the Copilot CLI, ask for the aidlc-inception skill' } },
     extras: () => [],
   },
   cursor: {
@@ -101,7 +101,7 @@ export const ADAPTADORES = {
     nome: 'Google Antigravity',
     ferramentaDePergunta: null,
     pergunta: 'o seletor de respostas do Antigravity (opções clicáveis e "Write-in")',
-    invocar: { inception: '/aidlc-inception (a skill vira comando)', construction: '/aidlc-construction' },
+    invocar: { inception: '/aidlc-inception', construction: '/aidlc-construction', nota: { pt: 'a skill vira comando', en: 'the skill becomes a command' } },
     soSkill: true,
   },
   kiro: {
@@ -110,7 +110,7 @@ export const ADAPTADORES = {
     pergunta: null,
     args: 'o texto que veio junto com o comando',
     comandos: (f) => ({ destino: `.kiro/steering/aidlc-${f}.md`, formato: 'md', frente: { inclusion: 'manual' } }),
-    invocar: { inception: '/aidlc-inception (ou #aidlc-inception no chat)', construction: '/aidlc-construction' },
+    invocar: { inception: '/aidlc-inception', construction: '/aidlc-construction', nota: { pt: 'ou #aidlc-inception no chat', en: 'or #aidlc-inception in the chat' } },
     skillsEm: '.kiro/skills',
   },
   codex: {
@@ -126,14 +126,14 @@ export const ADAPTADORES = {
     },
     ferramentaDePergunta: 'request_user_input',
     pergunta: 'a ferramenta `request_user_input` (até 3 perguntas por chamada, recomendada primeiro). Ela só existe no modo Plan: entre com /plan antes',
-    invocar: { inception: '/plan e depois $aidlc-inception', construction: '$aidlc-construction' },
+    invocar: { inception: '$aidlc-inception', construction: '$aidlc-construction', nota: { pt: 'depois de entrar no modo Plan com /plan', en: 'after entering Plan mode with /plan' } },
     soSkill: true,
   },
   devin: {
     nome: 'Devin Desktop (ex-Windsurf)',
     ferramentaDePergunta: 'ask_user_question',
     pergunta: 'a ferramenta `ask_user_question` (opções clicáveis e "Other")',
-    invocar: { inception: '/aidlc-inception (a skill vira comando)', construction: '/aidlc-construction' },
+    invocar: { inception: '/aidlc-inception', construction: '/aidlc-construction', nota: { pt: 'a skill vira comando', en: 'the skill becomes a command' } },
     soSkill: true,
   },
   cline: {
@@ -172,7 +172,7 @@ export const ADAPTADORES = {
     nome: 'Zed',
     ferramentaDePergunta: null,
     pergunta: null,
-    invocar: { inception: '/aidlc-inception (a skill vira comando)', construction: '/aidlc-construction' },
+    invocar: { inception: '/aidlc-inception', construction: '/aidlc-construction', nota: { pt: 'a skill vira comando', en: 'the skill becomes a command' } },
     soSkill: true,
   },
 }
@@ -267,7 +267,8 @@ export function guiaDeComandos(ferramentas) {
   const linhas = ferramentas.map((id) => {
     const a = ADAPTADORES[id]
     const janela = a.ferramentaDePergunta ? `\`${a.ferramentaDePergunta}\`` : a.pergunta ? 'seletor nativo' : 'em texto, com letras'
-    return `| ${a.nome} | ${a.invocar.inception} | ${a.invocar.construction} | ${janela} |`
+    const nota = a.invocar.nota ? ` (${a.invocar.nota.pt})` : ''
+    return `| ${a.nome} | \`${a.invocar.inception}\`${nota} | \`${a.invocar.construction}\` | ${janela} |`
   })
   return [
     '# Comandos do AI-DLC neste projeto',

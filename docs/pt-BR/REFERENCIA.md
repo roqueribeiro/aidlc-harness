@@ -12,7 +12,7 @@
 
 ## Executáveis
 
-Programas Node sem dependência, instalados no `PATH` por `node scripts/setup.mjs`. Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
+Programas Node sem dependência, instalados no `PATH` por `npm install -g github:roqueribeiro/aidlc-harness` (ou `node scripts/setup.mjs` a partir de um clone). Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
 
 | Executável | Para que serve |
 | --- | --- |
@@ -298,7 +298,7 @@ O critério de aceite como dado. Ficam em `plugins/aidlc-harness/quality/<tech>.
 | `dotnet` | `*.sln`, `*.slnx`, `*.csproj` ou `*.fsproj` na raiz | dotnet | `build`, `test`, `secscan`, `supply-chain` |
 | `go` | `go.mod` | go | `vet`, `test`, `secscan`, `supply-chain` |
 | `python-uv` | `pyproject.toml` + `uv.lock` | uv | `lint`, `format`, `lockfile`, `segredo`, `unit` |
-| `harness-self` | a pasta do plugin + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `identity` |
+| `harness-self` | a pasta do plugin + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `ferramentas`, `diagramas`, `referencia`, `i18n`, `links`, `identity` |
 
 `_org.json` é a **camada da organização**: não é tecnologia, vale para toda stack que casar o `when` (hoje o gate `lockfile` e a evidência de fechamento de unidade). Um manifesto de projeto em `.aidlc/quality/<tech>.json` com o mesmo `tech` **sobrescreve** o do kit. O modelo de gate de segurança está em `templates/security/node-yarn-com-scan.json`.
 

@@ -214,37 +214,29 @@ function varredura(d) {
 
 // 7 ------------------------------------------------------------------------------------------
 function multiferramenta(d) {
-  d.titulo('Uma fonte de instruções, três ferramentas', 'AGENTS.md é a única que se edita. As outras são derivadas, e o CI reprova divergência.')
-  d.caixa(40, 200, 270, 130, 'AGENTS.md', ['a fonte única', 'regras, fases, comandos'], { tipo: 'destaque' })
-  d.caixa(450, 110, 330, 90, 'CLAUDE.md', ['importa @AGENTS.md', 'mais o que é só do Claude Code'], { tipo: 'neutro' })
-  d.caixa(450, 230, 330, 90, '.kiro/steering/aidlc.md', ['cópia derivada, inclusion: always'], { tipo: 'neutro' })
-  d.caixa(450, 350, 330, 90, '.github/copilot-instructions.md', ['cópia derivada'], { tipo: 'neutro' })
-  d.seta([[310, 265], [380, 265], [380, 155], [450, 155]])
-  d.seta([[380, 275], [450, 275]])
-  d.seta([[310, 265], [380, 265], [380, 395], [450, 395]])
-  d.texto(388, 147, '@import', { tam: 11 })
-  d.texto(388, 268, 'sync', { tam: 11 })
-  d.texto(388, 387, 'sync', { tam: 11 })
+  d.titulo('Uma fonte, 15 ferramentas de IA', 'O método mora em um lugar; o aidlc-init gera a camada de cada ferramenta, e o CI reprova divergência.')
+  d.caixa(40, 160, 300, 120, 'A fonte', ['AGENTS.md: as regras', '.agents/skills: o método de', 'cada fase (Inception, Construction)'], { tipo: 'destaque' })
+  d.caixa(400, 165, 260, 110, 'aidlc-init', ['gera comando, skill e hook', 'no formato de cada ferramenta;', '--check e --sync'], { tipo: 'neutro' })
+  d.seta([[340, 220], [400, 220]])
 
-  d.caixa(860, 110, 300, 90, 'Claude Code', ['hooks e gate bloqueiam'], { tipo: 'verde' })
-  d.caixa(860, 230, 300, 90, 'Kiro', ['instruções; o CI cobra'], { tipo: 'ambar' })
-  d.caixa(860, 350, 300, 90, 'GitHub Copilot', ['instruções; o CI cobra'], { tipo: 'ambar' })
-  d.seta([[780, 155], [860, 155]])
-  d.seta([[780, 275], [860, 275]])
-  d.seta([[780, 395], [860, 395]])
+  d.caixa(740, 100, 420, 90, 'Janela de perguntas e hooks', ['Claude Code (plugin);', 'GitHub Copilot, Cursor e Codex (aidlc-hook)'], { tipo: 'verde' })
+  d.caixa(740, 215, 420, 90, 'Janela de perguntas; o CI cobra', ['OpenCode, Kilo Code, Gemini CLI, Antigravity,', 'Devin, Junie, Cline, Continue'], { tipo: 'neutro' })
+  d.caixa(740, 330, 420, 90, 'Pergunta em texto; o CI cobra', ['Kiro, Augment e Zed: opções em letras,', 'a recomendada marcada, ok aceita todas'], { tipo: 'ambar' })
+  d.seta([[660, 220], [700, 220], [700, 145], [740, 145]])
+  d.seta([[700, 220], [700, 260], [740, 260]])
+  d.seta([[700, 260], [700, 375], [740, 375]])
 
-  d.caixa(40, 490, 540, 110, 'aidlc-init', ['cria o esqueleto do projeto', '--check: reprova se uma cópia divergiu', '--sync: regenera as cópias a partir do AGENTS.md'], { mono: false })
-  d.caixa(620, 490, 540, 110, 'No CI (aidlc-gate.yml)', ['roda aidlc-init --check e aidlc-gate', 'é isso que cobra em Kiro e Copilot,', 'onde não existe hook bloqueante'], { tipo: 'ambar' })
+  d.caixa(40, 450, 1120, 80, 'No CI, em todas (aidlc-gate.yml)', ['roda aidlc-identity, aidlc-init --check, aidlc-phase e aidlc-gate a cada push: é isso que cobra onde a ferramenta não tem hook'], { tipo: 'ambar' })
 }
 
 // 8 ------------------------------------------------------------------------------------------
 function instalacao(d) {
-  d.titulo('Instalação, do clone ao primeiro gate', 'Uma máquina, uma vez; depois, um comando por projeto.')
+  d.titulo('Instalação, do zero ao primeiro gate', 'Um comando por máquina; depois, um comando por projeto.')
   const passos = [
-    ['Obter o kit', ['git clone do repositório', 'ou o marketplace aidlc'], 'neutro'],
-    ['scripts/setup.mjs', ['põe os aidlc-* no PATH', '--check e --uninstall'], 'destaque'],
-    ['Plugin no Claude Code', ['marketplace add e', 'plugin install'], 'destaque'],
-    ['aidlc-init', ['esqueleto do projeto e', 'instruções das 3 IAs'], 'verde'],
+    ['Instalar o kit', ['npm install -g, com', 'o pacote do GitHub'], 'destaque'],
+    ['Plugin no Claude Code', ['só para quem usa', 'o Claude Code'], 'neutro'],
+    ['aidlc-init', ['pergunta as ferramentas e', 'gera a camada de cada uma'], 'verde'],
+    ['Inception', ['o comando da ferramenta,', 'com uma frase do pedido'], 'verde'],
     ['doctor e gate', ['nota do repositório e o', 'critério de aceite rodando'], 'verde'],
   ]
   passos.forEach(([titulo, linhas, tipo], i) => {
@@ -253,9 +245,9 @@ function instalacao(d) {
     d.passo(x + 12, 118, i + 1)
     if (i < passos.length - 1) d.seta([[x + 210, 185], [x + 226, 185]])
   })
-  d.caixa(40, 300, 540, 130, 'Opcional, por clone', ['node scripts/install-git-hooks.mjs', 'instala o pre-push que roda o aidlc-gate', 'e nunca sobrescreve hook alheio'], { mono: false })
-  d.caixa(620, 300, 540, 130, 'Para publicar o seu fork', ['node scripts/definir-dono.mjs --owner <org>', 'troca os marcadores de dono e de', 'contato; --check lista o que falta'], { mono: false })
-  d.caixa(40, 470, 1120, 100, 'Sem dependências de execução', ['O kit é Node puro: não há npm install nem yarn install para o kit em si. Requer Node 20.19 ou mais novo e git.'], { tipo: 'verde' })
+  d.caixa(40, 300, 540, 130, 'Só experimentar', ['npx github:roqueribeiro/aidlc-harness init', 'roda sem instalar nada; os hooks do Copilot,', 'do Cursor e do Codex pedem a instalação'], { mono: false })
+  d.caixa(620, 300, 540, 130, 'Linux, macOS e Windows', ['o npm cria os atalhos de cada sistema;', 'o CI testa a instalação do pacote', 'nos três, a cada push'], { mono: false })
+  d.caixa(40, 470, 1120, 100, 'Sem dependências de execução', ['O kit é Node puro: não instala nenhum pacote de terceiros. Requer Node 20.19 ou mais novo e git.'], { tipo: 'verde' })
 }
 
 // 9 ------------------------------------------------------------------------------------------
@@ -432,7 +424,7 @@ export const DIAGRAMAS = [
   { arquivo: 'fases', desc: 'Fases do AI-DLC e aprovação humana', largura: 1200, altura: 680, desenha: fases },
   { arquivo: 'camadas', desc: 'Camadas de manifesto', largura: 1200, altura: 670, desenha: camadas },
   { arquivo: 'varredura', desc: 'Contrato de varredura', largura: 1200, altura: 680, desenha: varredura },
-  { arquivo: 'multiferramenta', desc: 'Uma fonte de instruções, três ferramentas', largura: 1200, altura: 630, desenha: multiferramenta },
+  { arquivo: 'multiferramenta', desc: 'Uma fonte, 15 ferramentas de IA', largura: 1200, altura: 570, desenha: multiferramenta },
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
   { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true },

@@ -1,8 +1,8 @@
-# Prompts para Kiro e GitHub Copilot
+# Texto dos comandos do Claude Code
 
 > **Arquivo gerado.** A fonte são os comandos em `plugins/aidlc-harness/commands/`. Não edite aqui: edite o comando e rode `node scripts/gerar-prompts.mjs`. O CI confere com `--check`.
 
-No Claude Code, estes textos são os comandos `/aidlc-harness:inception` e `/aidlc-harness:construction`. Em Kiro e Copilot, que não carregam o plugin, cole o texto abaixo no chat do agente, trocando o trecho entre colchetes pelo seu pedido.
+No Claude Code, estes textos são os comandos `/aidlc-harness:inception` e `/aidlc-harness:construction`. As outras ferramentas não precisam colar nada: o `aidlc-init` gera o comando de cada uma no formato dela (veja `docs/pt-BR/FERRAMENTAS.md`). O método completo de cada fase está nas skills `aidlc-inception` e `aidlc-construction`.
 
 ## Inception
 

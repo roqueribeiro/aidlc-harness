@@ -15,7 +15,7 @@
 5. [O caminho de uma edição: hooks em ordem](#5-o-caminho-de-uma-edição-hooks-em-ordem)
 6. [O Stop: como "pronto" ganha evidência](#6-o-stop-como-pronto-ganha-evidência)
 7. [As fases e a aprovação humana](#7-as-fases-e-a-aprovação-humana)
-8. [Uma fonte de instruções, três ferramentas](#8-uma-fonte-de-instruções-três-ferramentas)
+8. [Uma fonte, 15 ferramentas de IA](#8-uma-fonte-15-ferramentas-de-ia)
 9. [Segurança: o contrato de varredura](#9-segurança-o-contrato-de-varredura)
 10. [Princípios que atravessam o código](#10-princípios-que-atravessam-o-código)
 11. [Segurança do próprio kit](#11-segurança-do-próprio-kit)
@@ -117,22 +117,22 @@ O que a trava **prova** é a forma: existe, está preenchido, tem nome e data qu
 
 A fase **Operations** é a mais fina do kit: entrega e observação ficam com o seu processo; o kit oferece `aidlc-cycle` (medir) e `aidlc-limpeza` (fechar a unidade sem sobras).
 
-## 8. Uma fonte de instruções, três ferramentas
+## 8. Uma fonte, 15 ferramentas de IA
 
-![Uma fonte, três ferramentas](../assets/diagramas/multiferramenta.claro.svg)
+![Uma fonte, 15 ferramentas de IA](../assets/diagramas/multiferramenta.claro.svg)
 
-`AGENTS.md` é o único arquivo de instrução que se edita. `CLAUDE.md` o importa (`@AGENTS.md`) e acrescenta só o que é do Claude Code; as cópias para Kiro (`.kiro/steering/aidlc.md`) e Copilot (`.github/copilot-instructions.md`) são **derivadas** por `aidlc-init --sync`, e `aidlc-init --check` no CI reprova divergência.
+As regras moram no `AGENTS.md`, que todas as ferramentas leem (o Claude Code pelo `CLAUDE.md`, que o importa; Kiro e Copilot também recebem uma cópia derivada). O método de cada fase mora nas skills `aidlc-inception` e `aidlc-construction`, copiadas para `.agents/skills/`. Para cada ferramenta escolhida, o `aidlc-init` gera o comando da fase na pasta e no formato da ferramenta, nomeando a janela de perguntas dela, e o arquivo de hook onde a ferramenta tem hooks. Os adaptadores são dado, em `plugins/aidlc-harness/lib/adaptadores.mjs`; o `aidlc-init --check` no CI reprova quando um arquivo gerado diverge.
 
 A diferença que importa é **instrução versus mecanismo**:
 
-| | Claude Code | Kiro | GitHub Copilot |
+| | Claude Code | GitHub Copilot, Cursor, Codex | As outras 11 ferramentas |
 | --- | --- | --- | --- |
-| Instruções do projeto | sim | sim | sim |
-| Hooks que bloqueiam (evidência no Stop, segredo, gerenciador) | **sim** | não | não |
+| Instruções do projeto e comando da fase | sim | sim | sim |
+| Hooks que bloqueiam (evidência ou gate verde no fim, segredo, gerenciador) | **sim** (plugin) | **sim** (`aidlc-hook`) | não |
 | Executáveis `aidlc-*` | sim | sim | sim |
 | Gate no CI | sim | sim | sim |
 
-Em Kiro e Copilot, o que faz o papel dos hooks é o **CI** (`aidlc-gate.yml`) e a revisão humana. Isso é um limite, dito na [REFERÊNCIA](REFERENCIA.md) e no [ADAPTADORES.md](ADAPTADORES.md), não um detalhe a descobrir depois.
+Onde não há hooks, o que faz o papel deles é o **CI** (`aidlc-gate.yml`) e a revisão humana. Isso é um limite, dito no [ADAPTADORES.md](ADAPTADORES.md) e na página de cada ferramenta ([FERRAMENTAS.md](FERRAMENTAS.md)), não um detalhe a descobrir depois.
 
 ## 9. Segurança: o contrato de varredura
 

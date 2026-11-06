@@ -45,7 +45,8 @@
     "check:referencia": "node scripts/check-reference.mjs",
     "check:links": "node scripts/check-links.mjs",
     "check:identidade": "node plugins/aidlc-harness/tools/aidlc-identity",
-    "verificar": "yarn test && yarn check:plugin && yarn check:manifestos && yarn check:docs && yarn check:prompts && yarn check:diagramas && yarn check:referencia && yarn check:links && yarn check:identidade",
-    "check:pacote": "node --test scripts/pacote.test.mjs"
+    "verificar": "yarn test && yarn check:plugin && yarn check:manifestos && yarn check:docs && yarn check:prompts && yarn check:ferramentas && yarn check:diagramas && yarn check:referencia && yarn check:links && yarn check:identidade",
+    "check:pacote": "node --test scripts/pacote.test.mjs",
+    "check:ferramentas": "node scripts/gerar-ferramentas.mjs --check"
   }
 }
