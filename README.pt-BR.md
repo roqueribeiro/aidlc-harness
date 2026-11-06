@@ -33,6 +33,11 @@
 > [!NOTE]
 > **Versão 0.2, pré-lançamento.** Tudo o que está descrito aqui existe e tem teste, e o CI roda em Linux, macOS e Windows. Quais ferramentas de IA foram exercidas numa máquina de verdade está dito ferramenta por ferramenta em [Estado do projeto](#estado-do-projeto). Este projeto é uma interpretação prática do AI-DLC; não é documentação nem produto da AWS ([docs/pt-BR/AIDLC.md](docs/pt-BR/AIDLC.md)). Também em [inglês](README.md).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/ciclo.escuro.svg">
+  <img alt="O ciclo que o kit cobra: o pedido passa pela Inception, pela aprovação de uma pessoa, pela Construction e pelo gate; sem evidência o gate devolve, e só então fica pronto." src="docs/assets/diagramas/ciclo.claro.svg">
+</picture>
+
 ## Conteúdo
 
 - [Começar em um minuto](#começar-em-um-minuto)
@@ -159,7 +164,7 @@ A lista de achados desse relatório está vazia, e mesmo assim o resultado **nã
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **510 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
+| Suíte de testes (`node --test`) | **512 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
 | Integração contínua | verde em **Linux, macOS e Windows**, Node 20, 22 e 24 | GitHub Actions a cada push, com o teste de máquina limpa e o pacote instalado |
 | Instalar com `npx github:…` e `npm install -g github:…` | funciona | rodado a partir do GitHub em 06/11/2026, e no CI a partir do pacote empacotado, nos três sistemas |
 | Primeira execução sem nada instalado | `init`, hooks, fases e gate verde (Trivy baixado e conferido) a partir da cópia no projeto, e um clone novo | `scripts/primeira-execucao.test.mjs`, no CI em Linux, macOS e Windows, sem `aidlc` no `PATH` e com o home vazio |

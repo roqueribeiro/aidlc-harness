@@ -302,6 +302,55 @@ function roqueshield(d) {
   d.caixa(620, 495, 540, 120, 'O que o kit não presume', ['Que a plataforma esteja no ar: sem relatório,', 'a saída é 2 (não rodou), nunca limpo.', 'Integração validada contra a documentação dela.'], { tipo: 'ambar' })
 }
 
+// O ciclo, animado ---------------------------------------------------------------------------
+/**
+ * O fluxo que o kit cobra, em movimento: um pacote de trabalho anda do pedido ao pronto, passa por
+ * cada portão e, no gate, um "pronto" sem evidência volta antes de passar. Só CSS dentro do SVG
+ * (o GitHub roda animação de SVG em <img>, nunca script). Quem pede menos movimento no sistema
+ * (prefers-reduced-motion) vê o quadro final parado: o pacote já no pronto.
+ */
+function ciclo(d) {
+  d.titulo('O ciclo que o kit cobra', 'Um pedido só chega a pronto passando por cada portão; sem evidência, o gate devolve.')
+  const estacoes = [
+    ['Pedido', ['uma frase do', 'que se quer'], 'neutro'],
+    ['Inception', ['rascunho completo,', 'até 5 perguntas'], 'destaque'],
+    ['Aprovação', ['uma pessoa assina', 'o arquivo'], 'roxo'],
+    ['Construction', ['código e teste', 'no mesmo diff'], 'destaque'],
+    ['Gate', ['saída crua do', 'teste no chat'], 'ambar'],
+    ['Pronto', ['com evidência', 'registrada'], 'verde'],
+  ]
+  const X = (i) => 40 + i * 192
+  estacoes.forEach(([t, l, tipo], i) => d.caixa(X(i), 104, 160, 96, t, l, { tipo }))
+  const Y = 254
+  const rejeita = d.tr('sem evidência: volta para o agente')
+  const nota = d.tr('No Claude Code, Copilot, Cursor e Codex quem devolve é o hook; em todas, o CI barra o merge.')
+  const realce = (i, cor, nome) => `<rect class="cc-a ${nome}" x="${X(i) - 3}" y="101" width="166" height="102" rx="11" fill="none" stroke="${cor}" stroke-width="3"/>`
+  d.bruto((t) =>
+    `<style>` +
+    `.cc-a{animation-duration:12s;animation-iteration-count:infinite;animation-timing-function:cubic-bezier(.4,0,.2,1)}` +
+    `.cc-pk{transform:translateX(960px);fill:${t.verde};animation-name:cc-anda,cc-cor}` +
+    `@keyframes cc-anda{0%{transform:translateX(0);opacity:0}3%{opacity:1}8%,14%{transform:translateX(192px)}20%,28%{transform:translateX(384px)}34%,42%{transform:translateX(576px)}48%{transform:translateX(742px)}50%{transform:translateX(752px)}55%,59%{transform:translateX(600px)}65%{transform:translateX(768px)}73%,94%{transform:translateX(960px);opacity:1}99%,100%{transform:translateX(960px);opacity:0}}` +
+    `@keyframes cc-cor{0%,46%{fill:${t.destaque}}48%,56%{fill:${t.vermelho}}60%,64%{fill:${t.destaque}}68%,100%{fill:${t.verde}}}` +
+    `.cc-r{opacity:0}.cc-r1{animation-name:cc-r1}.cc-r2{animation-name:cc-r2}.cc-r3{animation-name:cc-r3}.cc-g1{animation-name:cc-g1}.cc-g2{animation-name:cc-g2}.cc-p{opacity:1;animation-name:cc-p}.cc-x{opacity:0;animation-name:cc-x}` +
+    `@keyframes cc-r1{0%,6%{opacity:0}9%,14%{opacity:1}18%,100%{opacity:0}}` +
+    `@keyframes cc-r2{0%,18%{opacity:0}21%,28%{opacity:1}32%,100%{opacity:0}}` +
+    `@keyframes cc-r3{0%,32%{opacity:0}35%,42%{opacity:1}46%,100%{opacity:0}}` +
+    `@keyframes cc-g1{0%,47%{opacity:0}50%,56%{opacity:1}60%,100%{opacity:0}}` +
+    `@keyframes cc-g2{0%,63%{opacity:0}66%,72%{opacity:1}76%,100%{opacity:0}}` +
+    `@keyframes cc-p{0%,71%{opacity:0}75%,94%{opacity:1}99%,100%{opacity:0}}` +
+    `@keyframes cc-x{0%,48%{opacity:0}50%,59%{opacity:1}62%,100%{opacity:0}}` +
+    `@media (prefers-reduced-motion: reduce){.cc-a{animation:none!important}}` +
+    `</style>` +
+    `<line x1="120" y1="${Y}" x2="1080" y2="${Y}" stroke="${t.borda}" stroke-width="2"/>` +
+    estacoes.map((_, i) => `<circle cx="${120 + i * 192}" cy="${Y}" r="5" fill="${t.fundo}" stroke="${t.suave}" stroke-width="1.6"/>`).join('') +
+    realce(1, t.destaque, 'cc-r cc-r1') + realce(2, t.roxo, 'cc-r cc-r2') + realce(3, t.destaque, 'cc-r cc-r3') +
+    realce(4, t.vermelho, 'cc-r cc-g1') + realce(4, t.verde, 'cc-r cc-g2') + realce(5, t.verde, 'cc-r cc-p') +
+    `<text class="cc-a cc-x" x="888" y="${Y + 34}" font-size="13" font-weight="700" text-anchor="middle" fill="${t.vermelho}">${rejeita}</text>` +
+    `<circle class="cc-a cc-pk" cx="120" cy="${Y}" r="10"/>` +
+    `<text x="32" y="${Y + 82}" font-size="13" fill="${t.suave}">${nota}</text>`,
+  )
+}
+
 // Marca ---------------------------------------------------------------------------------------
 /**
  * A marca: três chevrons subindo (as fases do AI-DLC) através de um anel aberto embaixo (o gate).
@@ -350,6 +399,7 @@ export const DIAGRAMAS = [
   { arquivo: 'multiferramenta', desc: 'Uma fonte, 15 ferramentas de IA', largura: 1200, altura: 570, desenha: multiferramenta },
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
+  { arquivo: 'ciclo', desc: 'O ciclo que o kit cobra, animado', largura: 1200, altura: 360, desenha: ciclo },
   { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true, transparente: true },
   { arquivo: 'social-preview', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA', largura: 1280, altura: 640, desenha: social },
   { arquivo: 'roqueshield', desc: 'RoqueShield e o kit: o laço de varredura', largura: 1200, altura: 650, desenha: roqueshield },

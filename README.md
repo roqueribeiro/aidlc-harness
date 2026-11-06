@@ -33,6 +33,11 @@
 > [!NOTE]
 > **Version 0.2, pre-release.** Everything described here exists and has tests, and CI runs on Linux, macOS and Windows. Which AI tools were exercised on a real machine is stated tool by tool in [Project status](#project-status). This project is a practical interpretation of AI-DLC; it is not AWS documentation or an AWS product ([docs/AIDLC.md](docs/AIDLC.md)).
 
+<picture>
+  <source media="(prefers-color-scheme: dark)" srcset="docs/assets/diagramas/ciclo.en.escuro.svg">
+  <img alt="The cycle the kit enforces: a request goes through Inception, a person's approval, Construction and the gate; without evidence the gate sends it back, and only then it is done." src="docs/assets/diagramas/ciclo.en.claro.svg">
+</picture>
+
 ## Contents
 
 - [Get started in one minute](#get-started-in-one-minute)
@@ -159,7 +164,7 @@ The list of findings in that report is empty, and the result is still **not** cl
 
 | Item | Status | How it was measured |
 | --- | --- | --- |
-| Test suite (`node --test`) | **510 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
+| Test suite (`node --test`) | **512 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
 | Continuous integration | green on **Linux, macOS and Windows**, Node 20, 22 and 24 | GitHub Actions on every push, including the clean-machine test and the installed package |
 | Install with `npx github:…` and `npm install -g github:…` | works | run from GitHub on 2026-11-06, and in CI from a packed tarball on the three systems |
 | First run with nothing installed | `init`, hooks, phases and a green gate (Trivy downloaded and checked) from the project copy, and a fresh clone | `scripts/primeira-execucao.test.mjs`, in CI on Linux, macOS and Windows with no `aidlc` on the `PATH` and an empty home |

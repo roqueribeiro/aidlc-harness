@@ -187,3 +187,21 @@ describe('contraste das cores do design system nos diagramas', () => {
     })
   }
 })
+
+describe('diagrama animado', () => {
+  const RAIZ_ = join(fileURLToPath(new URL('.', import.meta.url)), '..')
+  const arquivos = ['ciclo.claro.svg', 'ciclo.escuro.svg', 'ciclo.en.claro.svg', 'ciclo.en.escuro.svg']
+  test('anima só com CSS (o GitHub não roda script em SVG) e para com prefers-reduced-motion', () => {
+    for (const f of arquivos) {
+      const svg = readFileSync(join(RAIZ_, 'docs/assets/diagramas', f), 'utf8')
+      assert.match(svg, /@keyframes cc-anda/, f)
+      assert.match(svg, /@media \(prefers-reduced-motion: reduce\)\{\.cc-a\{animation:none!important\}\}/, f)
+      assert.doesNotMatch(svg, /<script|on[a-z]+=|javascript:/i, f)
+    }
+  })
+  test('sem animação, o quadro parado é o final: o pacote verde no pronto', () => {
+    const svg = readFileSync(join(RAIZ_, 'docs/assets/diagramas/ciclo.claro.svg'), 'utf8')
+    assert.match(svg, new RegExp(`\\.cc-pk\\{transform:translateX\\(960px\\);fill:${TEMAS.claro.verde}`))
+    assert.match(svg, /\.cc-p\{opacity:1;/)
+  })
+})
