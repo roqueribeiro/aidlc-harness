@@ -62,7 +62,7 @@ jobs:
         with:
           node-version: 22
       - name: Maquina limpa
-        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs
+        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs scripts/pacote.test.mjs
 
   # O workflow que o aidlc-init gera instala o trivy por esta action: confere que ele fica no PATH.
   ci-gerado-trivy:
