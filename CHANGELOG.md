@@ -4,6 +4,8 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 
 ## [Unreleased]
 
+## [0.2.0] - 2026-11-06
+
 ### Fixed
 
 - `aidlc-init` in a repository that already has an `AGENTS.md`: the kit rules now go into a managed block (`<!-- aidlc:inicio -->` to `<!-- aidlc:fim -->`) appended to the team's file, and the Copilot and Kiro copies derive from the final file. Before, `aidlc-init --check` failed right after `aidlc-init` and the AI-DLC rules never reached the project. `--check` now fails when the block is missing; `--sync` refreshes only the inside of the block.
@@ -28,7 +30,12 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 - `.gitattributes` keeps the kit's files LF; `aidlc-init` also tolerates CRLF files (a Windows clone with `autocrlf` made `--check` fail on the project `init` had just created).
 - Manifests for `node-pnpm`, `node-bun`, `java-maven`, `java-gradle`, `dotnet` and `go`. Detection accepts root-level patterns such as `*.csproj`.
 - The generated CI workflow installs `trivy` (pinned by commit) and the dependencies of the detected technology, from the new `ci.setup` manifest field. Before, a clean runner failed `aidlc-secscan` and the tests for reasons that were not the project's.
+- **Verification records.** A tool page says "Verified on a real machine: yes" only when `docs/compatibilidade/<tool>.json` lists the version, system, date and screenshots that exist in `docs/assets/compatibilidade/<tool>/`; a broken record fails the generator. No tool has a record yet: every page says "not yet".
 - `scripts/e2e-maquina-limpa.test.mjs`: setup, init, check, gate and doctor through the `PATH`, with an empty `HOME`, for seven technologies; CI runs it on Linux, macOS and Windows.
+
+### Limits
+
+CI runs the clean-machine and installed-package tests on Linux, macOS and Windows with Node 20, 22 and 24. The real gates of Go, bun, Maven, pnpm and yarn were run green and red; Gradle and .NET were not. The question-window behavior of each tool comes from its official documentation: no tool session was recorded yet (see "Contributing a verification" in `docs/ADAPTERS.md`).
 
 ## [0.1.0] - 2026-10-23
 

@@ -21,10 +21,41 @@ import { ADAPTADORES, FERRAMENTAS, planoDosAdaptadores } from '../plugins/aidlc-
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 const INSTALAR = 'npx github:roqueribeiro/aidlc-harness init'
 export const VERIFICADO_EM = '2026-11-06'
+export const COMPAT_DIR = 'docs/compatibilidade'
+
+/*
+ * Verificado em máquina de verdade só com registro e print. Um registro é
+ * docs/compatibilidade/<id>.json:
+ *   { "versao": "1.2.3", "data": "AAAA-MM-DD", "sistema": "macOS 15", "prints": ["docs/assets/compatibilidade/<id>/janela.png"],
+ *     "viu": { "regras": true, "janela": true, "hooks": false } }
+ * Sem registro, a página diz "ainda não". Registro quebrado (campo faltando, print que não existe, print fora da pasta
+ * da ferramenta) reprova o gerador: um "sim" sem prova é pior que um "não".
+ */
+export function lerVerificacao(id, raiz = RAIZ) {
+  const arq = join(raiz, COMPAT_DIR, `${id}.json`)
+  if (!existsSync(arq)) return null
+  let r
+  try {
+    r = JSON.parse(readFileSync(arq, 'utf8'))
+  } catch (e) {
+    throw new Error(`${COMPAT_DIR}/${id}.json: JSON inválido (${e.message})`)
+  }
+  const erro = (m) => new Error(`${COMPAT_DIR}/${id}.json: ${m}`)
+  for (const campo of ['versao', 'data', 'sistema']) if (typeof r[campo] !== 'string' || !r[campo].trim()) throw erro(`falta "${campo}"`)
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(r.data)) throw erro('"data" tem de ser AAAA-MM-DD')
+  if (!Array.isArray(r.prints) || r.prints.length === 0) throw erro('sem "prints": verificado exige pelo menos um print')
+  for (const pr of r.prints) {
+    if (typeof pr !== 'string' || !pr.startsWith(`docs/assets/compatibilidade/${id}/`)) throw erro(`print fora de docs/assets/compatibilidade/${id}/: ${pr}`)
+    if (!/\.(png|jpe?g|webp|gif)$/i.test(pr)) throw erro(`print não é imagem: ${pr}`)
+    if (!existsSync(join(raiz, pr))) throw erro(`print não existe: ${pr}`)
+  }
+  if (!r.viu || typeof r.viu.regras !== 'boolean' || typeof r.viu.janela !== 'boolean') throw erro('"viu" precisa de "regras" e "janela" (true ou false)')
+  return r
+}
 
 /*
  * O que não é dado de adaptador: onde a ferramenta documenta isso, como abrir, e os limites.
- * `verificado` só vira algo diferente de null com print da ferramenta de verdade (docs/compatibilidade/).
+ * "Verificado em máquina de verdade" não mora aqui: vem do registro com print (lerVerificacao).
  */
 export const NOTAS = {
   claude: {
@@ -116,6 +147,9 @@ const T = {
     linhas: ['Command', 'Question window', 'Kit hooks', 'Verified on a real machine'],
     sim: 'yes', nao: 'no, CI enforces the evidence', semJanela: 'none: text with lettered options',
     naoVerificado: `not yet (documentation checked on ${VERIFICADO_EM})`,
+    verificado: (r) => `yes: version ${r.versao} on ${r.sistema}, ${r.data} ([evidence](#evidence))`,
+    evidencia: 'Evidence',
+    evidenciaTxt: (r) => `Run on version ${r.versao}, ${r.sistema}, on ${r.data}. Rules arrived (canary test): ${r.viu.regras ? 'yes' : 'no'}. Question window: ${r.viu.janela ? 'yes' : 'no'}.${typeof r.viu.hooks === 'boolean' ? ` Kit hooks fired: ${r.viu.hooks ? 'yes' : 'no'}.` : ''}`,
     passos: 'Step by step',
     p1: 'Prepare the project (in its folder, with Node 20.19 or newer):',
     p2: 'What the tool receives:',
@@ -143,6 +177,9 @@ const T = {
     linhas: ['Comando', 'Janela de perguntas', 'Hooks do kit', 'Verificado em máquina de verdade'],
     sim: 'sim', nao: 'não, o CI cobra a evidência', semJanela: 'não tem: texto com opções em letras',
     naoVerificado: `ainda não (documentação conferida em ${VERIFICADO_EM})`,
+    verificado: (r) => `sim: versão ${r.versao} em ${r.sistema}, ${r.data} ([evidência](#evidência))`,
+    evidencia: 'Evidência',
+    evidenciaTxt: (r) => `Rodado na versão ${r.versao}, ${r.sistema}, em ${r.data}. As regras chegaram (teste do canário): ${r.viu.regras ? 'sim' : 'não'}. Janela de perguntas: ${r.viu.janela ? 'sim' : 'não'}.${typeof r.viu.hooks === 'boolean' ? ` Hooks do kit dispararam: ${r.viu.hooks ? 'sim' : 'não'}.` : ''}`,
     passos: 'Passo a passo',
     p1: 'Prepare o projeto (na pasta dele, com Node 20.19 ou mais novo):',
     p2: 'O que a ferramenta recebe:',
@@ -168,7 +205,7 @@ function janela(a, l) {
 }
 const temHook = (a) => Boolean(a.plugin || a.hooks)
 
-export function pagina(id, l) {
+export function pagina(id, l, verif = lerVerificacao(id)) {
   const a = ADAPTADORES[id]
   const n = NOTAS[id]
   const t = T[l]
@@ -190,7 +227,7 @@ export function pagina(id, l) {
     `| ${t.linhas[0]} | \`${a.invocar.inception}\`${a.invocar.nota ? ` (${a.invocar.nota[l]})` : ''} |`,
     `| ${t.linhas[1]} | ${janela(a, l)} |`,
     `| ${t.linhas[2]} | ${temHook(a) ? t.sim : t.nao} |`,
-    `| ${t.linhas[3]} | ${t.naoVerificado} |`,
+    `| ${t.linhas[3]} | ${verif ? t.verificado(verif) : t.naoVerificado} |`,
     '',
     `## ${t.passos}`,
     '',
@@ -214,6 +251,9 @@ export function pagina(id, l) {
     '',
     ...n.limites[l].map((x) => `- ${x}`),
     '',
+    ...(verif
+      ? [`## ${t.evidencia}`, '', t.evidenciaTxt(verif), '', ...verif.prints.map((pr) => `![${a.nome}](${l === 'en' ? '../' : '../../'}${pr.replace(/^docs\//, '')})`), '']
+      : []),
     `## ${t.fonte}`,
     '',
     t.fonteTxt(n.fonte),

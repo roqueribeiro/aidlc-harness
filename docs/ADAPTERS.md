@@ -76,6 +76,28 @@ Do this once per tool and per major version. Ten minutes that save weeks of a ru
 
 CI runs the clean-machine test and the installed package on Windows: `npx`, `npm install -g`, `aidlc-init`, `aidlc-init --check`, `aidlc-gate` and `aidlc-doctor` work there. The manifest gates run the stack's shell commands (`yarn test`, `mvn verify`), which depend on the tools installed on the machine.
 
+## Contributing a verification
+
+Every tool page says "Verified on a real machine: not yet" until someone runs the kit in that tool and leaves proof. The page only changes with a record and a screenshot, so a "yes" never comes from someone's word:
+
+1. Run steps 1 to 6 of the tool page in a real project, in a recent version of the tool.
+2. Save at least one screenshot of the question window (or of the text questions, where the tool has none) in `docs/assets/compatibilidade/<tool>/`, for example `docs/assets/compatibilidade/cursor/janela.png`. Crop out anything that identifies a person or a company.
+3. Write `docs/compatibilidade/<tool>.json`:
+
+    ```json
+    {
+      "versao": "2.1.0",
+      "data": "2026-11-10",
+      "sistema": "macOS 15",
+      "prints": ["docs/assets/compatibilidade/cursor/janela.png"],
+      "viu": { "regras": true, "janela": true, "hooks": true }
+    }
+    ```
+
+4. Run `node scripts/gerar-ferramentas.mjs` and open a pull request. The page now says which version, system and date were verified, and shows the screenshots under "Evidence".
+
+The generator fails, instead of printing "yes", when the record is missing a field, the date is not `YYYY-MM-DD`, a screenshot does not exist, is not an image or sits outside the tool's folder. `scripts/gerar-ferramentas.test.mjs` has one mutant for each of these.
+
 ## Adding a tool
 
 1. Add the adapter to `plugins/aidlc-harness/lib/adaptadores.mjs`: name, question tool, where the command goes and its format, how the request arrives, and the hooks if the tool has them.

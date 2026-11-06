@@ -76,6 +76,28 @@ Faça isso uma vez por ferramenta e por versão grande. Dez minutos que poupam s
 
 O CI roda o teste de máquina limpa e o pacote instalado no Windows: `npx`, `npm install -g`, `aidlc-init`, `aidlc-init --check`, `aidlc-gate` e `aidlc-doctor` funcionam lá. Os gates do manifesto rodam os comandos de shell da stack (`yarn test`, `mvn verify`), que dependem do que está instalado na máquina.
 
+## Contribuir uma verificação
+
+Toda página de ferramenta diz "Verificado em máquina de verdade: ainda não" até alguém rodar o kit naquela ferramenta e deixar prova. A página só muda com registro e print, então um "sim" nunca sai da palavra de ninguém:
+
+1. Rode os passos 1 a 6 da página da ferramenta num projeto de verdade, numa versão recente da ferramenta.
+2. Guarde pelo menos um print da janela de perguntas (ou das perguntas em texto, onde a ferramenta não tem janela) em `docs/assets/compatibilidade/<ferramenta>/`, por exemplo `docs/assets/compatibilidade/cursor/janela.png`. Corte o que identificar pessoa ou empresa.
+3. Escreva `docs/compatibilidade/<ferramenta>.json`:
+
+    ```json
+    {
+      "versao": "2.1.0",
+      "data": "2026-11-10",
+      "sistema": "macOS 15",
+      "prints": ["docs/assets/compatibilidade/cursor/janela.png"],
+      "viu": { "regras": true, "janela": true, "hooks": true }
+    }
+    ```
+
+4. Rode `node scripts/gerar-ferramentas.mjs` e abra um pull request. A página passa a dizer qual versão, sistema e data foram verificados, e mostra os prints em "Evidência".
+
+O gerador reprova, em vez de escrever "sim", quando falta campo no registro, a data não está em `AAAA-MM-DD`, o print não existe, não é imagem ou está fora da pasta da ferramenta. O `scripts/gerar-ferramentas.test.mjs` tem um mutante para cada um desses casos.
+
 ## Acrescentar uma ferramenta
 
 1. Acrescente o adaptador em `plugins/aidlc-harness/lib/adaptadores.mjs`: nome, ferramenta de pergunta, onde vai o comando e em que formato, como o pedido chega, e os hooks se a ferramenta os tiver.
