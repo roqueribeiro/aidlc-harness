@@ -12,7 +12,7 @@ Index: [Executables](#executables) · [Hooks](#hooks) · [Commands](#slash-comma
 
 ## Executables
 
-Dependency-free Node programs, installed on the `PATH` by `npm install -g github:roqueribeiro/aidlc-harness` (or `node scripts/setup.mjs` from a clone). They cost no tokens: they run outside the model. All of them accept `--json` when there is machine-readable output.
+Dependency-free Node programs. In a project prepared by `aidlc-init` they run from the kit copy, with nothing installed: `node .aidlc/kit/tools/<name>`. To also have them on the `PATH`, `npm install -g github:roqueribeiro/aidlc-harness` (or `node scripts/setup.mjs` from a clone). They cost no tokens: they run outside the model. All of them accept `--json` when there is machine-readable output.
 
 Note: the messages the executables print (for example `nada sobrando`, "não rodou", `PASSOU`, `FALHOU`, `PULADO`, `PENDENTE`) are in Portuguese, because that is what the programs actually print. This document quotes them verbatim and explains them in English.
 
@@ -47,7 +47,7 @@ aidlc-init --sync      # refreshes the kit block in AGENTS.md and regenerates th
 
 Creates `AGENTS.md`, `CLAUDE.md` (imports `AGENTS.md`), `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md`, `context/product.md`, `.aidlc/config.json`, `.aidlc/identity.json`, `.github/workflows/aidlc-gate.yml` and the `aidlc/` folder (inception, construction, decisions, audit). `--tools` limits which tools get a file. Exits 0; `--check` exits 1 on divergence.
 
-An existing `AGENTS.md` is never replaced: the kit rules go into a block between `<!-- aidlc:inicio -->` and `<!-- aidlc:fim -->` appended at the end, and the team's text stays as it is. `--sync` updates only the inside of that block. The CI workflow gets the setup steps of the technology detected at that moment (the `ci.setup` field of its manifest) and installs `trivy`, which `aidlc-secscan` needs; with no technology detected it leaves a comment to fill in.
+An existing `AGENTS.md` is never replaced: the kit rules go into a block between `<!-- aidlc:inicio -->` and `<!-- aidlc:fim -->` appended at the end, and the team's text stays as it is. `--sync` updates only the inside of that block. The CI workflow gets the setup steps of the technology detected at that moment (the `ci.setup` field of its manifest) and caches the Trivy that `aidlc-secscan` downloads; with no technology detected it leaves a comment to fill in. `aidlc-init` also writes `.aidlc/kit/`, a copy of the kit from which hooks, gate and phases run with nothing installed; `--check` fails when a file of the copy differs from this kit version, is missing or is extra, and `--sync` (or `init` again) rewrites it. With Claude Code it merges into `.claude/settings.json` the kit marketplace pinned to `v<version>`, the enabled plugin and the permission to run the copy.
 
 ### aidlc-phase
 
@@ -92,7 +92,7 @@ With no arguments, it prints the help and exits 2. `--baseline` compares by stab
 aidlc-secscan [--json] [--report]
 ```
 
-Runs Trivy over the repository (vulnerabilities, misconfiguration and secrets, HIGH and CRITICAL severity) and fails only the CVE that is in a manifest **of the project**, has a published fix version and is not in the allowlist with a deadline. Each allowlist block needs `# expira: AAAA-MM-DD` (the literal is in Portuguese; the date is YYYY-MM-DD); an expired entry fails again. Without `trivy` installed, **it is not clean**: the output says "não rodou" (did not run). `--report` prints everything, including what does not block.
+Runs Trivy over the repository (vulnerabilities, misconfiguration and secrets, HIGH and CRITICAL severity) and fails only the CVE that is in a manifest **of the project**, has a published fix version and is not in the allowlist with a deadline. Each allowlist block needs `# expira: AAAA-MM-DD` (the literal is in Portuguese; the date is YYYY-MM-DD); an expired entry fails again. It uses, in this order: `AIDLC_TRIVY` (path to an executable), the `trivy` on the `PATH`, the kit cache, and otherwise downloads the Trivy version pinned in `lib/trivy.mjs`, checks its sha256 and keeps it in the cache (`XDG_CACHE_HOME`, `LOCALAPPDATA` on Windows, or `~/.cache`, under `aidlc-harness/`). `AIDLC_TRIVY_BASE` points the download to an internal mirror; the hash is still checked. A hash that does not match deletes the file and stops. If Trivy cannot run, **it is not clean**: the output says "não rodou" (did not run). `--report` prints everything, including what does not block.
 
 ### aidlc-lockcheck
 

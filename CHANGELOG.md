@@ -4,6 +4,27 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 
 ## [Unreleased]
 
+## [0.2.1] - 2026-11-06
+
+Works on the first run with nothing installed. In 0.2.0 the steps `aidlc-init` announced did not work on a new machine, and the tests passed because they ran with the kit on the `PATH`.
+
+### Fixed
+
+- **Hooks of GitHub Copilot, Cursor and Codex exited 127** without a global install: they called `aidlc-hook` from the `PATH`. In Copilot a `preToolUse` hook that errors denies the tool call, so every command of the agent was denied; in Cursor the hook failed open and protected nothing. They now call `node .aidlc/kit/tools/aidlc-hook`, and `aidlc-init --sync` replaces the old entries.
+- **Claude Code had no `/inception` in a new session**: nothing in the project installed the plugin. `aidlc-init` now merges into `.claude/settings.json` the kit marketplace pinned to `v<version>`, the enabled plugin and the permission to run the kit copy; the plugin loads when the folder is trusted.
+- **The first `aidlc-gate` was red on a new machine**: `aidlc-gate` and `aidlc-phase` were not on the `PATH`, and `aidlc-secscan` required Trivy installed. The gate also ran the kit's own executables by name, which fails without the executable bit and on Windows (`Permission denied`); it now runs them with Node.
+- The banners of `aidlc-secscan`, `aidlc-lockcheck`, `aidlc-mutation` and `aidlc-limpeza` still printed an old internal name.
+
+### Added
+
+- **The kit inside the project.** `aidlc-init` writes `.aidlc/kit/`, a copy of the kit (about 100 files, no tests), committed with the project. Hooks, skills, the `AGENTS.md` block and the guide call `node .aidlc/kit/tools/<command>`. `--check` fails when a file of the copy differs, is missing or is extra; in CI it runs from the kit pinned in `AIDLC_REF`, so an agent cannot loosen the gate by editing the copy. `--sync` and `init` rewrite it and remove what an older version left behind.
+- **Trivy on demand.** `aidlc-secscan` uses `AIDLC_TRIVY`, the `trivy` on the `PATH`, the kit cache or, otherwise, downloads Trivy 0.76.1 and checks its sha256, pinned in `lib/trivy.mjs` for Linux, macOS (x64 and ARM64) and Windows and checked against the downloaded files. `AIDLC_TRIVY_BASE` points to an internal mirror. The generated CI no longer installs Trivy through a third-party action; it caches the kit's.
+- `scripts/primeira-execucao.test.mjs`: with no `aidlc` on the `PATH` and an empty home, `init`, `--check`, every generated hook command, `aidlc-phase`, a green gate with Trivy downloaded, a fresh clone, and a mutant (an edited kit copy fails `--check`). CI runs it on Linux, macOS and Windows, and downloads Trivy on Linux x64 and ARM64, macOS and Windows.
+
+### Limits
+
+The first run was measured on Linux on 2026-11-06; macOS and Windows are measured by CI. The AI tools themselves were not driven in a real session: that the Claude Code plugin loads from `.claude/settings.json` after trust comes from its documentation, not from a recorded session. Codex runs hooks in the session folder, so it must be opened at the project root.
+
 ## [0.2.0] - 2026-11-06
 
 ### Fixed

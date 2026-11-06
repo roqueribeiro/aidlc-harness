@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "aidlc-harness",
   "displayName": "AI-DLC Harness",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Quality harness for building software with AI agents following the AI-DLC cycle: executable acceptance criteria per technology, the right context and rule delivered while the code is being written, an evidence gate, phases with human approval and an identity scanner. Works with Claude Code and generates instructions for Kiro and GitHub Copilot. The kit's messages and prompts are in Brazilian Portuguese.",
   "author": {
     "name": "aidlc-harness contributors"

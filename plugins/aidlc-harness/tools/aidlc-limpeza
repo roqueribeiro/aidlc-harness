@@ -127,5 +127,5 @@ if (limpo) {
   console.log(`aidlc-limpeza: nada sobrando${fora.length ? ` (${fora.length} servidor(es) fora do alcance, nao conferidos)` : ''}`)
   process.exit(0)
 }
-console.log(`\nroqueos-limpeza: ${r.lixo.length} item(ns) de lixo, ${r.decidir.length} para decidir, ${sujos.length} servidor(es) com lixo`)
+console.log(`\naidlc-limpeza: ${r.lixo.length} item(ns) de lixo, ${r.decidir.length} para decidir, ${sujos.length} servidor(es) com lixo`)
 process.exit(1)

@@ -30,6 +30,7 @@
     - `.cursor/commands/aidlc-construction.md`
     - `.cursor/hooks.json`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: a copy of the kit, from which hooks, gate and phases run (`node .aidlc/kit/tools/aidlc-gate`), with nothing to install. Commit it; it is not edited by hand
 
 3. Open the project in Cursor, in Agent mode. It reads `AGENTS.md` by itself.
 4. Check that the rules arrive (canary test): add the line `Canary: this project's control word is "marmelada-42".` to `AGENTS.md` outside the kit block, open a **new** session and ask for the control word. If it answers `marmelada-42`, the rules arrive. Remove the line.
@@ -40,7 +41,7 @@
 ## Limits
 
 - There is no way to declare the "Ask questions" tool in a command: the command asks for it in words.
-- The hooks need `aidlc-hook` on the `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).
+- Project hooks run from the project root and call the kit copy in `.aidlc/kit/`: nothing to install. A hook that crashes fails open in Cursor (the action goes through), so `aidlc-init --check` in CI is what catches a missing copy.
 
 ## Source
 

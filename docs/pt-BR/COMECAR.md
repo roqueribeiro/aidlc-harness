@@ -1,41 +1,20 @@
-# Começar: a trilha em sete passos
+# Começar: a trilha em seis passos
 
 *Tradução de [GETTING-STARTED.md](../GETTING-STARTED.md), a versão principal, em inglês. Se as duas divergirem, vale a em inglês.*
 
-Do zero a um projeto com o ciclo AI-DLC funcionando. Cada passo diz o que fazer, o que você deve ver e o que fazer se não vir. Tempo estimado do primeiro ao quinto passo: meia hora, a maior parte na conversa de requisitos.
+Do zero a um projeto com o ciclo AI-DLC funcionando. Cada passo diz o que fazer, o que você deve ver e o que fazer se não vir. Tempo estimado do primeiro ao quarto passo: meia hora, a maior parte na conversa de requisitos.
 
 Os trechos de saída abaixo vieram de uma execução real do kit (Linux, Node 22). Em outro sistema, a forma é a mesma.
 
-## 1. Instale o kit na sua máquina
+## 1. O que você precisa
 
-Pré-requisitos: **Node 20.19 ou mais novo** (`node --version`) e **git**.
+**Node 20.19 ou mais novo** (`node --version`) e **git**. Nada mais: nada de instalação global, de scanner para instalar ou de comando de plugin. O kit se copia para o projeto no passo 2, e tudo roda dessa cópia.
 
-```bash
-npm install -g github:roqueribeiro/aidlc-harness
-```
-
-Isso põe todos os executáveis `aidlc-*` no seu `PATH`, em Linux, macOS e Windows (no Windows o npm cria os atalhos `.cmd`). Os hooks do GitHub Copilot, do Cursor e do Codex chamam o `aidlc-hook` pelo nome, então precisam deste passo. Se você só quer experimentar, pule e use `npx github:roqueribeiro/aidlc-harness <comando>` nos próximos passos.
-
-**Confira:** `aidlc-gate --list` lista as tecnologias que o kit conhece (10 hoje, de Node a Java, .NET e Go).
-
-## 2. Ligue o kit à sua ferramenta
-
-**Claude Code** (plugin com hooks que bloqueiam, agentes e skills):
-
-```bash
-claude plugin marketplace add roqueribeiro/aidlc-harness
-claude plugin install aidlc-harness@aidlc
-```
-
-Dentro de uma sessão, `/reload-plugins` e depois `/context` devem mostrar o `aidlc-harness` com os agentes e os hooks.
-
-**As outras 14 ferramentas** não precisam de nada além do passo 3: o `aidlc-init` grava no projeto o comando, as skills e, onde a ferramenta deixa, os hooks. O que cada uma recebe, passo a passo, está em [FERRAMENTAS.md](FERRAMENTAS.md); a diferença de garantia está em [ADAPTADORES.md](ADAPTADORES.md).
-
-## 3. Prepare o projeto
+## 2. Prepare o projeto
 
 ```bash
 cd meu-projeto            # um repositório git; novo ou existente
-aidlc-init --name "Meu Projeto" --desc "Cadastro de clientes"
+npx github:roqueribeiro/aidlc-harness init --name "Meu Projeto" --desc "Cadastro de clientes"
 ```
 
 Num terminal, o `aidlc-init` pergunta com quais ferramentas de IA o time trabalha, com as que ele achou na pasta já marcadas; no CI ou com `--tools claude,cursor,copilot` ele não pergunta. Ele cria o que falta e **nunca sobrescreve** o que é seu: um `AGENTS.md` que já existe ganha as regras do kit num bloco gerenciado no fim, e arquivos de hook que já existem ganham as entradas do kit ao lado das suas. Para ver antes, use `--dry-run`.
@@ -69,7 +48,9 @@ aidlc-init  /caminho/meu-projeto
   criado       .github/prompts/aidlc-inception.prompt.md
   criado       .github/prompts/aidlc-construction.prompt.md
   criado       .github/hooks/aidlc.json
+  criado       .claude/settings.json
   criado       .aidlc/COMANDOS.md
+  kit          .aidlc/kit/  (103 arquivo(s) gravado(s); hooks e gate rodam daqui, sem instalar nada)
 
 Proximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido e rode a Inception:
   Claude Code                  /inception
@@ -77,7 +58,11 @@ Proximo passo: ponha em aidlc/inception/insumos/ o que ja existe sobre o pedido 
   GitHub Copilot               /aidlc-inception  (no VS Code; no Copilot CLI, peça a skill aidlc-inception)
 ```
 
-(As últimas linhas dizem o que digitar em cada ferramenta.)
+(A linha `kit` diz que a cópia do kit foi gravada e que hooks e gate rodam dela sem instalar nada. As últimas linhas dizem o que digitar em cada ferramenta.)
+
+**Claude Code:** o projeto agora tem `.claude/settings.json`, que registra o marketplace do kit fixado nesta versão e habilita o plugin. Abra o Claude Code na pasta e aceite o diálogo de confiança: o plugin, com hooks, agentes e o comando `/inception`, carrega sozinho. Todo colega que clonar o repositório recebe o mesmo, sem comando para rodar.
+
+**As outras 14 ferramentas** não precisam de mais nada: o comando, as skills e, onde a ferramenta deixa, os hooks já estão no projeto. O que cada uma recebe, passo a passo, está em [FERRAMENTAS.md](FERRAMENTAS.md); a diferença de garantia está em [ADAPTADORES.md](ADAPTADORES.md).
 
 O que é cada coisa:
 
@@ -90,13 +75,17 @@ O que é cada coisa:
 | `aidlc/` | Os artefatos do ciclo, versionados com o código. `aidlc/inception/insumos/` é onde você põe o que a IA deve ler primeiro. |
 | `.aidlc/config.json`, `.aidlc/COMANDOS.md` | As ferramentas escolhidas, e o que digitar em cada uma. |
 | `.aidlc/identity.json` | Exceções do scanner de identidade, cada uma com motivo. |
-| `.github/workflows/aidlc-gate.yml` | O CI: identidade, estado das fases e gate, com os passos de preparação da stack detectada. |
+| `.aidlc/kit/` | **Uma cópia do kit** (uns 100 arquivos). Hooks, gate e fases rodam dela: `node .aidlc/kit/tools/aidlc-gate`, `node .aidlc/kit/tools/aidlc-phase status`. Vai para o git, para o colega que clona ter tudo. Não edite: o CI roda o `--check` a partir do kit fixado e reprova cópia diferente. `npx github:roqueribeiro/aidlc-harness init --sync` atualiza. |
+| `.claude/settings.json` | Só com o Claude Code: o marketplace do kit, o plugin habilitado e a permissão para rodar a cópia do kit. O que você já tinha nesse arquivo fica. |
+| `.github/workflows/aidlc-gate.yml` | O CI: identidade, estado das fases, a cópia do kit e gate, com os passos de preparação da stack detectada. |
 
 Faça o commit disso num commit só, antes de começar o trabalho.
 
+**Confira:** `node .aidlc/kit/tools/aidlc-gate` deve sair verde. Na primeira vez numa máquina, o `aidlc-secscan` baixa o Trivy (a versão fixada no kit, conferida por sha256) para o cache do kit, o que leva uns trinta segundos; depois disso funciona sem rede. Atrás de proxy corporativo, o `HTTPS_PROXY` é respeitado; para usar o seu Trivy, ponha-o no `PATH` ou aponte `AIDLC_TRIVY` para ele.
+
 **Edite o `context/product.md` agora.** Duas frases bastam para começar. Sem ele, o agente trabalha sem saber o que o produto é, e nas primeiras respostas você vai ver a consequência.
 
-## 4. Inception: requisitos, histórias, unidades
+## 3. Inception: requisitos, histórias, unidades
 
 Aqui a IA conduz e a equipe responde. No Claude Code:
 
@@ -118,7 +107,7 @@ A IA deve:
 **Fechamento da fase:** quando os três arquivos estiverem preenchidos, **uma pessoa** escreve o nome e a data em `Aprovado por:` e `Data:` de cada arquivo, e em `Premissas revisadas por:` no `requirements.md` quando ele lista premissas. Depois:
 
 ```bash
-aidlc-phase check inception
+node .aidlc/kit/tools/aidlc-phase check inception
 ```
 
 Enquanto houver pendência, a saída lista cada uma (trecho real):
@@ -139,7 +128,7 @@ Quando tudo estiver certo: `aidlc-phase: inception completa`, e `aidlc-phase sta
 
 **Limite honesto:** o kit confere que a aprovação **existe e não é de uma IA**. Que o nome escrito seja de quem de fato aprovou é responsabilidade da equipe, por exemplo exigindo revisão do pull request que comita a assinatura.
 
-## 5. Construction: desenho e plano de testes
+## 4. Construction: desenho e plano de testes
 
 ```
 /aidlc-harness:construction
@@ -151,32 +140,26 @@ A IA começa rodando `aidlc-phase check inception`. Se a Inception não estiver 
 
 Assine os dois arquivos como no passo anterior e rode `aidlc-phase check construction`.
 
-## 6. Código, uma unidade por vez
+## 5. Código, uma unidade por vez
 
 Com as duas fases aprovadas, o trabalho segue a skill `bolts` (veja [`skills/bolts/SKILL.md`](../../plugins/aidlc-harness/skills/bolts/SKILL.md)):
 
 1. branch curta por unidade;
 2. teste e código no mesmo diff; um check novo nasce com um **mutante** (quebre o código de propósito e confirme que o teste reprova);
-3. `aidlc-gate` e **a saída crua colada no chat**. No Claude Code, o hook de Stop recusa encerrar o turno que diz "pronto" sem a evidência que o manifesto da tecnologia declara;
+3. `node .aidlc/kit/tools/aidlc-gate` e **a saída crua colada no chat**. No Claude Code, o hook de Stop recusa encerrar o turno que diz "pronto" sem a evidência que o manifesto da tecnologia declara;
 4. dependência nova passa pelo `supply-chain-reviewer`;
 5. `aidlc-identity` limpo antes de abrir o pull request.
 
-Instale o gancho de pre-push para o gate rodar antes de o push sair:
+O kit reconhece 10 stacks (Node com npm, yarn, pnpm ou bun, Python com uv, Java com Maven ou Gradle, .NET e Go). Se a sua não estiver entre elas, o `aidlc-gate` não vai reconhecê-la. Acrescente um manifesto em `.aidlc/quality/<tech>.json` ([ESTENDER.md](ESTENDER.md)).
 
-```bash
-node aidlc-harness/scripts/install-git-hooks.mjs
-```
-
-Se a sua stack não for Node (yarn ou npm) ou Python (uv), o `aidlc-gate` não vai reconhecê-la. Acrescente um manifesto em `.aidlc/quality/<tech>.json` ([ESTENDER.md](ESTENDER.md)).
-
-## 7. Feche e meça
+## 6. Feche e meça
 
 Ao terminar uma unidade:
 
 ```bash
-aidlc-limpeza --apagar     # worktrees, branches e containers de sobra
-aidlc-doctor               # nota do repositório e o que falta
-aidlc-cycle                # lead time das fases, taxa de bloqueio do gate
+node .aidlc/kit/tools/aidlc-limpeza --apagar   # worktrees, branches e containers de sobra
+node .aidlc/kit/tools/aidlc-doctor             # nota do repositório e o que falta
+node .aidlc/kit/tools/aidlc-cycle              # lead time das fases, taxa de bloqueio do gate
 ```
 
 A linha `aidlc-limpeza: nada sobrando` é a evidência que o hook de Stop cobra quando a mensagem diz que uma unidade fechou. Decisões que ficaram de pé vão para `aidlc/decisions.md`.

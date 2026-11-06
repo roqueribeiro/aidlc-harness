@@ -199,7 +199,7 @@ if (JSON_OUT) {
   process.exit(problemas.length ? 1 : 0)
 }
 
-console.log(`\nroqueos-lockcheck  ${ROOT}`)
+console.log(`\naidlc-lockcheck  ${ROOT}`)
 console.log(`  lockfile: ${lock ?? 'nenhum'}  ·  ${declaradas.size} dependencia(s) declarada(s)  ·  base: ${SINCE}`)
 if (problemas.length) {
   console.log('')

@@ -29,6 +29,7 @@
     - `.kilo/commands/aidlc-inception.md`
     - `.kilo/commands/aidlc-construction.md`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: a copy of the kit, from which hooks, gate and phases run (`node .aidlc/kit/tools/aidlc-gate`), with nothing to install. Commit it; it is not edited by hand
 
 3. Open the project in the Kilo Code extension or CLI. It reads `AGENTS.md`.
 4. Check that the rules arrive (canary test): add the line `Canary: this project's control word is "marmelada-42".` to `AGENTS.md` outside the kit block, open a **new** session and ask for the control word. If it answers `marmelada-42`, the rules arrive. Remove the line.

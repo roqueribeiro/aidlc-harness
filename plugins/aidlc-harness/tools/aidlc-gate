@@ -23,6 +23,7 @@ import { fileURLToPath } from 'node:url'
 import { loadManifests, detectTech, repoRoot, platformAllows, platformLabel, manifestosDoProjeto } from '../lib/detect.mjs'
 import { homedir } from 'node:os'
 import { impressaoDaArvore, registrarGate } from '../lib/audit.mjs'
+import { comandoDoGate } from '../lib/executaveis.mjs'
 
 /*
  * Os gates chamam os proprios executaveis do kit (aidlc-scan, aidlc-lockcheck, aidlc-secscan). No
@@ -174,7 +175,7 @@ for (const g of gates) {
   }
 
   const started = Date.now()
-  const r = spawnSync(g.cmd, {
+  const r = spawnSync(comandoDoGate(g.cmd, PASTA_DOS_EXECUTAVEIS), {
     cwd: root,
     shell: true,
     encoding: 'utf8',

@@ -25,9 +25,11 @@
 
     - `AGENTS.md`
     - `CLAUDE.md`
+    - `.claude/settings.json`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: a copy of the kit, from which hooks, gate and phases run (`node .aidlc/kit/tools/aidlc-gate`), with nothing to install. Commit it; it is not edited by hand
 
-3. Install the plugin once: `claude plugin marketplace add roqueribeiro/aidlc-harness` and `claude plugin install aidlc-harness@aidlc`. Then open Claude Code in the project.
+3. Open Claude Code in the project and accept the workspace trust dialog. `.claude/settings.json`, written by `aidlc-init`, registers the kit marketplace pinned to this version and enables the plugin, which then loads by itself; in a folder you have not trusted, Claude Code ignores project settings.
 4. Check that the rules arrive (canary test): add the line `Canary: this project's control word is "marmelada-42".` to `AGENTS.md` outside the kit block, open a **new** session and ask for the control word. If it answers `marmelada-42`, the rules arrive. Remove the line.
 5. Run the Inception: put whatever already exists about the request in `aidlc/inception/insumos/` and type `/inception` with one sentence about what you want.
 6. What you should see: a complete draft in `aidlc/inception/` first, then at most five questions in the `AskUserQuestion` window, the recommended option first. Accepting all recommendations is a valid answer.

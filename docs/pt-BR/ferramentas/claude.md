@@ -25,9 +25,11 @@
 
     - `AGENTS.md`
     - `CLAUDE.md`
+    - `.claude/settings.json`
     - `.aidlc/COMANDOS.md`
+    - `.aidlc/kit/`: uma cópia do kit, de onde hooks, gate e fases rodam (`node .aidlc/kit/tools/aidlc-gate`), sem instalar nada. Vai para o git; não se edita à mão
 
-3. Instale o plugin uma vez: `claude plugin marketplace add roqueribeiro/aidlc-harness` e `claude plugin install aidlc-harness@aidlc`. Depois abra o Claude Code no projeto.
+3. Abra o Claude Code no projeto e aceite o diálogo de confiança da pasta. O `.claude/settings.json`, gravado pelo `aidlc-init`, registra o marketplace do kit fixado nesta versão e habilita o plugin, que então carrega sozinho; em pasta não confiada, o Claude Code ignora as configurações do projeto.
 4. Confira que as regras chegam (teste do canário): acrescente a linha `Canário: a palavra de controle deste projeto é "marmelada-42".` ao `AGENTS.md`, fora do bloco do kit, abra uma sessão **nova** e pergunte a palavra de controle. Se responder `marmelada-42`, as regras chegam. Tire a linha.
 5. Rode a Inception: ponha em `aidlc/inception/insumos/` o que já existe sobre o pedido e digite `/inception` com uma frase do que você quer.
 6. O que você deve ver: primeiro um rascunho completo em `aidlc/inception/`, depois no máximo cinco perguntas na janela do `AskUserQuestion`, com a opção recomendada primeiro. Aceitar todas as recomendações é uma resposta válida.

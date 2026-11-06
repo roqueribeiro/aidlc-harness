@@ -55,13 +55,13 @@ npx github:roqueribeiro/aidlc-harness init
 
 In a terminal it asks which AI tools the team uses (the ones it finds in the folder come already checked) and creates, for each one, the commands in that tool's own format. Then open your tool and run the Inception with one sentence about what you want, for example `/aidlc-inception I want a customer registry with search and change history`. The exact command for each tool is in the table below and in `.aidlc/COMANDOS.md` in your project.
 
-To keep every `aidlc-*` command on your `PATH` (needed by the hooks of Copilot, Cursor and Codex):
+That is the only command. Nothing else to install:
 
-```bash
-npm install -g github:roqueribeiro/aidlc-harness
-```
+- **The kit copies itself into the project** (`.aidlc/kit/`, committed with the rest), and hooks, gate and phases run from that copy: `node .aidlc/kit/tools/aidlc-gate`. A teammate who clones the repository has everything working.
+- **Claude Code loads the plugin from the project**: `.claude/settings.json` registers the kit marketplace, pinned to this version, and the plugin loads when you accept the workspace trust dialog.
+- **Trivy comes by itself**: the first gate downloads the version pinned in the kit, checked by sha256, into a cache.
 
-In Claude Code, install the plugin as well: `claude plugin marketplace add roqueribeiro/aidlc-harness` and `claude plugin install aidlc-harness@aidlc`. The full path, with what to expect at each step, is in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**.
+CI tests exactly this on Linux, macOS and Windows: a machine with no `aidlc` on the `PATH` and an empty home, from `init` to a green gate, and a fresh clone. The full path, with what to expect at each step, is in **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)**. To also have the `aidlc-*` commands on your `PATH` for other projects, `npm install -g github:roqueribeiro/aidlc-harness` is optional.
 
 ## Your AI tool
 
@@ -156,9 +156,10 @@ The list of findings in that report is empty, and the result is still **not** cl
 
 | Item | Status | How it was measured |
 | --- | --- | --- |
-| Test suite (`node --test`) | **473 pass, 0 fail** | Linux, Node 22, 2026-11-06 |
+| Test suite (`node --test`) | **504 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
 | Continuous integration | green on **Linux, macOS and Windows**, Node 20, 22 and 24 | GitHub Actions on every push, including the clean-machine test and the installed package |
 | Install with `npx github:…` and `npm install -g github:…` | works | run from GitHub on 2026-11-06, and in CI from a packed tarball on the three systems |
+| First run with nothing installed | `init`, hooks, phases and a green gate (Trivy downloaded and checked) from the project copy, and a fresh clone | `scripts/primeira-execucao.test.mjs`, in CI on Linux, macOS and Windows with no `aidlc` on the `PATH` and an empty home |
 | Gates of the new stacks | Go, bun, Maven, pnpm and yarn run green and red on a real project | Linux, 2026-11-06; Gradle red only (the network blocked the green run); .NET not run |
 | New mechanisms | each with a **mutant** that fails | the mutation tests sit next to the code |
 | The 15 AI tools on a real machine | **not yet exercised** | each tool's files and question window were checked against its official documentation on 2026-11-06; prints from real sessions go to `docs/compatibilidade/` |

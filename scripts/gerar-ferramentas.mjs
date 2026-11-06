@@ -60,7 +60,7 @@ export function lerVerificacao(id, raiz = RAIZ) {
 export const NOTAS = {
   claude: {
     fonte: 'https://code.claude.com/docs/en/plugins',
-    abrir: { en: 'Install the plugin once: `claude plugin marketplace add roqueribeiro/aidlc-harness` and `claude plugin install aidlc-harness@aidlc`. Then open Claude Code in the project.', pt: 'Instale o plugin uma vez: `claude plugin marketplace add roqueribeiro/aidlc-harness` e `claude plugin install aidlc-harness@aidlc`. Depois abra o Claude Code no projeto.' },
+    abrir: { en: 'Open Claude Code in the project and accept the workspace trust dialog. `.claude/settings.json`, written by `aidlc-init`, registers the kit marketplace pinned to this version and enables the plugin, which then loads by itself; in a folder you have not trusted, Claude Code ignores project settings.', pt: 'Abra o Claude Code no projeto e aceite o diálogo de confiança da pasta. O `.claude/settings.json`, gravado pelo `aidlc-init`, registra o marketplace do kit fixado nesta versão e habilita o plugin, que então carrega sozinho; em pasta não confiada, o Claude Code ignora as configurações do projeto.' },
     limites: { en: ['The full kit: blocking hooks (evidence at Stop, secret, package manager), agents, skills and commands.', '`AskUserQuestion` takes up to 4 questions per call; with 5 the agent makes two calls.'], pt: ['O kit inteiro: hooks que bloqueiam (evidência no Stop, segredo, gerenciador de pacote), agentes, skills e comandos.', 'O `AskUserQuestion` aceita até 4 perguntas por chamada; com 5, o agente faz duas chamadas.'] },
   },
   opencode: {
@@ -76,12 +76,12 @@ export const NOTAS = {
   copilot: {
     fonte: 'https://code.visualstudio.com/docs/agent-customization/prompt-files',
     abrir: { en: 'In VS Code, open the project with Copilot Chat in **Agent** mode. In the Copilot CLI, run `copilot` in the project.', pt: 'No VS Code, abra o projeto com o Copilot Chat no modo **Agent**. No Copilot CLI, rode `copilot` no projeto.' },
-    limites: { en: ['Prompt files (`/aidlc-inception`) are a VS Code feature; in the CLI ask for the `aidlc-inception` skill.', 'The hooks need `aidlc-hook` on the `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).', 'The cloud coding agent has no question window: it asks in the pull request.'], pt: ['Prompt files (`/aidlc-inception`) são do VS Code; no CLI, peça a skill `aidlc-inception`.', 'Os hooks precisam do `aidlc-hook` no `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).', 'O agente de nuvem não tem janela de perguntas: ele pergunta no pull request.'] },
+    limites: { en: ['Prompt files (`/aidlc-inception`) are a VS Code feature; in the CLI ask for the `aidlc-inception` skill.', 'The hooks run the kit copy in `.aidlc/kit/` from the repository root (`cwd: "."`): nothing to install. A `preToolUse` hook that errors denies the tool, so `aidlc-init --check` fails when the copy is missing.', 'The cloud coding agent has no question window: it asks in the pull request.'], pt: ['Prompt files (`/aidlc-inception`) são do VS Code; no CLI, peça a skill `aidlc-inception`.', 'Os hooks rodam a cópia do kit em `.aidlc/kit/` a partir da raiz do repositório (`cwd: "."`): nada a instalar. Hook `preToolUse` que dá erro nega a ferramenta, por isso o `aidlc-init --check` reprova quando a cópia falta.', 'O agente de nuvem não tem janela de perguntas: ele pergunta no pull request.'] },
   },
   cursor: {
     fonte: 'https://cursor.com/docs/agent/hooks',
     abrir: { en: 'Open the project in Cursor, in Agent mode. It reads `AGENTS.md` by itself.', pt: 'Abra o projeto no Cursor, no modo Agent. Ele lê o `AGENTS.md` sozinho.' },
-    limites: { en: ['There is no way to declare the "Ask questions" tool in a command: the command asks for it in words.', 'The hooks need `aidlc-hook` on the `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).'], pt: ['Não há como declarar a ferramenta "Ask questions" num comando: o comando pede por escrito.', 'Os hooks precisam do `aidlc-hook` no `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).'] },
+    limites: { en: ['There is no way to declare the "Ask questions" tool in a command: the command asks for it in words.', 'Project hooks run from the project root and call the kit copy in `.aidlc/kit/`: nothing to install. A hook that crashes fails open in Cursor (the action goes through), so `aidlc-init --check` in CI is what catches a missing copy.'], pt: ['Não há como declarar a ferramenta "Ask questions" num comando: o comando pede por escrito.', 'Os hooks de projeto rodam da raiz do projeto e chamam a cópia do kit em `.aidlc/kit/`: nada a instalar. Hook que quebra no Cursor deixa a ação passar, por isso quem pega a cópia faltando é o `aidlc-init --check` no CI.'] },
   },
   gemini: {
     fonte: 'https://geminicli.com/docs/cli/custom-commands/',
@@ -101,7 +101,7 @@ export const NOTAS = {
   codex: {
     fonte: 'https://learn.chatgpt.com/docs/hooks',
     abrir: { en: 'Run `codex` in the project, then `/hooks` to review and trust the kit hooks (Codex skips project hooks until you trust them).', pt: 'Rode `codex` no projeto e depois `/hooks` para revisar e confiar nos hooks do kit (o Codex ignora hooks de projeto até você confiar).' },
-    limites: { en: ['`request_user_input` exists only in Plan mode: enter `/plan` before the Inception.', 'The hooks need `aidlc-hook` on the `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).'], pt: ['O `request_user_input` só existe no modo Plan: entre com `/plan` antes da Inception.', 'Os hooks precisam do `aidlc-hook` no `PATH` (`npm install -g github:roqueribeiro/aidlc-harness`).'] },
+    limites: { en: ['`request_user_input` exists only in Plan mode: enter `/plan` before the Inception.', 'Codex runs hooks in the session folder and only after you trust them: open Codex at the project root (the hook calls `node .aidlc/kit/tools/aidlc-hook`, relative to it) and run `/hooks` once.'], pt: ['O `request_user_input` só existe no modo Plan: entre com `/plan` antes da Inception.', 'O Codex roda os hooks na pasta da sessão e só depois que você confia neles: abra o Codex na raiz do projeto (o hook chama `node .aidlc/kit/tools/aidlc-hook`, relativo a ela) e rode `/hooks` uma vez.'] },
   },
   devin: {
     fonte: 'https://docs.devin.ai/desktop/devin-local/customizations.md',
@@ -153,6 +153,7 @@ const T = {
     passos: 'Step by step',
     p1: 'Prepare the project (in its folder, with Node 20.19 or newer):',
     p2: 'What the tool receives:',
+    copiaDoKit: '`.aidlc/kit/`: a copy of the kit, from which hooks, gate and phases run (`node .aidlc/kit/tools/aidlc-gate`), with nothing to install. Commit it; it is not edited by hand',
     p4: 'Check that the rules arrive (canary test): add the line `Canary: this project\'s control word is "marmelada-42".` to `AGENTS.md` outside the kit block, open a **new** session and ask for the control word. If it answers `marmelada-42`, the rules arrive. Remove the line.',
     p5: (inv) => `Run the Inception: put whatever already exists about the request in \`aidlc/inception/insumos/\` and type \`${inv}\` with one sentence about what you want.`,
     p6janela: (nome) => `What you should see: a complete draft in \`aidlc/inception/\` first, then at most five questions ${nome}, the recommended option first. Accepting all recommendations is a valid answer.`,
@@ -183,6 +184,7 @@ const T = {
     passos: 'Passo a passo',
     p1: 'Prepare o projeto (na pasta dele, com Node 20.19 ou mais novo):',
     p2: 'O que a ferramenta recebe:',
+    copiaDoKit: '`.aidlc/kit/`: uma cópia do kit, de onde hooks, gate e fases rodam (`node .aidlc/kit/tools/aidlc-gate`), sem instalar nada. Vai para o git; não se edita à mão',
     p4: 'Confira que as regras chegam (teste do canário): acrescente a linha `Canário: a palavra de controle deste projeto é "marmelada-42".` ao `AGENTS.md`, fora do bloco do kit, abra uma sessão **nova** e pergunte a palavra de controle. Se responder `marmelada-42`, as regras chegam. Tire a linha.',
     p5: (inv) => `Rode a Inception: ponha em \`aidlc/inception/insumos/\` o que já existe sobre o pedido e digite \`${inv}\` com uma frase do que você quer.`,
     p6janela: (nome) => `O que você deve ver: primeiro um rascunho completo em \`aidlc/inception/\`, depois no máximo cinco perguntas ${nome}, com a opção recomendada primeiro. Aceitar todas as recomendações é uma resposta válida.`,
@@ -240,6 +242,7 @@ export function pagina(id, l, verif = lerVerificacao(id)) {
     `2. ${t.p2}`,
     '',
     ...arquivos.map((f) => `    - \`${f}\``),
+    `    - ${t.copiaDoKit}`,
     '',
     `3. ${n.abrir[l]}`,
     `4. ${t.p4}`,

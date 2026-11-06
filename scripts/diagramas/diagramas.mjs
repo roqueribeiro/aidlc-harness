@@ -231,13 +231,13 @@ function multiferramenta(d) {
 
 // 8 ------------------------------------------------------------------------------------------
 function instalacao(d) {
-  d.titulo('Instalação, do zero ao primeiro gate', 'Um comando por máquina; depois, um comando por projeto.')
+  d.titulo('Instalação, do zero ao primeiro gate', 'Um comando por projeto. Nada para instalar na máquina.')
   const passos = [
-    ['Instalar o kit', ['npm install -g, com', 'o pacote do GitHub'], 'destaque'],
-    ['Plugin no Claude Code', ['só para quem usa', 'o Claude Code'], 'neutro'],
-    ['aidlc-init', ['pergunta as ferramentas e', 'gera a camada de cada uma'], 'verde'],
+    ['npx ... init', ['um comando, na pasta', 'do projeto'], 'destaque'],
+    ['Cópia do kit', ['.aidlc/kit/ vai no git;', 'hooks e gate rodam dela'], 'verde'],
+    ['Abrir a ferramenta', ['Claude Code: aceite a', 'confiança e o plugin vem'], 'verde'],
     ['Inception', ['o comando da ferramenta,', 'com uma frase do pedido'], 'verde'],
-    ['doctor e gate', ['nota do repositório e o', 'critério de aceite rodando'], 'verde'],
+    ['Primeiro gate', ['o Trivy é baixado e', 'conferido por sha256'], 'verde'],
   ]
   passos.forEach(([titulo, linhas, tipo], i) => {
     const x = 40 + i * 226
@@ -245,8 +245,8 @@ function instalacao(d) {
     d.passo(x + 12, 118, i + 1)
     if (i < passos.length - 1) d.seta([[x + 210, 185], [x + 226, 185]])
   })
-  d.caixa(40, 300, 540, 130, 'Só experimentar', ['npx github:roqueribeiro/aidlc-harness init', 'roda sem instalar nada; os hooks do Copilot,', 'do Cursor e do Codex pedem a instalação'], { mono: false })
-  d.caixa(620, 300, 540, 130, 'Linux, macOS e Windows', ['o npm cria os atalhos de cada sistema;', 'o CI testa a instalação do pacote', 'nos três, a cada push'], { mono: false })
+  d.caixa(40, 300, 540, 130, 'O colega que só clona', ['tudo funciona sem instalar: a cópia do kit', 'vem no git, e o CI reprova cópia alterada', 'com o kit fixado na versão'], { mono: false })
+  d.caixa(620, 300, 540, 130, 'Linux, macOS e Windows', ['o CI roda essa primeira execução sem', 'aidlc no PATH e com o home vazio,', 'nos três, a cada push'], { mono: false })
   d.caixa(40, 470, 1120, 100, 'Sem dependências de execução', ['O kit é Node puro: não instala nenhum pacote de terceiros. Requer Node 20.19 ou mais novo e git.'], { tipo: 'verde' })
 }
 

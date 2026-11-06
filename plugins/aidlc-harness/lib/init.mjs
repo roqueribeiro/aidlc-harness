@@ -8,13 +8,60 @@
  * `conferirSincronia` existe: ele reprova quando o corpo de uma cópia deixa de bater com o AGENTS.md.
  */
 
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'node:fs'
+import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FERRAMENTAS, FERRAMENTAS_PADRAO, hooksPresentes, mesclarHooks, planoDosAdaptadores, resolverFerramentas } from './adaptadores.mjs'
+import { FERRAMENTAS, FERRAMENTAS_PADRAO, planoDosAdaptadores, resolverFerramentas } from './adaptadores.mjs'
+import { VERSAO as TRIVY_VERSAO } from './trivy.mjs'
 
 const MOLDE = join(fileURLToPath(new URL('.', import.meta.url)), '../templates/project')
+const RAIZ_DO_KIT = join(fileURLToPath(new URL('.', import.meta.url)), '..')
 export { FERRAMENTAS, FERRAMENTAS_PADRAO }
+
+/*
+ * O kit dentro do projeto, em .aidlc/kit/.
+ *
+ * Antes, hooks, skills e gate chamavam `aidlc-hook`, `aidlc-phase` e `aidlc-gate` pelo PATH, e quem
+ * preparava o projeto com `npx ... init` não tinha nenhum deles: o hook do Cursor e do Copilot saía
+ * com 127 em todo comando e o primeiro `aidlc-gate` não existia. Agora o init copia o executável do
+ * kit para o projeto e tudo chama `node .aidlc/kit/tools/<comando>`: funciona sem instalar nada, sem
+ * rede, no Windows, e para o colega que só clonou o repositório. A cópia é do kit, não se edita: o
+ * `--check` (que no CI roda do kit fixado em AIDLC_REF, não da cópia) reprova arquivo alterado,
+ * faltando ou sobrando, então o agente não afrouxa o gate editando a cópia.
+ */
+export const PASTA_DO_KIT = '.aidlc/kit'
+export const execDoKit = (cmd) => `node ${PASTA_DO_KIT}/tools/${cmd}`
+const FORA_DA_COPIA = (rel) => /\.test\.mjs$/.test(rel) || /\.(png|jpe?g|gif|webp)$/i.test(rel)
+
+/** Os arquivos da cópia do kit: caminho no projeto e conteúdo (texto, fim de linha LF). */
+export function planoDoKit(raizDoKit = RAIZ_DO_KIT) {
+  return arvore(raizDoKit)
+    .map((rel) => rel.split('\\').join('/'))
+    .filter((rel) => !FORA_DA_COPIA(rel))
+    .sort()
+    .map((rel) => ({ destino: `${PASTA_DO_KIT}/${rel}`, conteudo: lerTexto(join(raizDoKit, rel)), derivado: true }))
+}
+
+/** Arquivos em .aidlc/kit/ que esta versão do kit não tem (sobra de uma versão antiga ou acréscimo à mão). */
+export function sobrasDoKit(raiz, plano = planoDoKit()) {
+  const dir = join(raiz, PASTA_DO_KIT)
+  if (!existsSync(dir)) return []
+  const esperados = new Set(plano.map((p) => p.destino))
+  return arvore(dir).map((rel) => `${PASTA_DO_KIT}/${rel.split('\\').join('/')}`).filter((d) => !esperados.has(d))
+}
+
+/** O que diverge entre a cópia do projeto e o kit que está rodando. */
+export function kitDivergente(raiz, plano = planoDoKit()) {
+  const erros = []
+  if (!existsSync(join(raiz, PASTA_DO_KIT))) return [`${PASTA_DO_KIT}/: falta a copia do kit, entao hooks e gate nao rodam (rode aidlc-init --sync)`]
+  for (const { destino, conteudo } of plano) {
+    const p = join(raiz, destino)
+    if (!existsSync(p)) erros.push(`${destino}: falta (rode aidlc-init --sync)`)
+    else if (lerTexto(p) !== conteudo) erros.push(`${destino}: diverge desta versao do kit. A copia do kit nao se edita; rode aidlc-init --sync`)
+  }
+  for (const d of sobrasDoKit(raiz, plano)) erros.push(`${d}: nao faz parte desta versao do kit (rode aidlc-init --sync, que o remove)`)
+  return erros
+}
 
 /*
  * Fim de linha: num clone do kit no Windows o git pode converter os moldes para CRLF, e os
@@ -41,7 +88,7 @@ const RX_BLOCO = /<!-- aidlc:inicio[^\n]*-->\n[\s\S]*?<!-- aidlc:fim -->\n?/
 
 /** O bloco do molde, com marcadores, já com as variáveis aplicadas. */
 export function blocoDoMolde(vars = {}) {
-  const m = RX_BLOCO.exec(subst(lerMolde('AGENTS.md'), { COMANDO_GATE: 'aidlc-gate', ...vars }))
+  const m = RX_BLOCO.exec(subst(lerMolde('AGENTS.md'), { COMANDO_GATE: execDoKit('aidlc-gate'), ...vars }))
   if (!m) throw new Error('molde AGENTS.md sem o bloco aidlc:inicio/aidlc:fim')
   return m[0].endsWith('\n') ? m[0] : m[0] + '\n'
 }
@@ -74,7 +121,7 @@ export function planejar({ nome, descricao, ferramentas: pedidas = FERRAMENTAS_P
   const vars = {
     NOME: nome,
     DESCRICAO: descricao,
-    COMANDO_GATE: 'aidlc-gate',
+    COMANDO_GATE: execDoKit('aidlc-gate'),
     FERRAMENTAS: JSON.stringify(ferramentas),
   }
   // Com AGENTS.md do time, o plano não o substitui: acrescenta o bloco (mesclar), e as cópias saem dele.
@@ -85,10 +132,11 @@ export function planejar({ nome, descricao, ferramentas: pedidas = FERRAMENTAS_P
   if (ferramentas.includes('kiro')) plano.push({ destino: '.kiro/steering/aidlc.md', conteudo: subst(lerMolde('kiro-steering-aidlc.md'), { ...vars, CORPO: agents.trimEnd() }) })
 
   for (const rel of ['context/product.md', 'context/kernel.md', '.aidlc/config.json', '.aidlc/identity.json']) plano.push({ destino: rel, conteudo: subst(lerMolde(rel), vars) })
-  plano.push({ destino: '.github/workflows/aidlc-gate.yml', conteudo: subst(lerMolde('aidlc-gate.yml'), { CI_SETUP: passosDeCi(tech) }) })
+  plano.push({ destino: '.github/workflows/aidlc-gate.yml', conteudo: subst(lerMolde('aidlc-gate.yml'), { CI_SETUP: passosDeCi(tech), TRIVY_VERSAO }) })
   for (const rel of arvore(join(MOLDE, 'aidlc'))) plano.push({ destino: join('aidlc', rel), conteudo: subst(lerMolde(join('aidlc', rel)), vars) })
   plano.push({ destino: 'aidlc/audit/.gitkeep', conteudo: '' })
   plano.push(...planoDosAdaptadores(ferramentas))
+  plano.push(...planoDoKit())
   return plano
 }
 
@@ -98,7 +146,7 @@ export function planejar({ nome, descricao, ferramentas: pedidas = FERRAMENTAS_P
  */
 export function aplicar(raiz, plano, { force = false, dryRun = false } = {}) {
   const r = { criados: [], mantidos: [], sobrescritos: [], mesclados: [], derivados: [] }
-  for (const { destino, conteudo, mesclar, derivado, mesclarJson, json } of plano) {
+  for (const { destino, conteudo, mesclar, derivado, mesclarJson, json, presente, mesclar: mesclarEntrada } of plano) {
     const abs = join(raiz, destino)
     const existe = existsSync(abs)
     if (existe && mesclarJson && !force) {
@@ -110,11 +158,11 @@ export function aplicar(raiz, plano, { force = false, dryRun = false } = {}) {
         r.mantidos.push(`${destino} (JSON ilegivel: acrescente as entradas do aidlc-hook a mao)`)
         continue
       }
-      if (hooksPresentes(atual, json)) {
+      if (presente(atual)) {
         r.mantidos.push(destino)
         continue
       }
-      if (!dryRun) writeFileSync(abs, JSON.stringify(mesclarHooks(atual, json), null, 2) + '\n')
+      if (!dryRun) writeFileSync(abs, JSON.stringify(mesclarEntrada(atual), null, 2) + '\n')
       r.mesclados.push(destino)
       continue
     }
@@ -182,6 +230,7 @@ export function conferirSincronia(raiz) {
   const claudeP = join(raiz, 'CLAUDE.md')
   if (existsSync(claudeP) && !/^@AGENTS\.md\s*$/m.test(lerTexto(claudeP))) erros.push('CLAUDE.md: nao importa @AGENTS.md, entao as regras do Claude Code podem divergir das outras ferramentas')
   erros.push(...adaptadoresDivergentes(raiz))
+  erros.push(...kitDivergente(raiz))
   return erros
 }
 
@@ -199,7 +248,7 @@ export function ferramentasDoProjeto(raiz) {
 /** Os arquivos de adaptador (skills copiadas, comandos) que divergem do que o kit geraria. */
 export function adaptadoresDivergentes(raiz) {
   const erros = []
-  for (const { destino, conteudo, mesclarJson, json } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+  for (const { destino, conteudo, mesclarJson, presente, falta } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
     const p = join(raiz, destino)
     if (!existsSync(p)) erros.push(`${destino}: falta (rode aidlc-init --sync)`)
     else if (mesclarJson) {
@@ -209,7 +258,7 @@ export function adaptadoresDivergentes(raiz) {
       } catch {
         /* cai na mensagem abaixo */
       }
-      if (!atual || !hooksPresentes(atual, json)) erros.push(`${destino}: sem as entradas do aidlc-hook (rode aidlc-init --sync; os hooks do time ficam)`)
+      if (!atual || !presente(atual)) erros.push(`${destino}: ${falta}`)
     }
     else if (lerTexto(p) !== conteudo) erros.push(`${destino}: diverge do que esta versao do kit gera (rode aidlc-init --sync; o arquivo e do kit, nao se edita)`)
   }
@@ -239,13 +288,13 @@ export function sincronizar(raiz) {
     feitos.push('.kiro/steering/aidlc.md')
   }
   // Skills e comandos das ferramentas: o kit é a fonte; o --sync traz a versão atual.
-  for (const { destino, conteudo, mesclarJson, json } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+  for (const { destino, conteudo, mesclarJson, presente, mesclar } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
     const p = join(raiz, destino)
     if (mesclarJson && existsSync(p)) {
       try {
         const atual = JSON.parse(lerTexto(p))
-        if (hooksPresentes(atual, json)) continue
-        writeFileSync(p, JSON.stringify(mesclarHooks(atual, json), null, 2) + '\n')
+        if (presente(atual)) continue
+        writeFileSync(p, JSON.stringify(mesclar(atual), null, 2) + '\n')
         feitos.push(destino)
       } catch {
         /* JSON do time ilegível: o --check continua apontando */
@@ -256,6 +305,19 @@ export function sincronizar(raiz) {
     mkdirSync(dirname(p), { recursive: true })
     writeFileSync(p, conteudo)
     feitos.push(destino)
+  }
+  // A cópia do kit acompanha o kit que roda o --sync: arquivo novo entra, mudado é regravado, sobra sai.
+  const kit = planoDoKit()
+  for (const { destino, conteudo } of kit) {
+    const p = join(raiz, destino)
+    if (existsSync(p) && lerTexto(p) === conteudo) continue
+    mkdirSync(dirname(p), { recursive: true })
+    writeFileSync(p, conteudo)
+    feitos.push(destino)
+  }
+  for (const d of sobrasDoKit(raiz, kit)) {
+    rmSync(join(raiz, d))
+    feitos.push(`${d} (removido)`)
   }
   return feitos
 }

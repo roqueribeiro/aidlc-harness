@@ -27,7 +27,7 @@ AGENTS.md (the rules, with the kit block)        read by every tool
 | The Inception asks in the tool's **question window** | yes (`AskUserQuestion`) | yes | where the tool has one (see [TOOLS.md](TOOLS.md)) |
 | "Done" without a green gate is **sent back** to the agent | yes, Stop hook reads the evidence in the chat | yes, `aidlc-hook parada` checks the gate on the current tree | no |
 | A command with a secret or the wrong package manager is **blocked** | yes | yes, `aidlc-hook shell` | no |
-| The `aidlc-*` executables work | yes | yes | yes |
+| The `aidlc-*` executables work, with nothing installed (`node .aidlc/kit/tools/...`) | yes | yes | yes |
 | CI fails on leaked identity, an incomplete phase and a red gate | yes | yes | yes |
 
 Read the table honestly: in Claude Code, Copilot, Cursor and Codex the kit blocks; in the others it instructs, and what stops things is CI and people. CI really fails, but it is not the same as a hook that sends the agent back before the end of the turn.
@@ -53,9 +53,10 @@ The reason this layer exists. Without it, each tool improvises the Inception fro
 
 ## The hooks outside Claude Code
 
-GitHub Copilot, Cursor and Codex document hooks that can block a command and send the agent back at the end of a turn. `aidlc-init` writes `.github/hooks/aidlc.json`, `.cursor/hooks.json` and `.codex/hooks.json` calling `aidlc-hook`, which translates each tool's JSON and applies the plugin rules ([REFERENCE.md](REFERENCE.md#aidlc-hook)). Two things to know:
+GitHub Copilot, Cursor and Codex document hooks that can block a command and send the agent back at the end of a turn. `aidlc-init` writes `.github/hooks/aidlc.json`, `.cursor/hooks.json` and `.codex/hooks.json` calling `node .aidlc/kit/tools/aidlc-hook`, which translates each tool's JSON and applies the plugin rules ([REFERENCE.md](REFERENCE.md#aidlc-hook)). Three things to know:
 
-- **`aidlc-hook` must be on the `PATH`**: install the kit with `npm install -g github:roqueribeiro/aidlc-harness`.
+- **Nothing to install.** The hook runs the kit copy in the project (`.aidlc/kit/`), so it works for whoever only cloned the repository. Up to 0.2.0 the hook called `aidlc-hook` from the `PATH`: without a global install it exited 127, which in Copilot denies every tool call. `aidlc-init --sync` replaces those old entries.
+- **The hook runs from the project root.** Cursor runs project hooks from the root, and the Copilot hook declares `cwd: "."`. Codex runs hooks in the session folder: open it at the project root.
 - **Codex only runs project hooks after you trust them**: run `/hooks` once in the project.
 
 The end-of-turn check does not read the transcript, whose format differs per tool. It checks what holds in all of them: if the working tree changed, the last `aidlc-gate` on that exact tree must have been green.

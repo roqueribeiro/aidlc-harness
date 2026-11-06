@@ -55,13 +55,13 @@ npx github:roqueribeiro/aidlc-harness init
 
 Num terminal, ele pergunta com quais ferramentas de IA o time trabalha (as que ele acha na pasta já vêm marcadas) e cria, para cada uma, os comandos no formato da própria ferramenta. Depois abra a sua ferramenta e rode a Inception com uma frase do que você quer, por exemplo `/aidlc-inception Quero um cadastro de clientes com busca e histórico de alterações`. O comando exato de cada ferramenta está na tabela abaixo e no `.aidlc/COMANDOS.md` do seu projeto.
 
-Para deixar todos os comandos `aidlc-*` no seu `PATH` (os hooks do Copilot, do Cursor e do Codex precisam):
+É o único comando. Não há mais nada para instalar:
 
-```bash
-npm install -g github:roqueribeiro/aidlc-harness
-```
+- **O kit se copia para o projeto** (`.aidlc/kit/`, versionado com o resto), e hooks, gate e fases rodam dessa cópia: `node .aidlc/kit/tools/aidlc-gate`. O colega que clona o repositório tem tudo funcionando.
+- **O Claude Code carrega o plugin pelo projeto**: o `.claude/settings.json` registra o marketplace do kit, fixado nesta versão, e o plugin carrega quando você aceita o diálogo de confiança da pasta.
+- **O Trivy vem sozinho**: o primeiro gate baixa a versão fixada no kit, conferida por sha256, para um cache.
 
-No Claude Code, instale também o plugin: `claude plugin marketplace add roqueribeiro/aidlc-harness` e `claude plugin install aidlc-harness@aidlc`. O caminho completo, com o que esperar em cada passo, está em **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)**.
+O CI testa exatamente isso em Linux, macOS e Windows: uma máquina sem `aidlc` no `PATH` e com o home vazio, do `init` ao gate verde, e um clone novo. O caminho completo, com o que esperar em cada passo, está em **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)**. Para ter também os comandos `aidlc-*` no `PATH` para outros projetos, o `npm install -g github:roqueribeiro/aidlc-harness` é opcional.
 
 ## Sua ferramenta de IA
 
@@ -156,9 +156,10 @@ A lista de achados desse relatório está vazia, e mesmo assim o resultado **nã
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **473 passam, 0 falham** | Linux, Node 22, 06/11/2026 |
+| Suíte de testes (`node --test`) | **504 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
 | Integração contínua | verde em **Linux, macOS e Windows**, Node 20, 22 e 24 | GitHub Actions a cada push, com o teste de máquina limpa e o pacote instalado |
 | Instalar com `npx github:…` e `npm install -g github:…` | funciona | rodado a partir do GitHub em 06/11/2026, e no CI a partir do pacote empacotado, nos três sistemas |
+| Primeira execução sem nada instalado | `init`, hooks, fases e gate verde (Trivy baixado e conferido) a partir da cópia no projeto, e um clone novo | `scripts/primeira-execucao.test.mjs`, no CI em Linux, macOS e Windows, sem `aidlc` no `PATH` e com o home vazio |
 | Gates das stacks novas | Go, bun, Maven, pnpm e yarn rodam verde e vermelho num projeto de verdade | Linux, 06/11/2026; Gradle só o vermelho (a rede bloqueou o verde); .NET não rodou |
 | Mecanismos novos | cada um com um **mutante** que reprova | os testes de mutação ficam ao lado do código |
 | As 15 ferramentas de IA numa máquina de verdade | **ainda não exercidas** | os arquivos e a janela de perguntas de cada uma foram conferidos na documentação oficial em 06/11/2026; os prints de sessões reais vão para `docs/compatibilidade/` |

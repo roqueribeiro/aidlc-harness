@@ -12,7 +12,7 @@
 
 ## Executáveis
 
-Programas Node sem dependência, instalados no `PATH` por `npm install -g github:roqueribeiro/aidlc-harness` (ou `node scripts/setup.mjs` a partir de um clone). Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
+Programas Node sem dependência. Num projeto preparado pelo `aidlc-init` eles rodam da cópia do kit, sem instalar nada: `node .aidlc/kit/tools/<nome>`. Para tê-los também no `PATH`, `npm install -g github:roqueribeiro/aidlc-harness` (ou `node scripts/setup.mjs` a partir de um clone). Não gastam token: rodam fora do modelo. Todos aceitam `--json` quando há saída para máquina.
 
 | Executável | Para que serve |
 | --- | --- |
@@ -45,7 +45,7 @@ aidlc-init --sync      # atualiza o bloco do kit no AGENTS.md e regenera as cóp
 
 Cria `AGENTS.md`, `CLAUDE.md` (importa o `AGENTS.md`), `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md`, `context/product.md`, `.aidlc/config.json`, `.aidlc/identity.json`, `.github/workflows/aidlc-gate.yml` e a pasta `aidlc/` (inception, construction, decisions, audit). `--tools` limita quais ferramentas recebem arquivo. Sai 0; `--check` sai 1 em divergência.
 
-Um `AGENTS.md` que já existe nunca é substituído: as regras do kit entram num bloco entre `<!-- aidlc:inicio -->` e `<!-- aidlc:fim -->` acrescentado ao fim, e o texto do time fica como está. O `--sync` atualiza só o miolo desse bloco. O workflow de CI recebe os passos de preparação da tecnologia detectada naquele momento (o campo `ci.setup` do manifesto dela) e instala o `trivy`, que o `aidlc-secscan` usa; sem tecnologia detectada, ele deixa um comentário para preencher.
+Um `AGENTS.md` que já existe nunca é substituído: as regras do kit entram num bloco entre `<!-- aidlc:inicio -->` e `<!-- aidlc:fim -->` acrescentado ao fim, e o texto do time fica como está. O `--sync` atualiza só o miolo desse bloco. O workflow de CI recebe os passos de preparação da tecnologia detectada naquele momento (o campo `ci.setup` do manifesto dela) e guarda em cache o Trivy que o `aidlc-secscan` baixa; sem tecnologia detectada, ele deixa um comentário para preencher. O `aidlc-init` também grava `.aidlc/kit/`, uma cópia do kit de onde hooks, gate e fases rodam sem nada instalado; o `--check` reprova quando um arquivo da cópia difere desta versão do kit, falta ou sobra, e o `--sync` (ou o `init` de novo) o regrava. Com o Claude Code, ele mescla no `.claude/settings.json` o marketplace do kit fixado em `v<versão>`, o plugin habilitado e a permissão para rodar a cópia.
 
 ### aidlc-phase
 
@@ -90,7 +90,7 @@ Sem argumentos, imprime a ajuda e sai 2. `--baseline` compara por chave estável
 aidlc-secscan [--json] [--report]
 ```
 
-Roda o Trivy sobre o repositório (vulnerabilidades, má configuração e segredo, severidade HIGH e CRITICAL) e reprova só o CVE que está em manifesto **do projeto**, tem versão de correção publicada e não está no allowlist com prazo. Cada bloco do allowlist precisa de `# expira: AAAA-MM-DD`; entrada vencida volta a reprovar. Sem o `trivy` instalado, **não é limpo**: a saída diz "não rodou". `--report` imprime tudo, inclusive o que não bloqueia.
+Roda o Trivy sobre o repositório (vulnerabilidades, má configuração e segredo, severidade HIGH e CRITICAL) e reprova só o CVE que está em manifesto **do projeto**, tem versão de correção publicada e não está no allowlist com prazo. Cada bloco do allowlist precisa de `# expira: AAAA-MM-DD`; entrada vencida volta a reprovar. Ele usa, nesta ordem: `AIDLC_TRIVY` (caminho de um executável), o `trivy` do `PATH`, o cache do kit e, sem nenhum deles, baixa a versão do Trivy fixada em `lib/trivy.mjs`, confere o sha256 e guarda no cache (`XDG_CACHE_HOME`, `LOCALAPPDATA` no Windows, ou `~/.cache`, em `aidlc-harness/`). `AIDLC_TRIVY_BASE` aponta o download para um espelho interno; o hash continua conferido. Hash que não bate apaga o arquivo e para. Se o Trivy não roda, **não é limpo**: a saída diz "não rodou". `--report` imprime tudo, inclusive o que não bloqueia.
 
 ### aidlc-lockcheck
 

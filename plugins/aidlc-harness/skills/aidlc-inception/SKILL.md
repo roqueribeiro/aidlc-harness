@@ -12,9 +12,9 @@ A meta: um pedido de uma frase chega a requisitos, histórias e unidades prontos
 ## 1. Ler antes de perguntar
 
 1. `AGENTS.md`, `context/product.md` e `aidlc/decisions.md`. O que está decidido ali não se reabre e não vira pergunta.
-2. `aidlc-phase status`. Se a Inception já tem conteúdo, **retome de onde parou**: não recomece nem sobrescreva o que a equipe já respondeu.
+2. `node .aidlc/kit/tools/aidlc-phase status`. Se a Inception já tem conteúdo, **retome de onde parou**: não recomece nem sobrescreva o que a equipe já respondeu.
 3. Tudo o que estiver em `aidlc/inception/insumos/` (transcrição de reunião, briefing, print, planilha) e o código que já existe no repositório.
-4. Se `aidlc/` não existe, pare e peça para rodar `aidlc-init`.
+4. Se `aidlc/` não existe, pare e peça para rodar `npx github:roqueribeiro/aidlc-harness init` na raiz do projeto.
 
 Pergunta cuja resposta está em algum desses lugares não é feita: cite onde está.
 
@@ -99,16 +99,16 @@ Em qualquer caso, sempre existe a saída **"aceitar todas as recomendações"**:
 ## 7. Fechar
 
 1. Remova todo `<!-- PREENCHER ... -->` resolvido. O que não foi respondido fica em "Perguntas em aberto", com quem responde e até quando; no máximo 5.
-2. Rode `aidlc-phase check inception` e cole a saída crua.
+2. Rode `node .aidlc/kit/tools/aidlc-phase check inception` e cole a saída crua.
 3. Deixe em branco `Aprovado por:`, `Data:` e `Premissas revisadas por:`. Diga quem precisa aprovar e o que conferir. Aprovar o próprio trabalho é fraude no processo, e o `aidlc-phase` reprova nome de IA.
 
-A Construction só começa depois que uma pessoa assinar e `aidlc-phase check inception` sair com 0.
+A Construction só começa depois que uma pessoa assinar e `node .aidlc/kit/tools/aidlc-phase check inception` sair com 0.
 
 ## O que o kit confere
 
 | Regra | Quem executa |
 | --- | --- |
-| Nenhum campo por preencher, aprovação de uma pessoa com data | `aidlc-phase check inception` |
-| No máximo 5 perguntas em aberto | `aidlc-phase check inception` reprova com mais de 5 |
-| Premissa visível e revisada | `aidlc-phase check inception` exige a seção Premissas e, com premissas listadas, `Premissas revisadas por:` de uma pessoa |
+| Nenhum campo por preencher, aprovação de uma pessoa com data | `node .aidlc/kit/tools/aidlc-phase check inception` |
+| No máximo 5 perguntas em aberto | `node .aidlc/kit/tools/aidlc-phase check inception` reprova com mais de 5 |
+| Premissa visível e revisada | `node .aidlc/kit/tools/aidlc-phase check inception` exige a seção Premissas e, com premissas listadas, `Premissas revisadas por:` de uma pessoa |
 | Pronto exige evidência | o gate de evidência (hook de Stop) nas ferramentas que têm hook; o CI nas outras |
