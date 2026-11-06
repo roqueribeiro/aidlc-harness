@@ -16,9 +16,10 @@ Programas Node sem dependência, instalados no `PATH` por `node scripts/setup.mj
 
 | Executável | Para que serve |
 | --- | --- |
-| [`aidlc-init`](#aidlc-init) | Prepara um projeto: instruções para as três ferramentas, pastas do ciclo, workflow de CI |
+| [`aidlc-init`](#aidlc-init) | Prepara um projeto: instruções, comandos e hooks para cada ferramenta de IA escolhida, pastas do ciclo, workflow de CI |
 | [`aidlc-phase`](#aidlc-phase) | Estado das fases do AI-DLC, conferido e não declarado |
 | [`aidlc-gate`](#aidlc-gate) | Roda o critério de aceite da tecnologia detectada |
+| [`aidlc-hook`](#aidlc-hook) | Os hooks do kit no GitHub Copilot, no Cursor e no Codex (o Claude Code usa os do plugin) |
 | [`aidlc-scan`](#aidlc-scan) | Lê o relatório de qualquer plataforma de segurança e separa "limpo" de "não rodou" |
 | [`aidlc-secscan`](#aidlc-secscan) | Varre CVE com correção publicada (Trivy embutido) |
 | [`aidlc-lockcheck`](#aidlc-lockcheck) | Dependência fora do lockfile |
@@ -98,6 +99,20 @@ aidlc-lockcheck [pasta] [--since <ref>] [--json]
 ```
 
 Confere, sem rede: (1) o lockfile do gerenciador declarado existe; (2) toda dependência do `package.json` aparece nele; (3) se as listas de dependência mudaram desde `HEAD` (ou `--since`), o lockfile mudou junto. Não consulta o registry nem mede reputação: isso é do agente `supply-chain-reviewer`. Sem `package.json` com dependências, não há o que travar e sai 0.
+
+### aidlc-hook
+
+```text
+aidlc-hook parada --formato copilot|cursor|codex   # fim do turno
+aidlc-hook shell  --formato copilot|cursor|codex   # antes de um comando de shell
+```
+
+Chamado pelos arquivos de hook que o `aidlc-init` gera (`.github/hooks/aidlc.json`, `.cursor/hooks.json`, `.codex/hooks.json`); você não o roda à mão. Ele traduz o JSON de entrada e de saída de cada ferramenta (como documentado por cada uma em 06/11/2026) e aplica as mesmas regras do plugin:
+
+- **`shell`** roda o `secret-guard` e o `pkg-manager` sobre o comando e o nega no formato da ferramenta (`permissionDecision` no Copilot, `hookSpecificOutput` no Codex, `permission` no Cursor).
+- **`parada`** não lê o transcript, cujo formato muda de ferramenta para ferramenta. Confere o que vale em todas: se a árvore de trabalho mudou e a última execução do `aidlc-gate` **nesta mesma árvore** não saiu verde, o turno volta para o agente com o motivo (`decision: block` no Copilot e no Codex, `followup_message` no Cursor). O `aidlc-gate` grava a impressão da árvore a cada execução (`aidlc/audit/gate-<dia>.jsonl`, que a própria impressão ignora). Depois de 3 devoluções na mesma árvore, ele deixa o turno terminar com um aviso. `AIDLC_GATE=0` desliga; `gate_mode` `warn` só avisa.
+
+Falha para o lado de liberar: sem git, sem tecnologia reconhecida ou com entrada ilegível, sai 0. O Codex só roda hooks de projeto depois que você confia neles com `/hooks`.
 
 ### aidlc-identity
 

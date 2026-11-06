@@ -18,9 +18,10 @@ Note: the messages the executables print (for example `nada sobrando`, "não rod
 
 | Executable | What it is for |
 | --- | --- |
-| [`aidlc-init`](#aidlc-init) | Prepares a project: instructions for the three tools, cycle folders, CI workflow |
+| [`aidlc-init`](#aidlc-init) | Prepares a project: instructions, commands and hooks for each chosen AI tool, cycle folders, CI workflow |
 | [`aidlc-phase`](#aidlc-phase) | State of the AI-DLC phases, verified and not declared |
 | [`aidlc-gate`](#aidlc-gate) | Runs the acceptance criteria of the detected technology |
+| [`aidlc-hook`](#aidlc-hook) | The kit's hooks for GitHub Copilot, Cursor and Codex (Claude Code uses the plugin's) |
 | [`aidlc-scan`](#aidlc-scan) | Reads the report of any security platform and separates "clean" from "did not run" |
 | [`aidlc-secscan`](#aidlc-secscan) | Scans for CVEs with a published fix (Trivy built in) |
 | [`aidlc-lockcheck`](#aidlc-lockcheck) | Dependency outside the lockfile |
@@ -100,6 +101,20 @@ aidlc-lockcheck [folder] [--since <ref>] [--json]
 ```
 
 Checks, without network: (1) the lockfile of the declared package manager exists; (2) every `package.json` dependency appears in it; (3) if the dependency lists changed since `HEAD` (or `--since`), the lockfile changed along with them. It does not query the registry or measure reputation: that is the job of the `supply-chain-reviewer` agent. Without a `package.json` with dependencies, there is nothing to lock and it exits 0.
+
+### aidlc-hook
+
+```text
+aidlc-hook parada --formato copilot|cursor|codex   # end of turn
+aidlc-hook shell  --formato copilot|cursor|codex   # before a shell command
+```
+
+Called by the hook files that `aidlc-init` generates (`.github/hooks/aidlc.json`, `.cursor/hooks.json`, `.codex/hooks.json`); you do not run it by hand. It translates each tool's input and output JSON (as documented by each tool on 2026-11-06) and applies the same rules as the plugin:
+
+- **`shell`** runs `secret-guard` and `pkg-manager` on the command and denies it in the tool's format (`permissionDecision` in Copilot, `hookSpecificOutput` in Codex, `permission` in Cursor).
+- **`parada`** (stop) does not read the transcript, whose format differs per tool. It checks what holds everywhere: if the working tree changed and the last `aidlc-gate` run **on this exact tree** was not green, the turn goes back to the agent with the reason (`decision: block` in Copilot and Codex, `followup_message` in Cursor). `aidlc-gate` records a fingerprint of the tree on every run (`aidlc/audit/gate-<day>.jsonl`, which the fingerprint itself ignores). After 3 returns on the same tree it lets the turn end with a warning. `AIDLC_GATE=0` turns it off; `gate_mode` `warn` only warns.
+
+It fails toward allowing: no git, no recognized technology or unreadable input exits 0. Codex only runs project hooks after you trust them with `/hooks`.
 
 ### aidlc-identity
 

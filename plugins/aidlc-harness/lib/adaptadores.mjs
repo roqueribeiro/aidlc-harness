@@ -64,6 +64,10 @@ export const ADAPTADORES = {
   },
   copilot: {
     nome: 'GitHub Copilot',
+    hooks: {
+      destino: '.github/hooks/aidlc.json',
+      json: { version: 1, hooks: { preToolUse: [{ type: 'command', command: 'aidlc-hook shell --formato copilot', timeoutSec: 15 }], agentStop: [{ type: 'command', command: 'aidlc-hook parada --formato copilot', timeoutSec: 120 }] } },
+    },
     ferramentaDePergunta: 'askQuestions',
     pergunta: 'a ferramenta de perguntas do VS Code, #tool:vscode/askQuestions (escolha única ou múltipla, texto livre, recomendada destacada); no Copilot CLI, a ferramenta `ask_user`',
     args: '${input:pedido:o que se quer construir, em uma frase}',
@@ -73,6 +77,10 @@ export const ADAPTADORES = {
   },
   cursor: {
     nome: 'Cursor',
+    hooks: {
+      destino: '.cursor/hooks.json',
+      json: { version: 1, hooks: { beforeShellExecution: [{ command: 'aidlc-hook shell --formato cursor' }], stop: [{ command: 'aidlc-hook parada --formato cursor', loop_limit: 3 }] } },
+    },
     ferramentaDePergunta: 'Ask questions',
     pergunta: 'a ferramenta "Ask questions" do Cursor (o cartão de perguntas com opções e campo "Other")',
     args: 'o texto que veio junto com o comando',
@@ -107,6 +115,15 @@ export const ADAPTADORES = {
   },
   codex: {
     nome: 'OpenAI Codex',
+    hooks: {
+      destino: '.codex/hooks.json',
+      json: {
+        hooks: {
+          PreToolUse: [{ matcher: 'Bash', hooks: [{ type: 'command', command: 'aidlc-hook shell --formato codex', timeout: 15 }] }],
+          Stop: [{ hooks: [{ type: 'command', command: 'aidlc-hook parada --formato codex', timeout: 120 }] }],
+        },
+      },
+    },
     ferramentaDePergunta: 'request_user_input',
     pergunta: 'a ferramenta `request_user_input` (até 3 perguntas por chamada, recomendada primeiro). Ela só existe no modo Plan: entre com /plan antes',
     invocar: { inception: '/plan e depois $aidlc-inception', construction: '$aidlc-construction' },
@@ -239,6 +256,7 @@ export function planoDosAdaptadores(ferramentas) {
     if (a.skillsEm) for (const fase of FASES_COMANDO) plano.push({ destino: `${a.skillsEm}/aidlc-${fase}/SKILL.md`, conteudo: textoDaSkill(fase), derivado: true })
     if (a.comandos) for (const fase of FASES_COMANDO) plano.push(arquivoDoComando(fase, id))
     if (a.extras) plano.push(...a.extras())
+    if (a.hooks) plano.push({ destino: a.hooks.destino, json: a.hooks.json, conteudo: JSON.stringify(a.hooks.json, null, 2) + '\n', mesclarJson: true })
   }
   if (ferramentas.length) plano.push({ destino: '.aidlc/COMANDOS.md', conteudo: guiaDeComandos(ferramentas), derivado: true })
   return plano
@@ -263,4 +281,29 @@ export function guiaDeComandos(ferramentas) {
     'Em todas: a IA escreve o rascunho completo antes de perguntar e faz no máximo 5 perguntas. O método está em `.agents/skills/aidlc-inception/SKILL.md`.',
     '',
   ].join('\n')
+}
+
+/*
+ * Arquivo de hooks que o time pode já ter (.cursor/hooks.json, .codex/hooks.json): o kit não o
+ * substitui, acrescenta as entradas dele. Uma entrada do kit é reconhecida pelo comando
+ * `aidlc-hook`, em qualquer profundidade (o formato do Codex aninha `hooks` dentro do evento).
+ */
+const comandosDe = (x) => (Array.isArray(x) ? x.flatMap(comandosDe) : x && typeof x === 'object' ? [...(typeof x.command === 'string' ? [x.command] : []), ...Object.values(x).flatMap(comandosDe)] : [])
+
+export function mesclarHooks(existente, nosso) {
+  const out = structuredClone(existente ?? {})
+  for (const [k, v] of Object.entries(nosso)) if (k !== 'hooks' && !(k in out)) out[k] = v
+  out.hooks ??= {}
+  for (const [evento, entradas] of Object.entries(nosso.hooks)) {
+    const atuais = Array.isArray(out.hooks[evento]) ? out.hooks[evento] : []
+    const tem = new Set(comandosDe(atuais))
+    out.hooks[evento] = [...atuais, ...entradas.filter((e) => !comandosDe(e).every((c) => tem.has(c)))]
+  }
+  return out
+}
+
+/** As entradas do kit estão todas no arquivo? */
+export function hooksPresentes(existente, nosso) {
+  const tem = new Set(comandosDe(existente?.hooks ?? {}))
+  return comandosDe(nosso.hooks).every((c) => tem.has(c))
 }

@@ -11,3 +11,6 @@ _to_delete/
 *.env
 !*.env.example
 aidlc.env
+
+# Registro local do gate (aidlc/audit/): de cada maquina, nao do repositorio.
+aidlc/audit/*.jsonl

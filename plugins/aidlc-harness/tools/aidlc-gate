@@ -22,6 +22,7 @@ import { join, dirname, delimiter } from 'node:path'
 import { fileURLToPath } from 'node:url'
 import { loadManifests, detectTech, repoRoot, platformAllows, platformLabel, manifestosDoProjeto } from '../lib/detect.mjs'
 import { homedir } from 'node:os'
+import { impressaoDaArvore, registrarGate } from '../lib/audit.mjs'
 
 /*
  * Os gates chamam os proprios executaveis do kit (aidlc-scan, aidlc-lockcheck, aidlc-secscan). No
@@ -229,6 +230,10 @@ for (const g of gates) {
 }
 
 const failedBlocking = results.filter((r) => r.status === 'fail' && r.blocking)
+
+// Cada execução real fica registrada com a impressão da árvore: é o que o hook de parada das
+// ferramentas sem transcript legível (Copilot, Cursor, Codex) confere. --only não conta como gate inteiro.
+if (!DRY && !flag('--only')) registrarGate(root, { ok: failedBlocking.length === 0, tech: manifest.tech, arvore: impressaoDaArvore(root) })
 const skipped = results.filter((r) => r.status === 'skipped')
 const pending = results.filter((r) => r.status === 'agent')
 const pendingBlocking = pending.filter((r) => r.blocking)

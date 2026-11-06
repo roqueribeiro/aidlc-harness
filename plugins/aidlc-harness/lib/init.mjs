@@ -11,7 +11,7 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
-import { FERRAMENTAS, FERRAMENTAS_PADRAO, planoDosAdaptadores, resolverFerramentas } from './adaptadores.mjs'
+import { FERRAMENTAS, FERRAMENTAS_PADRAO, hooksPresentes, mesclarHooks, planoDosAdaptadores, resolverFerramentas } from './adaptadores.mjs'
 
 const MOLDE = join(fileURLToPath(new URL('.', import.meta.url)), '../templates/project')
 export { FERRAMENTAS, FERRAMENTAS_PADRAO }
@@ -98,9 +98,26 @@ export function planejar({ nome, descricao, ferramentas: pedidas = FERRAMENTAS_P
  */
 export function aplicar(raiz, plano, { force = false, dryRun = false } = {}) {
   const r = { criados: [], mantidos: [], sobrescritos: [], mesclados: [], derivados: [] }
-  for (const { destino, conteudo, mesclar, derivado } of plano) {
+  for (const { destino, conteudo, mesclar, derivado, mesclarJson, json } of plano) {
     const abs = join(raiz, destino)
     const existe = existsSync(abs)
+    if (existe && mesclarJson && !force) {
+      // Hooks do time ficam; as entradas do kit entram ao lado.
+      let atual
+      try {
+        atual = JSON.parse(readFileSync(abs, 'utf8'))
+      } catch {
+        r.mantidos.push(`${destino} (JSON ilegivel: acrescente as entradas do aidlc-hook a mao)`)
+        continue
+      }
+      if (hooksPresentes(atual, json)) {
+        r.mantidos.push(destino)
+        continue
+      }
+      if (!dryRun) writeFileSync(abs, JSON.stringify(mesclarHooks(atual, json), null, 2) + '\n')
+      r.mesclados.push(destino)
+      continue
+    }
     if (existe && mesclar) {
       // Acrescentar o bloco preserva tudo o que existia: não depende de --force.
       if (!dryRun) writeFileSync(abs, conteudo)
@@ -182,9 +199,18 @@ export function ferramentasDoProjeto(raiz) {
 /** Os arquivos de adaptador (skills copiadas, comandos) que divergem do que o kit geraria. */
 export function adaptadoresDivergentes(raiz) {
   const erros = []
-  for (const { destino, conteudo } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+  for (const { destino, conteudo, mesclarJson, json } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
     const p = join(raiz, destino)
     if (!existsSync(p)) erros.push(`${destino}: falta (rode aidlc-init --sync)`)
+    else if (mesclarJson) {
+      let atual = null
+      try {
+        atual = JSON.parse(lerTexto(p))
+      } catch {
+        /* cai na mensagem abaixo */
+      }
+      if (!atual || !hooksPresentes(atual, json)) erros.push(`${destino}: sem as entradas do aidlc-hook (rode aidlc-init --sync; os hooks do time ficam)`)
+    }
     else if (lerTexto(p) !== conteudo) erros.push(`${destino}: diverge do que esta versao do kit gera (rode aidlc-init --sync; o arquivo e do kit, nao se edita)`)
   }
   return erros
@@ -213,8 +239,19 @@ export function sincronizar(raiz) {
     feitos.push('.kiro/steering/aidlc.md')
   }
   // Skills e comandos das ferramentas: o kit é a fonte; o --sync traz a versão atual.
-  for (const { destino, conteudo } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+  for (const { destino, conteudo, mesclarJson, json } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
     const p = join(raiz, destino)
+    if (mesclarJson && existsSync(p)) {
+      try {
+        const atual = JSON.parse(lerTexto(p))
+        if (hooksPresentes(atual, json)) continue
+        writeFileSync(p, JSON.stringify(mesclarHooks(atual, json), null, 2) + '\n')
+        feitos.push(destino)
+      } catch {
+        /* JSON do time ilegível: o --check continua apontando */
+      }
+      continue
+    }
     if (existsSync(p) && lerTexto(p) === conteudo) continue
     mkdirSync(dirname(p), { recursive: true })
     writeFileSync(p, conteudo)
