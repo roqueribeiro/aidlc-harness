@@ -54,7 +54,7 @@ aidlc-phase check inception         # sai 1 se a Inception estiver incompleta
 aidlc-phase check construction      # exige a Inception completa E os arquivos da Construction
 ```
 
-Uma fase está completa quando todos os seus arquivos existem, não têm o marcador `<!-- PREENCHER` e terminam com `Aprovado por:` e `Data:` (AAAA-MM-DD) preenchidos. O nome é recusado se for de ferramenta de IA. Sem pasta `aidlc/`, `status` sai 0 e `check` sai 1. O que o comando **não** prova: que o nome é de quem de fato aprovou (veja [AIDLC.md](AIDLC.md)).
+Uma fase está completa quando todos os seus arquivos existem, não têm o marcador `<!-- PREENCHER` e terminam com `Aprovado por:` e `Data:` (AAAA-MM-DD) preenchidos. O nome é recusado se for de ferramenta de IA. No `aidlc/inception/requirements.md` valem mais duas regras: no máximo **5** itens em `## Perguntas em aberto`, e uma seção `## Premissas` que, quando lista alguma, exige `Premissas revisadas por:` preenchido por uma pessoa. Sem pasta `aidlc/`, `status` sai 0 e `check` sai 1. O que o comando **não** prova: que o nome é de quem de fato aprovou (veja [AIDLC.md](AIDLC.md)).
 
 ### aidlc-gate
 
@@ -230,7 +230,7 @@ Disponíveis no Claude Code com o plugin instalado. São instruções para o age
 
 | Comando | O que faz |
 | --- | --- |
-| `/inception` | Conduz a Inception: perguntas em rodadas, requisitos, histórias e unidades de trabalho, até uma pessoa aprovar. O agente não aprova nada |
+| `/inception` | Conduz a Inception pela skill `aidlc-inception`: primeiro um rascunho recomendado, depois no máximo cinco perguntas na janela do `AskUserQuestion`, até uma pessoa aprovar. O agente não aprova nada |
 | `/construction` | Conduz a Construction: desenho e plano de testes aprovados antes do código; depois, uma unidade de trabalho por vez. Argumento opcional: número da unidade |
 | `/gate` | Roda `aidlc-gate` e cola a saída crua. Argumento opcional: o id de um gate |
 | `/status` | Panorama do repositório em uma tela (gate, padrão, cofre, grafo, pendências), só leitura |
@@ -257,6 +257,8 @@ Em `plugins/aidlc-harness/skills/<nome>/SKILL.md`. O agente as carrega pela desc
 | --- | --- |
 | `aidlc-context` | Tarefa que exige julgamento de produto: nomear, escrever texto de usuário, avaliar escopo. Lê `context/product.md` |
 | `blast` | **Antes** de editar arquivo que possa ser contrato entre repositórios: usa `aidlc-graph blast` |
+| `aidlc-inception` | Conduzir a Inception: a IA rascunha requisitos, histórias e unidades com as recomendações dela, decide sozinha o que é reversível e faz no máximo 5 perguntas, na janela de perguntas nativa da ferramenta. Lida por todas as ferramentas suportadas, não só o Claude Code |
+| `aidlc-construction` | Conduzir a Construction: desenho e plano de testes recomendados pela IA e aprovados por uma pessoa antes do código, depois uma unidade por vez |
 | `bolts` | Começar ou retomar projeto grande: planejar tudo, separar em unidades (bolts), fechar cada uma com teste, evidência e limpeza |
 | `repo-standard` | Trazer um repositório ao padrão do kit quando o `aidlc-doctor` estiver baixo |
 

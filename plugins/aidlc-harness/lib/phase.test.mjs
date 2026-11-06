@@ -131,3 +131,52 @@ describe('ferramenta aidlc-phase', () => {
     rmSync(d, { recursive: true, force: true })
   })
 })
+
+/*
+ * Inception que recomenda primeiro (v0.2): no máximo 5 perguntas em aberto e premissas revisadas
+ * por uma pessoa. Cada teste abaixo é um jeito de burlar a regra, e tem de reprovar.
+ */
+describe('regras do Inception que recomenda primeiro', () => {
+  const REQ = 'aidlc/inception/requirements.md'
+  const comSecao = (d, nome, linhas) => {
+    const p = join(d, REQ)
+    const t = readFileSync(p, 'utf8').replace(new RegExp(`(## ${nome}\\n\\n)[^#]*`), `$1${linhas.join('\n')}\n\n`)
+    writeFileSync(p, t)
+  }
+  const pronto = () => {
+    const d = novo()
+    for (const f of TODOS.slice(0, 3)) preenche(d, f)
+    return d
+  }
+
+  test('6 perguntas em aberto reprovam; 5 passam', () => {
+    const d = pronto()
+    comSecao(d, 'Perguntas em aberto', ['- a', '- b', '- c', '- d', '- e', '- f'])
+    assert.match(conferirArquivo(d, 'aidlc/inception', 'requirements.md').join(' '), /6 perguntas em aberto; o maximo e 5/)
+    comSecao(d, 'Perguntas em aberto', ['- a', '- b', '- c', '- d', '- e'])
+    assert.deepEqual(conferirArquivo(d, 'aidlc/inception', 'requirements.md'), [])
+    rmSync(d, { recursive: true, force: true })
+  })
+
+  test('premissas listadas sem "Premissas revisadas por:" reprovam; com uma pessoa passam', () => {
+    const d = pronto()
+    comSecao(d, 'Premissas', ['- Login sem SSO (motivo: o pedido não cita provedor)'])
+    assert.match(conferirArquivo(d, 'aidlc/inception', 'requirements.md').join(' '), /1 premissa\(s\) e "Premissas revisadas por:" em branco/)
+    const p = join(d, REQ)
+    writeFileSync(p, readFileSync(p, 'utf8').replace(/Premissas revisadas por:.*/, 'Premissas revisadas por: Claude'))
+    assert.match(conferirArquivo(d, 'aidlc/inception', 'requirements.md').join(' '), /a revisao e de uma pessoa/)
+    writeFileSync(p, readFileSync(p, 'utf8').replace(/Premissas revisadas por:.*/, 'Premissas revisadas por: Maria Souza'))
+    assert.deepEqual(conferirArquivo(d, 'aidlc/inception', 'requirements.md'), [])
+    rmSync(d, { recursive: true, force: true })
+  })
+
+  test('"nenhuma" premissa dispensa a revisão; apagar a seção reprova', () => {
+    const d = pronto()
+    comSecao(d, 'Premissas', ['- nenhuma'])
+    assert.deepEqual(conferirArquivo(d, 'aidlc/inception', 'requirements.md'), [])
+    const p = join(d, REQ)
+    writeFileSync(p, readFileSync(p, 'utf8').replace(/## Premissas\n/, ''))
+    assert.match(conferirArquivo(d, 'aidlc/inception', 'requirements.md').join(' '), /falta a secao "## Premissas"/)
+    rmSync(d, { recursive: true, force: true })
+  })
+})

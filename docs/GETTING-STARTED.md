@@ -94,18 +94,18 @@ Here the AI leads and the team answers. In Claude Code:
 
 (The example prompt is in Portuguese; it means "I want a customer registry with search and change history". Write yours in your own language.)
 
-In Kiro or Copilot, paste the text from [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md#inception) (Portuguese) into the agent's chat.
+In the other tools, `aidlc-init` generated the command in each tool's own format: `.aidlc/COMANDOS.md` in your project lists what to type in each one (for example `/aidlc-inception` in OpenCode, Cursor and VS Code, `/aidlc:inception` in Gemini CLI).
 
 The AI should:
 
-1. read `AGENTS.md`, `context/product.md` and `aidlc/decisions.md`;
-2. ask **in rounds of at most five questions**, with options and a recommendation, waiting for your answers;
-3. record the answers, in your words, in `aidlc/inception/requirements.md`;
-4. propose stories with verifiable acceptance criteria, and then the units of work.
+1. read `AGENTS.md`, `context/product.md`, `aidlc/decisions.md`, the code and whatever you put in `aidlc/inception/insumos/` (meeting transcript, brief, screenshot);
+2. write a **complete draft first**: requirements, stories with verifiable acceptance criteria and units of work, with its own recommendations, listing every choice it made alone under **Premissas** (assumptions);
+3. ask **only what it cannot decide**, at most five questions, in the tool's own question window where there is one, with the recommended option first; "accept all recommendations" is always a valid answer;
+4. record your answers, in your words, and adjust the draft.
 
-**Your role:** answer, correct, cut scope. If the AI invents a requirement nobody stated, delete it. If a criterion comes with an adjective ("fast"), demand a number.
+**Your role:** answer, check the assumptions, correct, cut scope. If the AI invents a requirement nobody stated, delete it. If a criterion comes with an adjective ("fast"), demand a number.
 
-**Closing the phase:** when the three files are filled in, **a person** writes their name and the date in `Aprovado por:` and `Data:` in each file. (These two literals, "Approved by:" and "Date:", are what the check looks for, so keep them in Portuguese.) Then:
+**Closing the phase:** when the three files are filled in, **a person** writes their name and the date in `Aprovado por:` and `Data:` in each file, and in `Premissas revisadas por:` (assumptions reviewed by) in `requirements.md` when it lists assumptions. (These literals are what the check looks for, so keep them in Portuguese.) Then:
 
 ```bash
 aidlc-phase check inception

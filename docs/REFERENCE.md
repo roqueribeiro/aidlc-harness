@@ -56,7 +56,7 @@ aidlc-phase check inception         # exits 1 if the Inception is incomplete
 aidlc-phase check construction      # requires a complete Inception AND the Construction files
 ```
 
-A phase is complete when all of its files exist, do not have the `<!-- PREENCHER` marker and end with `Aprovado por:` and `Data:` (YYYY-MM-DD) filled in. These two literals, in Portuguese, are exactly what the check looks for. The name is refused if it belongs to an AI tool. Without an `aidlc/` folder, `status` exits 0 and `check` exits 1. What the command does **not** prove: that the name belongs to whoever actually approved (see [AIDLC.md](AIDLC.md)).
+A phase is complete when all of its files exist, do not have the `<!-- PREENCHER` marker and end with `Aprovado por:` and `Data:` (YYYY-MM-DD) filled in. These two literals, in Portuguese, are exactly what the check looks for. The name is refused if it belongs to an AI tool. In `aidlc/inception/requirements.md` two more rules apply: at most **5** items under `## Perguntas em aberto` (open questions), and a `## Premissas` (assumptions) section that, when it lists any, needs `Premissas revisadas por:` filled in by a person. Without an `aidlc/` folder, `status` exits 0 and `check` exits 1. What the command does **not** prove: that the name belongs to whoever actually approved (see [AIDLC.md](AIDLC.md)).
 
 ### aidlc-gate
 
@@ -232,7 +232,7 @@ Available in Claude Code with the plugin installed. They are instructions for th
 
 | Command | What it does |
 | --- | --- |
-| `/inception` | Conducts the Inception: questions in rounds, requirements, stories and units of work, until a person approves. The agent approves nothing |
+| `/inception` | Conducts the Inception through the `aidlc-inception` skill: a recommended draft first, then at most five questions in the `AskUserQuestion` window, until a person approves. The agent approves nothing |
 | `/construction` | Conducts the Construction: design and test plan approved before the code; then, one unit of work at a time. Optional argument: unit number |
 | `/gate` | Runs `aidlc-gate` and pastes the raw output. Optional argument: the id of a gate |
 | `/status` | Overview of the repository on one screen (gate, standard, vault, graph, pending items), read-only |
@@ -259,6 +259,8 @@ In `plugins/aidlc-harness/skills/<name>/SKILL.md`. The agent loads them by their
 | --- | --- |
 | `aidlc-context` | A task that requires product judgment: naming, writing user-facing text, assessing scope. Reads `context/product.md` |
 | `blast` | **Before** editing a file that may be a contract between repositories: uses `aidlc-graph blast` |
+| `aidlc-inception` | Running the Inception: the AI drafts requirements, stories and units with its recommendations, decides what is reversible on its own and asks at most 5 questions, in the tool's native question window. Read by every supported tool, not only Claude Code |
+| `aidlc-construction` | Running the Construction: design and test plan recommended by the AI and approved by a person before code, then one unit at a time |
 | `bolts` | Starting or resuming a large project: plan everything, split into units (bolts), close each one with a test, evidence and cleanup |
 | `repo-standard` | Bringing a repository up to the kit standard when `aidlc-doctor` is low |
 

@@ -13,7 +13,7 @@ Segundo o post, o AI-DLC organiza o trabalho em três fases. Na **Inception**, a
 | No AI-DLC | No kit | Mecanismo |
 | --- | --- | --- |
 | Fase Inception | `aidlc/inception/`: requisitos, histórias, unidades de trabalho | `/inception` conduz; `aidlc-phase check inception` confere |
-| Mob Elaboration | A IA pergunta em rodadas de no máximo cinco, com opções e recomendação; a equipe responde | instrução do comando; o kit **não** reúne pessoas, ele registra o que a equipe respondeu |
+| Mob Elaboration | A IA rascunha tudo primeiro com as recomendações dela, registra como premissa o que decidiu sozinha e faz no máximo cinco perguntas, só o que a equipe precisa decidir; a equipe responde e revisa as premissas | instrução do comando; o kit **não** reúne pessoas, ele registra o que a equipe respondeu |
 | Units of work | `aidlc/inception/units-of-work.md`, cada uma com a evidência que a dá por pronta | `aidlc-phase` exige o arquivo sem campo por preencher |
 | Validação humana | `Aprovado por:` e `Data:` no fim de cada artefato, preenchidos por uma pessoa | `aidlc-phase` reprova em branco e nome de IA; não prova que o nome é de quem aprovou |
 | Fase Construction | `aidlc/construction/`: desenho e plano de testes antes do código | `/construction` conduz; `aidlc-phase check construction` exige a Inception completa primeiro |
@@ -38,7 +38,7 @@ O post descreve o *quê* do ciclo; o kit acrescenta controles que fazem o "pront
 Dito para você decidir com os olhos abertos:
 
 1. **Operations é a parte mais fina.** O kit registra decisões, mede o ciclo (`aidlc-cycle`) e limpa a bancada. Ele **não** gera infraestrutura como código, não faz deploy e não observa produção. A promessa do método de a IA aplicar o contexto acumulado a deploys e infraestrutura fica por conta do seu pipeline.
-2. **Os rituais "mob" são práticas de equipe.** O kit dá a estrutura (perguntas em rodadas, aprovação no arquivo), mas não reúne ninguém. Uma Inception respondida por uma pessoa só, às pressas, passa no `aidlc-phase` do mesmo jeito que uma discutida por todo o time. A qualidade do ritual é da equipe.
+2. **Os rituais "mob" são práticas de equipe.** O kit dá a estrutura (rascunho recomendado, no máximo cinco perguntas, premissas e aprovação no arquivo), mas não reúne ninguém. Uma Inception respondida por uma pessoa só, às pressas, passa no `aidlc-phase` do mesmo jeito que uma discutida por todo o time. A qualidade do ritual é da equipe.
 3. **A validação é conferida na forma.** `aidlc-phase` garante que existe aprovação e que não é de uma IA. Quem exige que a aprovação seja de quem tem autoridade para dá-la é o processo da sua organização (por exemplo, revisão obrigatória do pull request que comita a assinatura).
 4. **O vocabulário é adaptado.** "Bolt" no kit é a unidade de trabalho com a sequência de fechamento da skill `bolts`. Não é um ciclo medido em horas por definição do método; se a sua unidade levar uma semana, o kit não impede.
 5. **As fases do kit são duas (Inception e Construction)** no `aidlc-phase`, porque Operations não tem artefato de aprovação próprio aqui.

@@ -13,8 +13,15 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 - `pkg-manager` now sees `pnpm`, `bun` and `bunx` invocations.
 - `scripts/setup.mjs` did nothing on Windows and exited 0: the "am I the main module" test compared a `file://` URL with a Windows path and never matched. The same defect was in `gerar-prompts`, `definir-dono` and `install-git-hooks`; all four now use `ehPrincipal`. Paths are built for the target platform, `Path` is found on Windows, and the setup prints the exact line to add it to the `PATH`.
 
+### Changed
+
+- **The Inception recommends first.** New `aidlc-inception` and `aidlc-construction` skills hold the method: the AI reads everything (including `aidlc/inception/insumos/`), writes a complete draft with its recommendations, records what it decided alone under `## Premissas`, and asks at most 5 questions, only what the team must decide, in the tool's native question window, with "accept all recommendations" always available. `/inception` and `/construction` now load the skill and require `AskUserQuestion`; the v0.1 text asked for numbered options in up to four rounds of five.
+- `aidlc-phase check inception` fails with more than 5 open questions, without a `## Premissas` section, or with assumptions listed and `Premissas revisadas por:` blank or signed by an AI.
+
 ### Added
 
+- **Adapters for 15 tools.** `aidlc-init --tools` (or an interactive picker in a terminal, with the tools found on disk already checked) generates each tool's command in its own format and folder, naming its question tool: Claude Code, OpenCode, Kilo Code, GitHub Copilot (VS Code prompt files, CLI through skills), Cursor, Gemini CLI, Google Antigravity, Kiro, OpenAI Codex, Devin Desktop (ex-Windsurf), Cline, JetBrains Junie, Continue, Augment and Zed. The skills are copied to `.agents/skills/`; `.aidlc/COMANDOS.md` lists what to type in each tool. `--check` fails when a generated file diverges and `--sync` refreshes them.
+- `.gitattributes` keeps the kit's files LF; `aidlc-init` also tolerates CRLF files (a Windows clone with `autocrlf` made `--check` fail on the project `init` had just created).
 - Manifests for `node-pnpm`, `node-bun`, `java-maven`, `java-gradle`, `dotnet` and `go`. Detection accepts root-level patterns such as `*.csproj`.
 - The generated CI workflow installs `trivy` (pinned by commit) and the dependencies of the detected technology, from the new `ci.setup` manifest field. Before, a clean runner failed `aidlc-secscan` and the tests for reasons that were not the project's.
 - `scripts/e2e-maquina-limpa.test.mjs`: setup, init, check, gate and doctor through the `PATH`, with an empty `HOME`, for seven technologies; CI runs it on Linux, macOS and Windows.

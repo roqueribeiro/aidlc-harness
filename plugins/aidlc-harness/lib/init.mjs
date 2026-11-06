@@ -11,11 +11,19 @@
 import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync, statSync } from 'node:fs'
 import { basename, dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { FERRAMENTAS, FERRAMENTAS_PADRAO, planoDosAdaptadores, resolverFerramentas } from './adaptadores.mjs'
 
 const MOLDE = join(fileURLToPath(new URL('.', import.meta.url)), '../templates/project')
-export const FERRAMENTAS = ['claude', 'kiro', 'copilot']
+export { FERRAMENTAS, FERRAMENTAS_PADRAO }
 
-const lerMolde = (rel) => readFileSync(join(MOLDE, rel), 'utf8')
+/*
+ * Fim de linha: num clone do kit no Windows o git pode converter os moldes para CRLF, e os
+ * marcadores e cabeçalhos (que casam `\n`) deixam de casar: o --check reprovava o projeto que o
+ * próprio init acabou de criar. Tudo o que se lê passa por `lf`.
+ */
+const lf = (t) => t.replace(/\r\n/g, '\n')
+const lerTexto = (p) => lf(readFileSync(p, 'utf8'))
+const lerMolde = (rel) => lerTexto(join(MOLDE, rel))
 
 /*
  * O bloco gerenciado do AGENTS.md.
@@ -61,8 +69,8 @@ function arvore(base, rel = '') {
  * Monta o plano de arquivos a criar.
  * @returns {{ destino: string, conteudo: string }[]}
  */
-export function planejar({ nome, descricao, ferramentas = FERRAMENTAS, agentsExistente = null, tech = null }) {
-  for (const f of ferramentas) if (!FERRAMENTAS.includes(f)) throw new Error(`ferramenta desconhecida: ${f} (use ${FERRAMENTAS.join(', ')})`)
+export function planejar({ nome, descricao, ferramentas: pedidas = FERRAMENTAS_PADRAO, agentsExistente = null, tech = null }) {
+  const ferramentas = resolverFerramentas(pedidas)
   const vars = {
     NOME: nome,
     DESCRICAO: descricao,
@@ -80,6 +88,7 @@ export function planejar({ nome, descricao, ferramentas = FERRAMENTAS, agentsExi
   plano.push({ destino: '.github/workflows/aidlc-gate.yml', conteudo: subst(lerMolde('aidlc-gate.yml'), { CI_SETUP: passosDeCi(tech) }) })
   for (const rel of arvore(join(MOLDE, 'aidlc'))) plano.push({ destino: join('aidlc', rel), conteudo: subst(lerMolde(join('aidlc', rel)), vars) })
   plano.push({ destino: 'aidlc/audit/.gitkeep', conteudo: '' })
+  plano.push(...planoDosAdaptadores(ferramentas))
   return plano
 }
 
@@ -88,14 +97,24 @@ export function planejar({ nome, descricao, ferramentas = FERRAMENTAS, agentsExi
  * @returns {{ criados: string[], mantidos: string[], sobrescritos: string[] }}
  */
 export function aplicar(raiz, plano, { force = false, dryRun = false } = {}) {
-  const r = { criados: [], mantidos: [], sobrescritos: [], mesclados: [] }
-  for (const { destino, conteudo, mesclar } of plano) {
+  const r = { criados: [], mantidos: [], sobrescritos: [], mesclados: [], derivados: [] }
+  for (const { destino, conteudo, mesclar, derivado } of plano) {
     const abs = join(raiz, destino)
     const existe = existsSync(abs)
     if (existe && mesclar) {
       // Acrescentar o bloco preserva tudo o que existia: não depende de --force.
       if (!dryRun) writeFileSync(abs, conteudo)
       r.mesclados.push(destino)
+      continue
+    }
+    if (existe && derivado && !force) {
+      // Arquivo do kit (skill copiada, comando gerado): acompanha a versão do kit, como o --sync faria.
+      if (lf(readFileSync(abs, 'utf8')) === conteudo) {
+        r.mantidos.push(destino)
+        continue
+      }
+      if (!dryRun) writeFileSync(abs, conteudo)
+      r.derivados.push(destino)
       continue
     }
     if (existe && !force) {
@@ -132,7 +151,7 @@ const corpoDe = (txt) => txt.replace(/^---\n[\s\S]*?\n---\n\n?/, '').trimEnd()
 export function conferirSincronia(raiz) {
   const agentsP = join(raiz, 'AGENTS.md')
   if (!existsSync(agentsP)) return ['AGENTS.md: nao existe (rode aidlc-init)']
-  const base = readFileSync(agentsP, 'utf8').trimEnd()
+  const base = lerTexto(agentsP).trimEnd()
   const erros = []
   if (!temBloco(base)) erros.push('AGENTS.md: sem o bloco do aidlc (aidlc:inicio/aidlc:fim), entao as regras do AI-DLC nao chegam a ferramenta nenhuma. Rode aidlc-init: ele acrescenta o bloco sem tocar no resto')
   for (const [rel, rotulo] of [
@@ -141,10 +160,33 @@ export function conferirSincronia(raiz) {
   ]) {
     const p = join(raiz, rel)
     if (!existsSync(p)) continue
-    if (corpoDe(readFileSync(p, 'utf8')) !== base) erros.push(`${rel}: diverge do AGENTS.md (${rotulo}). Regenere com aidlc-init --sync (so as copias sao regravadas; o AGENTS.md fica como esta)`)
+    if (corpoDe(lerTexto(p)) !== base) erros.push(`${rel}: diverge do AGENTS.md (${rotulo}). Regenere com aidlc-init --sync (so as copias sao regravadas; o AGENTS.md fica como esta)`)
   }
   const claudeP = join(raiz, 'CLAUDE.md')
-  if (existsSync(claudeP) && !/^@AGENTS\.md\s*$/m.test(readFileSync(claudeP, 'utf8'))) erros.push('CLAUDE.md: nao importa @AGENTS.md, entao as regras do Claude Code podem divergir das outras ferramentas')
+  if (existsSync(claudeP) && !/^@AGENTS\.md\s*$/m.test(lerTexto(claudeP))) erros.push('CLAUDE.md: nao importa @AGENTS.md, entao as regras do Claude Code podem divergir das outras ferramentas')
+  erros.push(...adaptadoresDivergentes(raiz))
+  return erros
+}
+
+/** Ferramentas do projeto: as que o aidlc-init gravou em .aidlc/config.json. */
+export function ferramentasDoProjeto(raiz) {
+  try {
+    const t = JSON.parse(readFileSync(join(raiz, '.aidlc', 'config.json'), 'utf8')).tools
+    if (Array.isArray(t)) return resolverFerramentas(t)
+  } catch {
+    /* sem config: nenhuma ferramenta declarada */
+  }
+  return []
+}
+
+/** Os arquivos de adaptador (skills copiadas, comandos) que divergem do que o kit geraria. */
+export function adaptadoresDivergentes(raiz) {
+  const erros = []
+  for (const { destino, conteudo } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+    const p = join(raiz, destino)
+    if (!existsSync(p)) erros.push(`${destino}: falta (rode aidlc-init --sync)`)
+    else if (lerTexto(p) !== conteudo) erros.push(`${destino}: diverge do que esta versao do kit gera (rode aidlc-init --sync; o arquivo e do kit, nao se edita)`)
+  }
   return erros
 }
 
@@ -153,7 +195,7 @@ export function sincronizar(raiz) {
   const agentsP = join(raiz, 'AGENTS.md')
   const feitos = []
   // O miolo do bloco acompanha a versão do kit; o resto do AGENTS.md é do time e não muda.
-  const atual = readFileSync(agentsP, 'utf8')
+  const atual = lerTexto(agentsP)
   const novo = comBloco(atual, blocoDoMolde())
   if (novo !== atual) {
     writeFileSync(agentsP, novo)
@@ -169,6 +211,14 @@ export function sincronizar(raiz) {
   if (existsSync(kiro)) {
     writeFileSync(kiro, subst(lerMolde('kiro-steering-aidlc.md'), { CORPO: base }))
     feitos.push('.kiro/steering/aidlc.md')
+  }
+  // Skills e comandos das ferramentas: o kit é a fonte; o --sync traz a versão atual.
+  for (const { destino, conteudo } of planoDosAdaptadores(ferramentasDoProjeto(raiz))) {
+    const p = join(raiz, destino)
+    if (existsSync(p) && lerTexto(p) === conteudo) continue
+    mkdirSync(dirname(p), { recursive: true })
+    writeFileSync(p, conteudo)
+    feitos.push(destino)
   }
   return feitos
 }

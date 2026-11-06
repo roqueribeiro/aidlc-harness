@@ -45,7 +45,7 @@ describe('criação', () => {
   })
 
   test('ferramenta desconhecida é recusada', () => {
-    assert.throws(() => planejar({ ...base, ferramentas: ['vscode'] }), /desconhecida/)
+    assert.throws(() => planejar({ ...base, ferramentas: ['notepad'] }), /desconhecida/)
   })
 
   test('nunca sobrescreve; --force sobrescreve', () => {
@@ -221,5 +221,21 @@ describe('CI gerado', () => {
     const yml = planejar(base).find((p) => p.destino.endsWith('aidlc-gate.yml')).conteudo
     assert.match(yml, /Nenhuma tecnologia reconhecida/)
     assert.doesNotMatch(yml, /setup-go|setup-java|yarn install/)
+  })
+})
+
+describe('fim de linha do Windows (CRLF)', () => {
+  test('AGENTS.md e cópias com CRLF continuam em sincronia, e o init acha o bloco', () => {
+    const d = novoDir()
+    aplicar(d, planejar(base))
+    for (const f of ['AGENTS.md', '.github/copilot-instructions.md', '.kiro/steering/aidlc.md', 'CLAUDE.md']) {
+      const p = join(d, f)
+      writeFileSync(p, readFileSync(p, 'utf8').replace(/\n/g, '\r\n'))
+    }
+    assert.deepEqual(conferirSincronia(d), [])
+    const r = spawnSync(process.execPath, [FERRAMENTA, d], { encoding: 'utf8' })
+    assert.equal(r.status, 0, r.stdout + r.stderr)
+    assert.doesNotMatch(r.stdout, /atualizado\s+AGENTS\.md/, 'o bloco já existia: não é acrescentado de novo')
+    rmSync(d, { recursive: true, force: true })
   })
 })

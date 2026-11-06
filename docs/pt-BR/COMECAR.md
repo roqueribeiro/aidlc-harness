@@ -88,18 +88,18 @@ Aqui a IA conduz e a equipe responde. No Claude Code:
 /aidlc-harness:inception Quero um cadastro de clientes com busca e histórico de alterações
 ```
 
-Em Kiro ou Copilot, cole o texto de [PROMPTS.md](PROMPTS.md#inception) no chat do agente.
+Nas outras ferramentas, o `aidlc-init` gerou o comando no formato de cada uma: o `.aidlc/COMANDOS.md` do seu projeto lista o que digitar em cada ferramenta (por exemplo `/aidlc-inception` no OpenCode, no Cursor e no VS Code, `/aidlc:inception` no Gemini CLI).
 
 A IA deve:
 
-1. ler `AGENTS.md`, `context/product.md` e `aidlc/decisions.md`;
-2. perguntar **em rodadas de no máximo cinco perguntas**, com opções e uma recomendação, esperando suas respostas;
-3. registrar as respostas, nas suas palavras, em `aidlc/inception/requirements.md`;
-4. propor histórias com critérios de aceite verificáveis, e depois as unidades de trabalho.
+1. ler `AGENTS.md`, `context/product.md`, `aidlc/decisions.md`, o código e o que você puser em `aidlc/inception/insumos/` (transcrição de reunião, briefing, print);
+2. escrever **primeiro um rascunho completo**: requisitos, histórias com critérios de aceite verificáveis e unidades de trabalho, com as recomendações dela, listando em **Premissas** cada escolha que fez sozinha;
+3. perguntar **só o que não pode decidir**, no máximo cinco perguntas, na janela de perguntas da própria ferramenta quando ela tem uma, com a opção recomendada primeiro; "aceitar todas as recomendações" é sempre uma resposta válida;
+4. registrar suas respostas, nas suas palavras, e ajustar o rascunho.
 
-**Seu papel:** responder, corrigir, cortar escopo. Se a IA inventar um requisito que ninguém disse, apague. Se um critério vier com adjetivo ("rápido"), exija um número.
+**Seu papel:** responder, conferir as premissas, corrigir, cortar escopo. Se a IA inventar um requisito que ninguém disse, apague. Se um critério vier com adjetivo ("rápido"), exija um número.
 
-**Fechamento da fase:** quando os três arquivos estiverem preenchidos, **uma pessoa** escreve o nome e a data em `Aprovado por:` e `Data:` de cada arquivo. Depois:
+**Fechamento da fase:** quando os três arquivos estiverem preenchidos, **uma pessoa** escreve o nome e a data em `Aprovado por:` e `Data:` de cada arquivo, e em `Premissas revisadas por:` no `requirements.md` quando ele lista premissas. Depois:
 
 ```bash
 aidlc-phase check inception
