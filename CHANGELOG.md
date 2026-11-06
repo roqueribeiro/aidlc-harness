@@ -4,6 +4,17 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 
 ## [Unreleased]
 
+## [0.2.2] - 2026-11-06
+
+### Added
+
+- **Codex marketplace.** The repository is also a Codex plugin marketplace (`.agents/plugins/marketplace.json`), and the plugin carries a portable Agent Plugins manifest (`plugins/aidlc-harness/plugin.json`): `codex plugin marketplace add roqueribeiro/aidlc-harness` and `codex plugin add aidlc-harness@aidlc` install it, and its skills reach the model as `aidlc-harness:aidlc-inception` and the like (checked with Codex CLI 0.167.0, from a local copy of the repository). The manifest declares `hooks: []`, so Codex never reads the Claude Code `hooks/hooks.json`; in Codex the hooks come from the `.codex/hooks.json` that `aidlc-init` writes. `scripts/marketplaces.test.mjs` checks that both marketplaces point to the same plugin with the same name and version, with mutants; `notas-da-versao --check` now covers the Codex manifest version too.
+
+### Changed
+
+- The plugin and marketplace descriptions said the kit generated instructions for Kiro and Copilot only, a 0.1 text; they now describe the 15 tools.
+
+
 ## [0.2.1] - 2026-11-06
 
 Works on the first run with nothing installed. In 0.2.0 the steps `aidlc-init` announced did not work on a new machine, and the tests passed because they ran with the kit on the `PATH`.

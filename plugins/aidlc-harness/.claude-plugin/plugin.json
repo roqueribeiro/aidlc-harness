@@ -2,8 +2,8 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin-manifest.json",
   "name": "aidlc-harness",
   "displayName": "AI-DLC Harness",
-  "version": "0.2.1",
-  "description": "Quality harness for building software with AI agents following the AI-DLC cycle: executable acceptance criteria per technology, the right context and rule delivered while the code is being written, an evidence gate, phases with human approval and an identity scanner. Works with Claude Code and generates instructions for Kiro and GitHub Copilot. The kit's messages and prompts are in Brazilian Portuguese.",
+  "version": "0.2.2",
+  "description": "Quality kit for building software with AI agents in the AI-DLC cycle: an Inception that drafts everything and asks at most five questions in the tool's own question window, phases approved by a person, a gate that refuses \"done\" without the raw test output, and an identity scanner. One command prepares a project for 15 AI tools (Claude Code, GitHub Copilot, Cursor, Codex, Kiro, OpenCode, Gemini CLI and more) and 10 stacks. The kit's messages and prompts are in Brazilian Portuguese.",
   "author": {
     "name": "aidlc-harness contributors"
   },
@@ -15,9 +15,12 @@
     "ai-dlc",
     "quality-gate",
     "evidence",
+    "inception",
     "claude-code",
-    "kiro",
+    "codex",
     "copilot",
+    "cursor",
+    "kiro",
     "governance"
   ],
   "userConfig": {

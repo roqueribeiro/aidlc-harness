@@ -27,7 +27,7 @@ jobs:
       # qualquer código novo do kit dentro do seu CI.
       - name: Instalar o aidlc-harness
         env:
-          AIDLC_REF: v0.2.1
+          AIDLC_REF: v0.2.2
         run: |
           git clone https://github.com/roqueribeiro/aidlc-harness "$RUNNER_TEMP/aidlc"
           git -C "$RUNNER_TEMP/aidlc" checkout --detach "$AIDLC_REF"

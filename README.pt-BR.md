@@ -71,6 +71,22 @@ Num terminal, ele pergunta com quais ferramentas de IA o time trabalha (as que e
 
 O CI testa exatamente isso em Linux, macOS e Windows: uma máquina sem `aidlc` no `PATH` e com o home vazio, do `init` ao gate verde, e um clone novo. O caminho completo, com o que esperar em cada passo, está em **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)**. Para ter também os comandos `aidlc-*` no `PATH` para outros projetos, o `npm install -g github:roqueribeiro/aidlc-harness` é opcional.
 
+### Pelo marketplace de plugins
+
+O repositório é um marketplace de plugins para o Claude Code e para o Codex. Instalar o plugin dá à ferramenta as skills do kit e, no Claude Code, os hooks e os agentes; o projeto ainda precisa do `npx github:roqueribeiro/aidlc-harness init` uma vez, porque é ele que grava as fases, a cópia do kit e o CI.
+
+```bash
+# Claude Code (ou /plugin marketplace add dentro da sessão)
+claude plugin marketplace add roqueribeiro/aidlc-harness
+claude plugin install aidlc-harness@aidlc
+
+# Codex
+codex plugin marketplace add roqueribeiro/aidlc-harness
+codex plugin add aidlc-harness@aidlc
+```
+
+Um projeto preparado pelo `aidlc-init` com o Claude Code escolhido faz a parte do Claude Code sozinho, pelo `.claude/settings.json`.
+
 ## Sua ferramenta de IA
 
 Cada ferramenta recebe os comandos de Inception e Construction na pasta e no formato dela, e cada comando nomeia a janela de perguntas daquela ferramenta. Onde a ferramenta aceita hooks, o kit também segura um "pronto" que não tem gate verde por trás.
@@ -164,7 +180,7 @@ A lista de achados desse relatório está vazia, e mesmo assim o resultado **nã
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **512 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
+| Suíte de testes (`node --test`) | **514 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
 | Integração contínua | verde em **Linux, macOS e Windows**, Node 20, 22 e 24 | GitHub Actions a cada push, com o teste de máquina limpa e o pacote instalado |
 | Instalar com `npx github:…` e `npm install -g github:…` | funciona | rodado a partir do GitHub em 06/11/2026, e no CI a partir do pacote empacotado, nos três sistemas |
 | Primeira execução sem nada instalado | `init`, hooks, fases e gate verde (Trivy baixado e conferido) a partir da cópia no projeto, e um clone novo | `scripts/primeira-execucao.test.mjs`, no CI em Linux, macOS e Windows, sem `aidlc` no `PATH` e com o home vazio |

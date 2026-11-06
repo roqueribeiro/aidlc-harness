@@ -137,4 +137,8 @@ if (ehPrincipal(import.meta.url)) {
   const logo = `<!doctype html><style>html,body{margin:0;background:transparent}</style><img src="${url('docs/assets/diagramas/logo.claro.svg')}" width="512" height="512">`
   await renderizar(chromium, logo, join(MARCA, 'logo-1024.png'), { largura: 512, altura: 512, transparente: true })
   await renderizar(chromium, logo, join(MARCA, 'logo-512.png'), { largura: 512, altura: 512, escala: 1, transparente: true })
+  // O ícone do plugin no Codex (composerIcon e logo do manifesto Agent Plugins) é o mesmo arquivo.
+  const { cpSync } = await import('node:fs')
+  mkdirSync(join(RAIZ, 'plugins/aidlc-harness/assets'), { recursive: true })
+  cpSync(join(MARCA, 'logo-512.png'), join(RAIZ, 'plugins/aidlc-harness/assets/logo-512.png'))
 }

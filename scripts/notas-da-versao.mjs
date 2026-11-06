@@ -23,16 +23,19 @@ export function ler(raiz = RAIZ) {
   return {
     pacote: JSON.parse(l('package.json')).version,
     plugin: JSON.parse(l('plugins/aidlc-harness/.claude-plugin/plugin.json')).version,
+    // O manifesto Agent Plugins (Codex, e quem mais ler o padrão) tem a própria versão: fica junto.
+    portatil: JSON.parse(l('plugins/aidlc-harness/plugin.json')).version,
     workflow: l('plugins/aidlc-harness/templates/project/aidlc-gate.yml'),
     changelog: l('CHANGELOG.md').replace(/\r\n/g, '\n'),
   }
 }
 
 /** Devolve { versao, notas, erros }. Sem erro, `notas` é a seção da versão no CHANGELOG. */
-export function conferir({ pacote, plugin, workflow, changelog }) {
+export function conferir({ pacote, plugin, portatil = pacote, workflow, changelog }) {
   const erros = []
   if (!/^\d+\.\d+\.\d+$/.test(pacote || '')) erros.push(`package.json: versão "${pacote}" não é X.Y.Z`)
   if (plugin !== pacote) erros.push(`plugin.json diz ${plugin}, package.json diz ${pacote}`)
+  if (portatil !== pacote) erros.push(`plugins/aidlc-harness/plugin.json (Codex) diz ${portatil}, package.json diz ${pacote}`)
   const ref = workflow.match(/AIDLC_REF:\s*(\S+)/)?.[1]
   if (ref !== `v${pacote}`) erros.push(`templates/project/aidlc-gate.yml fixa AIDLC_REF ${ref}, a versão é v${pacote}`)
   const esc = pacote.replace(/\./g, '\\.')
