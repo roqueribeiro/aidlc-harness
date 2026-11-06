@@ -143,3 +143,83 @@ describe('ferramenta aidlc-init', () => {
     rmSync(d, { recursive: true, force: true })
   })
 })
+
+/*
+ * Repositório que já tem AGENTS.md (o caso comum). Antes o init mantinha o arquivo do time e gerava
+ * as cópias do molde: `--check` reprovava na primeira execução e as regras nunca chegavam ao AGENTS.md.
+ */
+describe('AGENTS.md que já existe (bloco gerenciado)', () => {
+  const TIME = '# Projeto do time\n\nRegras do time: usar pnpm.\n'
+  test('o init acrescenta o bloco ao fim, preserva o texto do time e já nasce em sincronia', () => {
+    const d = novoDir()
+    writeFileSync(join(d, 'AGENTS.md'), TIME)
+    const r = aplicar(d, planejar({ ...base, agentsExistente: TIME }))
+    assert.deepEqual(r.mesclados, ['AGENTS.md'])
+    const txt = readFileSync(join(d, 'AGENTS.md'), 'utf8')
+    assert.ok(txt.startsWith(TIME.trimEnd()), 'o texto do time continua no começo, intacto')
+    assert.match(txt, /<!-- aidlc:inicio[\s\S]*Pronto exige evidência[\s\S]*<!-- aidlc:fim -->/)
+    assert.deepEqual(conferirSincronia(d), [])
+    assert.match(readFileSync(join(d, '.github/copilot-instructions.md'), 'utf8'), /Regras do time: usar pnpm/, 'a cópia do Copilot sai do AGENTS.md final')
+    rmSync(d, { recursive: true, force: true })
+  })
+  test('rodar o init de novo não duplica o bloco', () => {
+    const d = novoDir()
+    writeFileSync(join(d, 'AGENTS.md'), TIME)
+    aplicar(d, planejar({ ...base, agentsExistente: TIME }))
+    const depois = readFileSync(join(d, 'AGENTS.md'), 'utf8')
+    aplicar(d, planejar({ ...base, agentsExistente: depois }))
+    assert.equal(readFileSync(join(d, 'AGENTS.md'), 'utf8'), depois)
+    assert.equal(depois.split('<!-- aidlc:inicio').length - 1, 1)
+    rmSync(d, { recursive: true, force: true })
+  })
+  test('AGENTS.md sem o bloco reprova no --check (mutante: tirar o bloco)', () => {
+    const d = novoDir()
+    aplicar(d, planejar(base))
+    const txt = readFileSync(join(d, 'AGENTS.md'), 'utf8').replace(/<!-- aidlc:inicio[\s\S]*<!-- aidlc:fim -->\n?/, '')
+    writeFileSync(join(d, 'AGENTS.md'), txt)
+    assert.match(conferirSincronia(d).join(' '), /sem o bloco do aidlc/)
+    rmSync(d, { recursive: true, force: true })
+  })
+  test('--sync troca só o miolo do bloco e deixa o texto do time', () => {
+    const d = novoDir()
+    writeFileSync(join(d, 'AGENTS.md'), TIME)
+    aplicar(d, planejar({ ...base, agentsExistente: TIME }))
+    const velho = readFileSync(join(d, 'AGENTS.md'), 'utf8').replace('Pronto exige evidência', 'Regra antiga do kit')
+    writeFileSync(join(d, 'AGENTS.md'), velho + '\n## Depois do bloco\n')
+    assert.ok(sincronizar(d).includes('AGENTS.md (bloco aidlc)'))
+    const novo = readFileSync(join(d, 'AGENTS.md'), 'utf8')
+    assert.match(novo, /Pronto exige evidência/)
+    assert.doesNotMatch(novo, /Regra antiga do kit/)
+    assert.match(novo, /Regras do time: usar pnpm[\s\S]*## Depois do bloco/)
+    assert.deepEqual(conferirSincronia(d), [])
+    rmSync(d, { recursive: true, force: true })
+  })
+  test('pela linha de comando: repo com AGENTS.md próprio sai do init com --check verde', () => {
+    const d = novoDir()
+    writeFileSync(join(d, 'AGENTS.md'), TIME)
+    const init = spawnSync(process.execPath, [FERRAMENTA, d], { encoding: 'utf8' })
+    assert.equal(init.status, 0, init.stdout + init.stderr)
+    assert.match(init.stdout, /atualizado\s+AGENTS\.md/)
+    const chk = spawnSync(process.execPath, [FERRAMENTA, d, '--check'], { encoding: 'utf8' })
+    assert.equal(chk.status, 0, chk.stdout)
+    rmSync(d, { recursive: true, force: true })
+  })
+})
+
+describe('CI gerado', () => {
+  test('instala o trivy fixado por commit e os passos da tecnologia detectada', () => {
+    const d = novoDir()
+    writeFileSync(join(d, 'go.mod'), 'module exemplo\n')
+    aplicar(d, planejar({ ...base, tech: detectTech(d) }))
+    const yml = readFileSync(join(d, '.github/workflows/aidlc-gate.yml'), 'utf8')
+    assert.match(yml, /aquasecurity\/setup-trivy@[0-9a-f]{40}/)
+    assert.match(yml, /\n      - uses: actions\/setup-go@v5\n        with:\n          go-version-file: go.mod/)
+    assert.doesNotMatch(yml, /\{\{/)
+    rmSync(d, { recursive: true, force: true })
+  })
+  test('sem tecnologia, o CI deixa o lembrete em vez de inventar passo', () => {
+    const yml = planejar(base).find((p) => p.destino.endsWith('aidlc-gate.yml')).conteudo
+    assert.match(yml, /Nenhuma tecnologia reconhecida/)
+    assert.doesNotMatch(yml, /setup-go|setup-java|yarn install/)
+  })
+})

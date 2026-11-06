@@ -40,11 +40,13 @@ Creates a project skeleton from the templates in `templates/`. Never overwrites 
 ```text
 aidlc-init [folder] [--name "Name"] [--desc "one sentence"] [--tools claude,kiro,copilot]
            [--dry-run] [--force]
-aidlc-init --check     # fails if a derived copy diverged from AGENTS.md
-aidlc-init --sync      # regenerates the copies from AGENTS.md
+aidlc-init --check     # fails if AGENTS.md lacks the kit block or a derived copy diverged
+aidlc-init --sync      # refreshes the kit block in AGENTS.md and regenerates the copies
 ```
 
 Creates `AGENTS.md`, `CLAUDE.md` (imports `AGENTS.md`), `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md`, `context/product.md`, `.aidlc/config.json`, `.aidlc/identity.json`, `.github/workflows/aidlc-gate.yml` and the `aidlc/` folder (inception, construction, decisions, audit). `--tools` limits which tools get a file. Exits 0; `--check` exits 1 on divergence.
+
+An existing `AGENTS.md` is never replaced: the kit rules go into a block between `<!-- aidlc:inicio -->` and `<!-- aidlc:fim -->` appended at the end, and the team's text stays as it is. `--sync` updates only the inside of that block. The CI workflow gets the setup steps of the technology detected at that moment (the `ci.setup` field of its manifest) and installs `trivy`, which `aidlc-secscan` needs; with no technology detected it leaves a comment to fill in.
 
 ### aidlc-phase
 
@@ -150,7 +152,7 @@ Lists what is left over at the end of a unit of work: leftover worktrees, branch
 aidlc-cycle [folder] [--since 30d] [--json]
 ```
 
-Cycle dashboard, read from what the kit already records: `.claude/audit/<day>.jsonl` (evidence gate decisions), `git log` in `aidlc/` (time between phases) and `git rev-list` (delivery frequency). What has no record comes out "não medido" (not measured), never zero.
+Cycle dashboard, read from what the kit already records: `aidlc/audit/<day>.jsonl` (evidence gate decisions), `git log` in `aidlc/` (time between phases) and `git rev-list` (delivery frequency). What has no record comes out "não medido" (not measured), never zero.
 
 ### aidlc-graph
 
@@ -220,7 +222,7 @@ Refuses to end a turn that **promises to continue** ("I'll carry on in the next 
 
 ### dod-check
 
-The evidence gate. Reads the transcript since the person's last message, works out which evidence the technology manifest requires (`evidence`), and refuses the end of the turn if any marker does not appear. Deterministic, no model, in milliseconds. It fails toward allowing: unknown technology, clean tree (except when the turn claims to close a unit: then only the `whenSays` evidence is required) or the ceiling of **3 refusals per session**, when it becomes a warning and allows. Each decision is recorded in `.claude/audit/<day>.jsonl`; a failure to write the record never holds up the Stop. Flow details: ![How Stop decides](assets/diagramas/evidencia.en.claro.svg)
+The evidence gate. Reads the transcript since the person's last message, works out which evidence the technology manifest requires (`evidence`), and refuses the end of the turn if any marker does not appear. Deterministic, no model, in milliseconds. It fails toward allowing: unknown technology, clean tree (except when the turn claims to close a unit: then only the `whenSays` evidence is required) or the ceiling of **3 refusals per session**, when it becomes a warning and allows. Each decision is recorded in `aidlc/audit/<day>.jsonl`; a failure to write the record never holds up the Stop. Flow details: ![How Stop decides](assets/diagramas/evidencia.en.claro.svg)
 
 ---
 
@@ -274,6 +276,12 @@ The acceptance criteria as data. They live in `plugins/aidlc-harness/quality/<te
 | --- | --- | --- | --- |
 | `node-yarn` | `package.json` + `yarn.lock` | yarn | `test`, `lint`, `build`, `secscan`, `supply-chain` |
 | `node-npm` | `package.json` + `package-lock.json` | npm | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `node-pnpm` | `package.json` + `pnpm-lock.yaml` | pnpm | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `node-bun` | `package.json` + `bun.lock` (or `bun.lockb`) | bun | `test`, `lint`, `build`, `secscan`, `supply-chain` |
+| `java-maven` | `pom.xml` | maven | `verify`, `secscan`, `supply-chain` |
+| `java-gradle` | `build.gradle(.kts)` or `settings.gradle(.kts)` | gradle | `check`, `secscan`, `supply-chain` |
+| `dotnet` | `*.sln`, `*.slnx`, `*.csproj` or `*.fsproj` at the root | dotnet | `build`, `test`, `secscan`, `supply-chain` |
+| `go` | `go.mod` | go | `vet`, `test`, `secscan`, `supply-chain` |
 | `python-uv` | `pyproject.toml` + `uv.lock` | uv | `lint`, `format`, `lockfile`, `segredo`, `unit` |
 | `harness-self` | the plugin folder + `OPERATING-MODEL.md` | n/a | `test`, `syntax`, `quality-manifests`, `plugin`, `docs`, `prompts`, `identity` |
 
@@ -316,7 +324,7 @@ What `aidlc-init` creates and what it is for.
 | --- | --- |
 | `AGENTS.md` | **The single source** of the rules for any AI tool. The only instruction file edited by hand |
 | `CLAUDE.md` | Imports `@AGENTS.md` and adds only what is specific to Claude Code |
-| `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | **Derived** copies of `AGENTS.md` (`aidlc-init --sync`); `--check` fails on divergence |
+| `.github/copilot-instructions.md`, `.kiro/steering/aidlc.md` | **Derived** copies of `AGENTS.md` (`aidlc-init --sync`); `--check` fails on divergence or on a missing kit block |
 | `context/product.md` | What the product is, what has already been decided, the team vocabulary |
 | `context/kernel.md` | Three lines that change the framing, injected by `session-brief` |
 | `aidlc/inception/` | `requirements.md`, `user-stories.md`, `units-of-work.md` |
@@ -326,7 +334,7 @@ What `aidlc-init` creates and what it is for.
 | `.aidlc/config.json` | `tools`, `language`, `scratchDir` (all optional) |
 | `.aidlc/identity.json` | `aidlc-identity` allowlist, each entry with a reason |
 | `.aidlc/quality/<tech>.json` | Project manifest; overrides the kit one |
-| `.claude/audit/<day>.jsonl` | Evidence gate decisions (feeds `aidlc-cycle`) |
+| `aidlc/audit/<day>.jsonl` | Evidence gate decisions (feeds `aidlc-cycle`; the old `.claude/audit/` is still read) |
 | `.github/workflows/aidlc-gate.yml` | Runs `aidlc-init --check` and `aidlc-gate` in CI; pins the kit by `AIDLC_REF` |
 
 ## Environment variables and configuration
@@ -340,7 +348,7 @@ What `aidlc-init` creates and what it is for.
 | `AIDLC_STRATEGY=0` | Turns off `strategy-map` and `path-strategy` |
 | `AIDLC_SCRATCH_DIR` | Scratch folder; turns on `scratch-guard` without editing `config.json` |
 | `AIDLC_SCRATCH_GUARD=0` | Turns off `scratch-guard` |
-| `AIDLC_AUDIT=0` | `dod-check` stops writing `.claude/audit/` |
+| `AIDLC_AUDIT=0` | `dod-check` stops writing `aidlc/audit/` |
 | `AIDLC_IDENTITY_TERMS` | File with the terms the project forbids, for `aidlc-identity` |
 | `AIDLC_GRAPH` | Path of the repository graph for `aidlc-graph` and `path-strategy` |
 | `AIDLC_REF` | In the CI workflow, the tag or commit of the kit to use. **Pin it to a tag or commit you reviewed** |

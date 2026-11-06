@@ -24,6 +24,8 @@ import { detectTech, repoRoot } from '../lib/detect.mjs'
 const WRONG = {
   yarn: { rx: /^(npm|npx)(\s|$)/, use: 'yarn (yarn add, yarn dlx, yarn create)', banned: 'npm/npx' },
   npm: { rx: /^yarn(\s|$)/, use: 'npm (npm install, npx)', banned: 'yarn' },
+  pnpm: { rx: /^(npm|yarn)(\s|$)/, use: 'pnpm (pnpm add, pnpm dlx)', banned: 'npm/yarn' },
+  bun: { rx: /^(npm|yarn|pnpm)(\s|$)/, use: 'bun (bun add, bunx)', banned: 'npm/yarn/pnpm' },
 }
 
 /** Tira aspas e expande `~`, que e o que aparece num `cd` escrito a mao. */
@@ -138,7 +140,7 @@ function pkgCalls(cmd, startDir) {
       continue
     }
 
-    if (dir !== null && /^(npm|npx|yarn)(\s|$)/.test(segment)) calls.push([segment, dir])
+    if (dir !== null && /^(npm|npx|yarn|pnpm|bunx?)(\s|$)/.test(segment)) calls.push([segment, dir])
   }
 
   return calls

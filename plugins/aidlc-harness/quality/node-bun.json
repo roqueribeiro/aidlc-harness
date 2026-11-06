@@ -1,0 +1,117 @@
+{
+  "tech": "node-bun",
+  "label": "Node (bun)",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-com-bun.lock"
+  ],
+  "pkgManager": "bun",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "allFiles": [
+      "package.json"
+    ],
+    "anyFiles": [
+      "bun.lock",
+      "bun.lockb"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "test",
+      "label": "Testes (bun test)",
+      "cmd": "bun test",
+      "blocking": true,
+      "reject": "(^|\\s)[1-9]\\d* fail(\\s|$)"
+    },
+    {
+      "id": "lint",
+      "label": "Lint",
+      "cmd": "bun run --if-present lint",
+      "blocking": false
+    },
+    {
+      "id": "build",
+      "label": "Build",
+      "cmd": "bun run --if-present build",
+      "blocking": false
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/**",
+          "lib/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "package.json",
+          "bun.lock",
+          "bun.lockb"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com o arquivo de lock regenerado no mesmo diff e com o pacote conferido no registro antes do merge",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "\\d+ pass",
+        "Ran \\d+ tests?"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "package.json",
+        "bun.lock",
+        "bun.lockb"
+      ]
+    }
+  ],
+  "ci": {
+    "setup": [
+      "- uses: oven-sh/setup-bun@v2",
+      "- run: bun install --frozen-lockfile"
+    ]
+  },
+  "notes": "Manifesto de partida para um projeto que usa bun. Ajuste os comandos ao seu projeto copiando este arquivo para .aidlc/quality/ do repo (o do projeto substitui o do kit com o mesmo tech)."
+}

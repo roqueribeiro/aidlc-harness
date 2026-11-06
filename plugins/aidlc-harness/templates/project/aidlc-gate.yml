@@ -10,9 +10,18 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      # O kit roda em Node, qualquer que seja a stack do projeto.
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
+      # O aidlc-secscan usa o trivy. Sem ele o gate sai com "nao rodou", que reprova: scan que nao
+      # rodou nao e scan limpo. A action fica fixada por commit, nao por tag.
+      - name: Instalar o trivy
+        uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+        with:
+          version: v0.70.0
+      # Preparar o projeto (gerado a partir da tecnologia detectada pelo aidlc-init)
+{{CI_SETUP}}
       # Fixe AIDLC_REF numa tag ou commit do kit que você revisou. "main" aceitaria, a cada execução,
       # qualquer código novo do kit dentro do seu CI.
       - name: Instalar o aidlc-harness

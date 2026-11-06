@@ -15,6 +15,8 @@ import { spawnSync } from 'node:child_process'
 import { join } from 'node:path'
 import { detectTech, repoRoot, platformAllows, platformLabel } from '../lib/detect.mjs'
 import { temQuickstart, capaDoReadme } from '../lib/readme-check.mjs'
+import { registrosDoGate } from '../lib/audit.mjs'
+import { conferirSincronia } from '../lib/init.mjs'
 import { checksDeRepoAberto } from '../lib/repo-aberto.mjs'
 
 const argv = process.argv.slice(2)
@@ -88,8 +90,33 @@ if (manifest && ['app'].includes(manifest.tech)) {
     capa.ok ? capa.imagem : capa.motivo,
   )
 }
-check('claude-md', 'CLAUDE.md existe', 10, has('CLAUDE.md'), 'criar o CLAUDE.md fino apontando pro plugin')
+/*
+ * Ferramentas do projeto: o que o aidlc-init gravou em .aidlc/config.json. Os itens do Claude Code
+ * (CLAUDE.md, .claude/, plugin, permissoes) so contam quando o projeto declara o Claude Code: antes,
+ * um time que usa so Kiro ou Copilot perdia ~50 pontos por nao ter arquivo de outra ferramenta.
+ */
+const ferramentas = (() => {
+  try {
+    const t = JSON.parse(read(join('.aidlc', 'config.json')) || '{}').tools
+    if (Array.isArray(t) && t.length) return t
+  } catch {
+    /* config ilegivel: cai na deteccao pelo disco */
+  }
+  return has('.claude') || has('CLAUDE.md') ? ['claude'] : []
+})()
+const usaClaude = ferramentas.includes('claude')
+
 check(
+  'agents-md',
+  'AGENTS.md com o bloco do aidlc e as copias das ferramentas em sincronia',
+  10,
+  has('AGENTS.md') && conferirSincronia(root).length === 0,
+  'rodar aidlc-init (acrescenta o bloco sem tocar no resto) e depois aidlc-init --sync',
+  has('AGENTS.md') ? conferirSincronia(root)[0] ?? null : 'AGENTS.md nao existe',
+)
+
+if (usaClaude) check('claude-md', 'CLAUDE.md existe', 10, has('CLAUDE.md'), 'criar o CLAUDE.md fino apontando pro plugin')
+if (usaClaude) check(
   'claude-md-thin',
   'CLAUDE.md abaixo de 8 KB (e sempre-on)',
   8,
@@ -117,7 +144,7 @@ check(
 // --- Harness --------------------------------------------------------------------
 
 const settings = read('.claude/settings.json')
-check('claude-dir', '.claude/ existe', 8, has('.claude'), 'criar o .claude/ do repo')
+if (usaClaude) check('claude-dir', '.claude/ existe', 8, has('.claude'), 'criar o .claude/ do repo')
 
 /*
  * Antes, esta checagem era `/aidlc-harness/.test(settings)`, substring no arquivo
@@ -157,21 +184,21 @@ function pluginWiring(raw) {
 }
 
 const wiring = pluginWiring(settings)
-check(
+if (usaClaude) check(
   'plugin-enabled',
   'aidlc-harness habilitado no settings.json',
   12,
   wiring.ok,
   wiring.why ?? 'declarar extraKnownMarketplaces.aidlc e enabledPlugins["aidlc-harness@aidlc"]',
 )
-check(
+if (usaClaude) check(
   'permissions',
   'Allowlist de permissao declarada',
   6,
   /"allow"\s*:/.test(settings),
   'declarar permissions.allow com os comandos da stack',
 )
-check('loop', '.claude/loop.md existe', 5, has('.claude/loop.md'), 'escrever a rotina de manutencao da stack')
+if (usaClaude) check('loop', '.claude/loop.md existe', 5, has('.claude/loop.md'), 'escrever a rotina de manutencao da stack')
 
 // --- Qualidade ------------------------------------------------------------------
 
@@ -180,7 +207,7 @@ check(
   'Tecnologia reconhecida pelo kit',
   12,
   Boolean(manifest),
-  'adicionar um manifesto em plugins/aidlc-harness/quality/',
+  'criar .aidlc/quality/<tecnologia>.json no projeto, a partir de um modelo de aidlc-gate --list (docs/EXTENDING.md)',
   manifest ? manifest.label : null,
 )
 
@@ -224,7 +251,7 @@ check(
   'Gancho de pre-push instalado',
   10,
   Boolean(hookPrePush),
-  'rodar node scripts/install-git-hooks.mjs no aidlc-harness',
+  'criar .githooks/pre-push chamando aidlc-gate e rodar git config core.hooksPath .githooks',
   hookPrePush,
 )
 check(
@@ -313,37 +340,18 @@ for (const k of aberto.checks) check(k.id, k.label, k.weight, k.ok, k.fix, k.not
 // --- Ciclo ----------------------------------------------------------------------
 
 /*
- * O ciclo e medido, nao estimado . A partir
- * do kit 2.13.0 o dod-check grava cada decisao em .claude/audit/<dia>.jsonl; um repo em que
- * nenhuma entrega passou pelo gate nos ultimos 30 dias nao tem painel, e o doctor diz isso
- * em vez de dar 100 a um repo que ninguem entregou. Peso baixo de proposito: e a diferenca
- * entre 100 e 97, nao entre passar e reprovar.
+ * O ciclo e medido, nao estimado: o dod-check grava cada decisao em aidlc/audit/<dia>.jsonl
+ * (lib/audit.mjs, que tambem le o .claude/audit/ antigo). Um repo em que nenhuma entrega passou
+ * pelo gate nos ultimos 30 dias nao tem painel, e o doctor diz isso. Peso baixo de proposito.
  */
-const auditDir = join(root, '.claude', 'audit')
-let registrosRecentes = 0
-try {
-  const corte = Date.now() - 30 * 864e5
-  for (const f of readdirSync(auditDir).filter((x) => x.endsWith('.jsonl'))) {
-    for (const line of readFileSync(join(auditDir, f), 'utf8').split('\n')) {
-      if (!line.trim()) continue
-      try {
-        const r = JSON.parse(line)
-        if (r.hook === 'dod-check' && new Date(r.at).getTime() >= corte) registrosRecentes++
-      } catch {
-        /* linha quebrada nao conta */
-      }
-    }
-  }
-} catch {
-  /* sem diretorio: zero registros */
-}
+const registrosRecentes = registrosDoGate(root, Date.now() - 30 * 864e5).length
 check(
   'cycle-record',
   'O gate deixou registro nos ultimos 30 dias (aidlc-cycle tem o que medir)',
   3,
   registrosRecentes > 0,
-  'entregar com o kit ligado: o dod-check grava em .claude/audit/ a partir de 2.13.0; aidlc-cycle le de la',
-  registrosRecentes > 0 ? `${registrosRecentes} decisao(oes) do gate no periodo` : 'nenhum registro em .claude/audit/',
+  'entregar com o kit ligado: o dod-check grava em aidlc/audit/ e o aidlc-cycle le de la',
+  registrosRecentes > 0 ? `${registrosRecentes} decisao(oes) do gate no periodo` : 'nenhum registro em aidlc/audit/',
 )
 
 // --- Resultado ------------------------------------------------------------------

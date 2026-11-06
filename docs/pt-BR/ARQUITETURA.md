@@ -105,7 +105,7 @@ O `dod-check` lê a árvore (`git status`), o manifesto e o transcript, e decide
 
 **Salvaguardas para nunca virar prisão.** Depois de 3 recusas na mesma sessão o gate vira aviso e libera; `gate_mode` aceita `block`, `warn` e `off`; `AIDLC_GATE=0` desliga tudo; e falhar ao gravar o registro de auditoria nunca segura o Stop. A razão é prática: um gate que prende é desligado na primeira semana. O desenho aposta em cobrar pouco, sempre, e deixar saída.
 
-Cada decisão vira uma linha em `.claude/audit/<dia>.jsonl`, e `aidlc-cycle` calcula daí a taxa de bloqueio e o tempo em gate.
+Cada decisão vira uma linha em `aidlc/audit/<dia>.jsonl`, e `aidlc-cycle` calcula daí a taxa de bloqueio e o tempo em gate.
 
 ## 7. As fases e a aprovação humana
 

@@ -48,6 +48,32 @@ jobs:
       - name: Nenhum dado pessoal ou de infraestrutura
         run: node plugins/aidlc-harness/tools/aidlc-identity
 
+  # O caminho de quem acabou de chegar, nos tres sistemas: setup, init, check, gate e doctor pelo PATH.
+  maquina-limpa:
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Maquina limpa
+        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs
+
+  # O workflow que o aidlc-init gera instala o trivy por esta action: confere que ele fica no PATH.
+  ci-gerado-trivy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: aquasecurity/setup-trivy@e07451d2e059ed86c2870430ea286b3a9e0bf241
+        with:
+          version: v0.70.0
+      - run: trivy --version
+
   plugin-oficial:
     runs-on: ubuntu-latest
     timeout-minutes: 10

@@ -10,8 +10,9 @@
  *   aidlc-init --check                           # confere que as instruções das ferramentas não divergem
  *   aidlc-init --sync                            # regrava as cópias do Copilot e do Kiro a partir do AGENTS.md
  */
-import { mkdirSync } from 'node:fs'
-import { resolve } from 'node:path'
+import { existsSync, mkdirSync, readFileSync } from 'node:fs'
+import { join, resolve } from 'node:path'
+import { detectTech } from '../lib/detect.mjs'
 import { FERRAMENTAS, aplicar, conferirSincronia, eDiretorio, nomePadrao, planejar, sincronizar } from '../lib/init.mjs'
 
 const argv = process.argv.slice(2)
@@ -45,6 +46,9 @@ try {
     nome: val('--name') ?? nomePadrao(raiz),
     descricao: val('--desc') ?? 'Descreva aqui, em uma frase, o que este projeto e e para quem.',
     ferramentas,
+    tech: detectTech(raiz),
+    // O AGENTS.md do time é preservado: o init só acrescenta o bloco do aidlc (--force regera do molde).
+    agentsExistente: !flag('--force') && existsSync(join(raiz, 'AGENTS.md')) ? readFileSync(join(raiz, 'AGENTS.md'), 'utf8') : null,
   })
 } catch (e) {
   console.error(`aidlc-init: ${e.message}`)
@@ -54,5 +58,6 @@ const r = aplicar(raiz, plano, { force: flag('--force'), dryRun: flag('--dry-run
 console.log(`\naidlc-init  ${raiz}${flag('--dry-run') ? '  (dry-run: nada foi gravado)' : ''}`)
 for (const f of r.criados) console.log(`  criado       ${f}`)
 for (const f of r.sobrescritos) console.log(`  sobrescrito  ${f}`)
+for (const f of r.mesclados) console.log(`  atualizado   ${f}  (bloco do aidlc acrescentado; o resto do arquivo ficou como estava)`)
 for (const f of r.mantidos) console.log(`  mantido      ${f}  (ja existe; use --force para sobrescrever)`)
 console.log('\nProximo passo: peca a IA para conduzir a Inception (aidlc/README.md), ou leia docs/GETTING-STARTED.md do kit (em portugues: docs/pt-BR/COMECAR.md).')

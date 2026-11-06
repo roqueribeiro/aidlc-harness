@@ -45,7 +45,7 @@
       "label": "pytest",
       "cmd": "uv run pytest",
       "blocking": true,
-      "reject": "^\\s*\\d+ failed"
+      "reject": "(^|\\s)[1-9]\\d* (failed|error)"
     }
   ],
   "security": {
@@ -65,5 +65,11 @@
       ]
     }
   ],
+  "ci": {
+    "setup": [
+      "- uses: astral-sh/setup-uv@v6",
+      "- run: uv sync --locked"
+    ]
+  },
   "notes": "Manifesto de partida para Python com uv. Ajuste os alvos do ruff e acrescente cobertura minima quando o time decidir o piso."
 }

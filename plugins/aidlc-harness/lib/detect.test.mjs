@@ -37,6 +37,41 @@ describe('detecção pelo kit', () => {
     limpa(d)
   })
 
+  test('pnpm, bun, Maven, Gradle, .NET e Go são reconhecidos (a v0.1 só conhecia Node e Python)', () => {
+    const casos = [
+      [{ 'package.json': { name: 'a' }, 'pnpm-lock.yaml': '' }, 'node-pnpm'],
+      [{ 'package.json': { name: 'a' }, 'bun.lock': '' }, 'node-bun'],
+      [{ 'package.json': { name: 'a' }, 'bun.lockb': '' }, 'node-bun'],
+      [{ 'pom.xml': '<project/>' }, 'java-maven'],
+      [{ 'build.gradle.kts': '' }, 'java-gradle'],
+      [{ 'settings.gradle': '' }, 'java-gradle'],
+      [{ 'Pedidos.sln': '' }, 'dotnet'],
+      [{ 'Pedidos.Api.csproj': '<Project/>' }, 'dotnet'],
+      [{ 'go.mod': 'module exemplo\n' }, 'go'],
+    ]
+    for (const [arquivos, tech] of casos) {
+      const d = projeto(arquivos)
+      assert.equal(detectTech(d)?.tech, tech, JSON.stringify(Object.keys(arquivos)))
+      limpa(d)
+    }
+  })
+
+  test('o padrão *.csproj olha só a raiz e não casa nome parecido', () => {
+    const fundo = projeto({ 'src/Api/Api.csproj': '' })
+    const parecido = projeto({ 'csproj.txt': '', 'Leiame.csprojx': '' })
+    assert.equal(detectTech(fundo), null, 'projeto em subpasta não é a raiz')
+    assert.equal(detectTech(parecido), null)
+    limpa(fundo)
+    limpa(parecido)
+  })
+
+  test('toda tecnologia ativa traz os passos de CI para o aidlc-init', () => {
+    for (const m of loadManifests().filter((x) => (x.status ?? 'active') === 'active' && x.tech !== 'harness-self')) {
+      assert.ok(m.ci?.setup?.length, `${m.tech} sem ci.setup`)
+      for (const p of m.ci.setup) assert.match(p, /^- (uses|run|name):/, `${m.tech}: passo que não começa com "- "`)
+    }
+  })
+
   test('diretório sem marcador não é reconhecido: nunca inventa tecnologia', () => {
     const d = projeto({ 'leia.txt': 'oi' })
     assert.equal(detectTech(d), null)

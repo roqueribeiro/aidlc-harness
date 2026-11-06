@@ -1,0 +1,114 @@
+{
+  "tech": "dotnet",
+  "label": ".NET",
+  "status": "active",
+  "repos": [
+    "qualquer-projeto-com-sln-ou-csproj"
+  ],
+  "pkgManager": "dotnet",
+  "platform": "any",
+  "autonomy": "approve",
+  "detect": {
+    "anyFiles": [
+      "*.sln",
+      "*.slnx",
+      "*.csproj",
+      "*.fsproj"
+    ],
+    "priority": 20
+  },
+  "gates": [
+    {
+      "id": "build",
+      "label": "Build (dotnet build)",
+      "cmd": "dotnet build --nologo",
+      "blocking": true,
+      "reject": "(^|\\s)[1-9]\\d* Error\\(s\\)|Build FAILED|Falha da compila"
+    },
+    {
+      "id": "test",
+      "label": "Testes (dotnet test)",
+      "cmd": "dotnet test --nologo",
+      "blocking": true,
+      "reject": "^\\s*(Failed!|Com falha!)|Failed:\\s+[1-9]"
+    },
+    {
+      "id": "secscan",
+      "label": "Dependencia com CVE que ja tem correcao publicada",
+      "cmd": "aidlc-secscan",
+      "blocking": true
+    },
+    {
+      "id": "supply-chain",
+      "label": "Dependencia nova ou trocada: existe, tem dono, nome nao e parecido com outro, esta fixada",
+      "agent": "supply-chain-reviewer",
+      "model": "haiku",
+      "blocking": true
+    }
+  ],
+  "security": {
+    "sca": "secscan",
+    "review": "supply-chain"
+  },
+  "strategy": {
+    "always": [
+      "@kit/rules/testing.md"
+    ],
+    "paths": [
+      {
+        "when": [
+          "src/**",
+          "tests/**"
+        ],
+        "read": [
+          "@kit/rules/testing.md"
+        ],
+        "why": "codigo novo nasce com o teste ao lado, no mesmo diff"
+      },
+      {
+        "when": [
+          "*.csproj",
+          "*.fsproj",
+          "Directory.Packages.props",
+          "packages.lock.json"
+        ],
+        "read": [
+          "@kit/rules/dependencies.md"
+        ],
+        "why": "dependencia nova entra com o arquivo de lock regenerado no mesmo diff e com o pacote conferido no registro antes do merge",
+        "reviewer": "supply-chain-reviewer"
+      }
+    ]
+  },
+  "evidence": [
+    {
+      "id": "gate-output",
+      "label": "Saida do gate colada no chat",
+      "markers": [
+        "Passed!",
+        "Aprovado!",
+        "Total tests:",
+        "Build succeeded"
+      ]
+    },
+    {
+      "id": "supply-chain-review",
+      "label": "Veredito do supply-chain-reviewer colado no chat",
+      "markers": [
+        "supply-chain-reviewer"
+      ],
+      "whenTouches": [
+        "*.csproj",
+        "*.fsproj",
+        "Directory.Packages.props",
+        "packages.lock.json"
+      ]
+    }
+  ],
+  "ci": {
+    "setup": [
+      "- uses: actions/setup-dotnet@v4\n  with:\n    dotnet-version: '10.0.x'"
+    ]
+  },
+  "notes": "Manifesto de partida para .NET (solucao ou projeto na raiz). Ajuste os comandos ao seu projeto copiando este arquivo para .aidlc/quality/ do repo (o do projeto substitui o do kit com o mesmo tech)."
+}

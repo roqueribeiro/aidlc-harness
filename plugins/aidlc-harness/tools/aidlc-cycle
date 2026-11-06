@@ -3,7 +3,7 @@
  * aidlc-cycle: o painel do ciclo, derivado do que o kit ja registra.
  *
  * POR QUE ELE EXISTE: o numero mais facil de medir (custo de contexto) e insumo, e nada dizia se o
- * ciclo esta melhorando. O dod-check grava cada decisao em `.claude/audit/<dia>.jsonl`, e os
+ * ciclo esta melhorando. O dod-check grava cada decisao em `aidlc/audit/<dia>.jsonl`, e os
  * artefatos do AI-DLC vivem em `aidlc/`. Este executavel le os dois mais o `git log` e imprime:
  *
  *   taxa de bloqueio  decisoes `blocked` sobre o total de decisoes do gate de evidencia
@@ -25,6 +25,7 @@
  *   aidlc-cycle --json
  */
 
+import { registrosDoGate } from '../lib/audit.mjs'
 import { readFileSync, readdirSync, existsSync } from 'node:fs'
 import { execFileSync } from 'node:child_process'
 import { join, resolve } from 'node:path'
@@ -53,21 +54,7 @@ function git(args) {
 }
 
 // ---- auditoria do gate ---------------------------------------------------------------
-const auditDir = join(ROOT, '.claude', 'audit')
-const registros = []
-if (existsSync(auditDir)) {
-  for (const f of readdirSync(auditDir).filter((x) => x.endsWith('.jsonl')).sort()) {
-    for (const line of readFileSync(join(auditDir, f), 'utf8').split('\n')) {
-      if (!line.trim()) continue
-      try {
-        const r = JSON.parse(line)
-        if (r.hook === 'dod-check' && r.at && new Date(r.at) >= corte) registros.push(r)
-      } catch {
-        /* linha quebrada: registro e append-only, uma linha ruim nao invalida as outras */
-      }
-    }
-  }
-}
+const registros = registrosDoGate(ROOT, corte)
 const decisoes = registros.length
 const bloqueios = registros.filter((r) => r.decision === 'blocked').length
 const liberadas = registros.filter((r) => r.decision === 'released').length
@@ -156,7 +143,7 @@ if (JSON_OUT) {
 }
 const n = (v, un = '') => (v == null ? 'nao medido' : `${v}${un}`)
 console.log(`\naidlc-cycle  ${ROOT}\n  ultimos ${dias} dias (${painel.periodo.desde} a ${painel.periodo.ate})\n`)
-console.log('  GATE DE EVIDENCIA (fonte: .claude/audit/*.jsonl)')
+console.log('  GATE DE EVIDENCIA (fonte: aidlc/audit/*.jsonl)')
 console.log(`    decisoes ${decisoes} · bloqueios ${bloqueios} · liberadas ${liberadas} · no teto ${liberadasNoTeto}`)
 console.log(`    taxa de bloqueio ${n(painel.gate.taxaBloqueio, '%')} · bloqueios por sessao ${n(bloqueiosPorSessao)} · tempo em gate (mediana) ${n(painel.gate.tempoEmGateMinMediana, ' min')}`)
 if (evidenciasQueMaisFaltam.length) console.log(`    evidencias que mais faltaram: ${evidenciasQueMaisFaltam.map(([id, c]) => `${id} (${c})`).join(', ')}`)

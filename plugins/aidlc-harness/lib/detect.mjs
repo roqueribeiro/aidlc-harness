@@ -108,8 +108,18 @@ function readPackageJson(dir) {
   }
 }
 
+/*
+ * `*.csproj` e afins: um projeto .NET não tem um arquivo de nome fixo, tem um nome por projeto.
+ * Um padrão com `*` casa só arquivos da raiz do diretório (sem descer), que é onde a detecção olha.
+ */
 function has(dir, rel) {
-  return existsSync(join(dir, rel))
+  if (!rel.includes('*')) return existsSync(join(dir, rel))
+  const rx = new RegExp('^' + rel.replace(/[.+?^${}()|[\]\\]/g, '\\$&').replace(/\*/g, '[^/]*') + '$')
+  try {
+    return readdirSync(dir).some((f) => rx.test(f))
+  } catch {
+    return false
+  }
 }
 
 /**
@@ -145,7 +155,7 @@ function matches(manifest, dir, pkg) {
  * o gate herdado de lockfile cobrava um package-lock.json que ele nao tem mais.
  */
 export function repoPkgManager(pkg) {
-  const m = /^(npm|yarn|pnpm)@/.exec(String(pkg?.packageManager ?? ''))
+  const m = /^(npm|yarn|pnpm|bun)@/.exec(String(pkg?.packageManager ?? ''))
   return m ? m[1] : null
 }
 

@@ -21,7 +21,7 @@
       "label": "Testes",
       "cmd": "yarn test",
       "blocking": true,
-      "reject": "(^|\\s)(# fail [1-9]|\\d+ failed|FAIL )"
+      "reject": "(^|\\s)(# fail [1-9]|[1-9]\\d* fail(ed|ing)\\b)|^FAIL\\s"
     },
     {
       "id": "lint",
@@ -108,5 +108,11 @@
       ]
     }
   ],
+  "ci": {
+    "setup": [
+      "- uses: actions/setup-node@v4\n  with:\n    node-version: '22'\n    cache: yarn",
+      "- run: yarn install --frozen-lockfile"
+    ]
+  },
   "notes": "Manifesto de partida para um projeto Node que usa yarn. Copie para quality/ do seu repo, ajuste os comandos aos scripts que existem e acrescente os gates do seu time. O gate de lockfile vem da camada _org.json."
 }

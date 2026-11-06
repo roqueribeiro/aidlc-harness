@@ -105,7 +105,7 @@ The design bets on speaking **at the moment each piece of information costs leas
 
 **Safeguards so it never becomes a prison.** After 3 refusals in the same session the gate becomes a warning and allows; `gate_mode` accepts `block`, `warn` and `off`; `AIDLC_GATE=0` turns everything off; and failing to write the audit record never holds Stop. The reason is practical: a gate that traps gets turned off in the first week. The design bets on demanding little, always, and leaving an exit.
 
-Each decision becomes a line in `.claude/audit/<day>.jsonl`, and `aidlc-cycle` computes the block rate and the time in gate from it.
+Each decision becomes a line in `aidlc/audit/<day>.jsonl`, and `aidlc-cycle` computes the block rate and the time in gate from it.
 
 ## 7. Phases and human approval
 
