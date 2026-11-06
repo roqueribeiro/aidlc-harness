@@ -75,30 +75,6 @@
       "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
     },
     {
-      "file": "docs/assets/diagramas/banner.claro.svg",
-      "categoria": "termo",
-      "valor": "levelhard",
-      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
-    },
-    {
-      "file": "docs/assets/diagramas/banner.escuro.svg",
-      "categoria": "termo",
-      "valor": "levelhard",
-      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
-    },
-    {
-      "file": "docs/assets/diagramas/banner.en.claro.svg",
-      "categoria": "termo",
-      "valor": "levelhard",
-      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
-    },
-    {
-      "file": "docs/assets/diagramas/banner.en.escuro.svg",
-      "categoria": "termo",
-      "valor": "levelhard",
-      "why": "link para o material do método (levelhard.com.br/aidlc), escolhido pelo mantenedor"
-    },
-    {
       "file": "scripts/diagramas/diagramas.mjs",
       "categoria": "termo",
       "valor": "levelhard",

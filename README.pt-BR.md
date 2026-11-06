@@ -1,17 +1,17 @@
 <p align="center">
   <a href="https://levelhard.com.br/aidlc">
-    <img src="docs/assets/diagramas/banner.claro.svg" alt="aidlc-harness: kit de qualidade para construir com agentes de IA no ciclo AI-DLC. Pronto exige evidência. Regra sem mecanismo é decoração." width="100%">
+    <img src="docs/assets/marca/banner.pt.jpg" alt="aidlc-harness: o kit de qualidade para construir software com agentes de IA no ciclo AI-DLC. Pronto exige evidência. Regra sem mecanismo é decoração." width="100%">
   </a>
 </p>
 
 <p align="center">
   <a href="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=vers%C3%A3o&sort=semver&color=2563eb"></a>
+  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Versão" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=vers%C3%A3o&sort=semver&color=007aff"></a>
   <a href="LICENSE"><img alt="Licença MIT" src="https://img.shields.io/badge/licen%C3%A7a-MIT-16a34a"></a>
   <a href="docs/pt-BR/CONTRIBUTING.md#dco"><img alt="DCO" src="https://img.shields.io/badge/commits-DCO-16a34a"></a>
   <img alt="Node 20.19 ou mais novo" src="https://img.shields.io/badge/node-%E2%89%A5%2020.19-5fa04e">
-  <img alt="Linux, macOS e Windows" src="https://img.shields.io/badge/sistemas-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-6d28d9">
-  <a href="docs/pt-BR/FERRAMENTAS.md"><img alt="15 ferramentas de IA" src="https://img.shields.io/badge/ferramentas%20de%20IA-15-6d28d9"></a>
+  <img alt="Linux, macOS e Windows" src="https://img.shields.io/badge/sistemas-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-667eea">
+  <a href="docs/pt-BR/FERRAMENTAS.md"><img alt="15 ferramentas de IA" src="https://img.shields.io/badge/ferramentas%20de%20IA-15-667eea"></a>
 </p>
 
 <p align="center">
@@ -24,6 +24,9 @@
 </p>
 
 ---
+
+> [!TIP]
+> **O método por trás do kit:** [AI-DLC na prática: do sinal do usuário à loja](https://levelhard.com.br/aidlc), no LEVELHARD. A página percorre, fase a fase, o ciclo que este kit cobra.
 
 **O aidlc-harness leva um pedido de uma frase a requisitos aprovados e depois a código que só conta como pronto com evidência, dentro da ferramenta de IA que o time já usa.** A IA rascunha tudo com as recomendações dela e pergunta só o que não pode decidir, na janela de perguntas da própria ferramenta; uma pessoa aprova cada fase; e um gate recusa o "pronto" sem a saída crua dos testes. Funciona em **15 ferramentas de IA** (Claude Code, GitHub Copilot, Cursor, Kiro, OpenCode, Codex, Gemini CLI, Antigravity e outras) e em **10 stacks**, de Node a Java, .NET e Go.
 
@@ -156,7 +159,7 @@ A lista de achados desse relatório está vazia, e mesmo assim o resultado **nã
 
 | Item | Estado | Como foi medido |
 | --- | --- | --- |
-| Suíte de testes (`node --test`) | **504 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
+| Suíte de testes (`node --test`) | **510 passam, 0 falham** (1 pulado: só roda no Windows, no CI) | Linux, Node 22, 06/11/2026 |
 | Integração contínua | verde em **Linux, macOS e Windows**, Node 20, 22 e 24 | GitHub Actions a cada push, com o teste de máquina limpa e o pacote instalado |
 | Instalar com `npx github:…` e `npm install -g github:…` | funciona | rodado a partir do GitHub em 06/11/2026, e no CI a partir do pacote empacotado, nos três sistemas |
 | Primeira execução sem nada instalado | `init`, hooks, fases e gate verde (Trivy baixado e conferido) a partir da cópia no projeto, e um clone novo | `scripts/primeira-execucao.test.mjs`, no CI em Linux, macOS e Windows, sem `aidlc` no `PATH` e com o home vazio |

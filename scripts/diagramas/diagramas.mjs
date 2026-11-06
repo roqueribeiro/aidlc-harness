@@ -304,110 +304,33 @@ function roqueshield(d) {
 
 // Marca ---------------------------------------------------------------------------------------
 /**
- * A marca: um ciclo de tres fases (o AI-DLC) fechando em volta de uma verificacao (o gate).
- * Original e geometrica; cores fixas da marca, iguais nos temas claro e escuro. Base de 256x256.
+ * A marca: três chevrons subindo (as fases do AI-DLC) através de um anel aberto embaixo (o gate).
+ * A fase só avança passando pelo portão. Conceito explorado com geração de imagem e redesenhado
+ * aqui com geometria exata, para ser vetor de verdade em qualquer tamanho.
+ *
+ * Cores do design system (superfície do site): acento #007aff no anel e o gradiente da marca
+ * (#667eea) chegando ao acento nos chevrons. Iguais nos temas claro e escuro. Base de 256x256.
  */
 const ponto = (g, r) => [128 + r * Math.cos((g * Math.PI) / 180), 128 + r * Math.sin((g * Math.PI) / 180)]
 const fmt = (pt) => pt.map((n) => n.toFixed(2)).join(' ')
-const arco = (ini, fim, r = 78) => `M${fmt(ponto(ini, r))} A${r} ${r} 0 0 1 ${fmt(ponto(fim, r))}`
-/** Ponta de seta no fim do arco, no sentido horario: o ciclo anda para frente. */
-const seta = (g, r = 78) => {
-  const rad = (g * Math.PI) / 180
-  const [ex, ey] = ponto(g, r)
-  const t = [-Math.sin(rad), Math.cos(rad)]
-  const n = [Math.cos(rad), Math.sin(rad)]
-  const pt = (a, b) => `${(ex + t[0] * a + n[0] * b).toFixed(2)} ${(ey + t[1] * a + n[1] * b).toFixed(2)}`
-  return `M${pt(20, 0)} L${pt(-2, 18)} L${pt(-2, -18)} Z`
-}
-const marca = (cx, cy, r) => () =>
+/** Chevron de largura 112 com a ponta em (128, y): braço de 26 de espessura. */
+const chevron = (y) => `M72 ${y + 30} L128 ${y} L184 ${y + 30} L184 ${y + 56} L128 ${y + 26} L72 ${y + 56} Z`
+export const MARCA = { acento: '#007aff', inicio: '#667eea', palco: '#07080f', tinta: '#f2f4fa' }
+const marca = (cx, cy, r, { id = 'mk' } = {}) => () =>
   `<g transform="translate(${cx - r} ${cy - r}) scale(${r / 128})">` +
-  `<defs>` +
-  `<linearGradient id="mk-fundo" x1="0.1" y1="0" x2="0.9" y2="1"><stop offset="0" stop-color="#3b82f6"/><stop offset="0.55" stop-color="#2447d6"/><stop offset="1" stop-color="#1b2a86"/></linearGradient>` +
-  `<linearGradient id="mk-anel" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#c7d8ff"/></linearGradient>` +
-  `<linearGradient id="mk-ok" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6ee7b7"/><stop offset="1" stop-color="#10b981"/></linearGradient>` +
-  `<radialGradient id="mk-luz" cx="0.3" cy="0.12" r="0.8"><stop offset="0" stop-color="#ffffff" stop-opacity="0.28"/><stop offset="1" stop-color="#ffffff" stop-opacity="0"/></radialGradient>` +
-  `</defs>` +
-  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-fundo)"/>` +
-  `<rect x="6" y="6" width="244" height="244" rx="58" fill="url(#mk-luz)"/>` +
-  `<rect x="7.5" y="7.5" width="241" height="241" rx="56.5" fill="none" stroke="#ffffff" stroke-opacity="0.18" stroke-width="3"/>` +
-  [[-130, -60], [-10, 60], [110, 180]]
-    .map(([i, f]) => `<path d="${arco(i, f)}" fill="none" stroke="url(#mk-anel)" stroke-width="20" stroke-linecap="round"/><path d="${seta(f)}" fill="#e4edff" stroke="#e4edff" stroke-width="6" stroke-linejoin="round"/>`)
-    .join('') +
-  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="#0b1f4d" stroke-opacity="0.35" stroke-width="24" stroke-linecap="round" stroke-linejoin="round" transform="translate(0 4)"/>` +
-  `<path d="M98 130 L119 152 L160 103" fill="none" stroke="url(#mk-ok)" stroke-width="24" stroke-linecap="round" stroke-linejoin="round"/>` +
+  `<defs><linearGradient id="${id}-chev" x1="0" y1="62" x2="0" y2="208" gradientUnits="userSpaceOnUse"><stop offset="0" stop-color="${MARCA.acento}"/><stop offset="1" stop-color="${MARCA.inicio}"/></linearGradient></defs>` +
+  // Anel aberto embaixo: 64 graus de vão, centrado no fundo.
+  `<path d="M${fmt(ponto(122, 104))} A104 104 0 1 1 ${fmt(ponto(58, 104))}" fill="none" stroke="${MARCA.acento}" stroke-width="22"/>` +
+  [62, 106, 150].map((y) => `<path d="${chevron(y)}" fill="url(#${id}-chev)"/>`).join('') +
   `</g>`
 
 function logo(d) {
   d.bruto(marca(128, 128, 112))
 }
 
-/**
- * O banner do README. Cores fixas da marca (igual nos dois temas): um hero escuro funciona sobre
- * o fundo claro e o escuro do GitHub. Os numeros vem do disco (`inv`), nunca escritos a mao.
- */
-function banner(d, inv) {
-  const L = 1280
-  const H = 440
-  const pilula = (x, y, txt, { cor = '#93c5fd', fundo = '#ffffff', op = 0.08, tam = 14 } = {}) => {
-    txt = d.tr(txt)
-    const w = Math.ceil(largura(txt, tam)) + 26
-    return { w, svg: `<rect x="${x}" y="${y}" width="${w}" height="30" rx="15" fill="${fundo}" fill-opacity="${op}" stroke="${cor}" stroke-opacity="0.55"/><text x="${x + 13}" y="${y + 20}" font-size="${tam}" fill="${cor}" font-weight="600">${txt}</text>` }
-  }
-  d.bruto(() =>
-    `<defs>` +
-    `<linearGradient id="bn-fundo" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a1128"/><stop offset="0.6" stop-color="#14246a"/><stop offset="1" stop-color="#1d3a9e"/></linearGradient>` +
-    `<radialGradient id="bn-brilho" cx="0.88" cy="0.05" r="0.6"><stop offset="0" stop-color="#60a5fa" stop-opacity="0.42"/><stop offset="1" stop-color="#60a5fa" stop-opacity="0"/></radialGradient>` +
-    `<pattern id="bn-pontos" width="28" height="28" patternUnits="userSpaceOnUse"><circle cx="2" cy="2" r="1.3" fill="#ffffff" fill-opacity="0.09"/></pattern>` +
-    `</defs>` +
-    `<rect width="${L}" height="${H}" fill="url(#bn-fundo)"/><rect width="${L}" height="${H}" fill="url(#bn-pontos)"/><rect width="${L}" height="${H}" fill="url(#bn-brilho)"/>`,
-  )
-  d.bruto(marca(150, 128, 74))
-  d.texto(250, 118, 'aidlc-harness', { tam: 66, cor: '#ffffff', negrito: true })
-  d.texto(252, 160, 'Pronto exige evidência. Regra sem mecanismo é decoração.', { tam: 25, cor: '#dbe7ff' })
-  d.texto(252, 194, 'Kit de qualidade de código aberto para desenvolver com agentes de IA no ciclo AI-DLC.', { tam: 17, cor: '#9fb3d9' })
-
-  let x = 252
-  let svg = ''
-  for (const [txt, cor] of [['15 ferramentas de IA', '#93c5fd'], ['Claude Code', '#93c5fd'], ['Copilot', '#93c5fd'], ['Cursor', '#93c5fd'], ['Kiro', '#93c5fd'], ['10 stacks', '#86efac'], ['SARIF', '#86efac'], ['RoqueShield', '#86efac']]) {
-    const p = pilula(x, 214, txt, { cor })
-    svg += p.svg
-    x += p.w + 10
-  }
-  d.bruto(() => svg)
-  const aut = pilula(0, 0, 'Método: levelhard.com.br/aidlc', { cor: '#fcd34d', op: 0.1 })
-  d.bruto(() => `<g transform="translate(${L - 72 - aut.w} 44)">${aut.svg}</g>`)
-
-  // A esteira: o que o kit cobra, em ordem.
-  d.texto(72, 276, 'O QUE O KIT COBRA, EM ORDEM', { tam: 12, cor: '#7f95c4', negrito: true })
-  const passos = [
-    ['Inception', 'requisitos e unidades', '#93c5fd'],
-    ['Aprovação', 'assinada por pessoa', '#c4b5fd'],
-    ['Construction', 'bolts, teste e código', '#86efac'],
-    ['Gate', 'saída crua no chat', '#86efac'],
-    ['Scan', 'limpo ≠ não rodou', '#fcd34d'],
-  ]
-  const bw = 190
-  const gap = (L - 144 - passos.length * bw) / (passos.length - 1)
-  let esteira = ''
-  passos.forEach(([t, sub, cor], i) => {
-    const bx = 72 + i * (bw + gap)
-    esteira += `<rect x="${bx}" y="290" width="${bw}" height="78" rx="14" fill="#ffffff" fill-opacity="0.07" stroke="${cor}" stroke-opacity="0.6"/>`
-    esteira += `<text x="${bx + 16}" y="322" font-size="19" font-weight="700" fill="#ffffff">${d.tr(t)}</text>`
-    esteira += `<text x="${bx + 16}" y="346" font-size="13" fill="${cor}">${d.tr(sub)}</text>`
-    if (i < passos.length - 1) {
-      const ax = bx + bw + 6
-      esteira += `<path d="M${ax} 329 H${ax + gap - 16}" stroke="#9fb3d9" stroke-width="2" stroke-linecap="round"/><path d="M${ax + gap - 18} 322 L${ax + gap - 8} 329 L${ax + gap - 18} 336 Z" fill="#9fb3d9"/>`
-    }
-  })
-  d.bruto(() => esteira)
-
-  const numeros = [`${inv.hooks.length} hooks`, `${inv.agentes.length} agentes`, `${inv.skills.length} skills`, `${inv.comandos.length} comandos`, `${inv.tools.length} executáveis`, `${inv.tecnologias.length} manifestos de stack`, 'MIT', `v${inv.versao}`]
-  d.texto(72, 412, numeros.map((n) => d.tr(n)).join('   ·   '), { tam: 15, cor: '#c7d8ff', negrito: true, traduzido: true })
-}
-
 function social(d) {
   d.bruto((t) => `<rect width="1280" height="640" fill="${t.fundo}"/>`)
-  d.bruto(marca(220, 320, 130))
+  d.bruto(marca(220, 320, 130, { id: 'sp' }))
   d.texto(400, 290, 'aidlc-harness', { tam: 72, cor: 'texto', negrito: true })
   d.texto(402, 345, 'Pronto exige evidência. Regra sem mecanismo é decoração.', { tam: 28, cor: 'suave' })
   let x = 402
@@ -427,8 +350,7 @@ export const DIAGRAMAS = [
   { arquivo: 'multiferramenta', desc: 'Uma fonte, 15 ferramentas de IA', largura: 1200, altura: 570, desenha: multiferramenta },
   { arquivo: 'instalacao', desc: 'Instalação', largura: 1200, altura: 600, desenha: instalacao },
   { arquivo: 'evidencia', desc: 'Como o Stop decide', largura: 1200, altura: 650, desenha: evidencia },
-  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true },
-  { arquivo: 'banner', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA no ciclo AI-DLC', largura: 1280, altura: 440, desenha: banner },
+  { arquivo: 'logo', desc: 'Logo do aidlc-harness', largura: 256, altura: 256, desenha: logo, semIdioma: true, transparente: true },
   { arquivo: 'social-preview', desc: 'aidlc-harness: kit de qualidade para desenvolver com agentes de IA', largura: 1280, altura: 640, desenha: social },
   { arquivo: 'roqueshield', desc: 'RoqueShield e o kit: o laço de varredura', largura: 1200, altura: 650, desenha: roqueshield },
 ]

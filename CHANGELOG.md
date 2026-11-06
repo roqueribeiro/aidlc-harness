@@ -21,6 +21,10 @@ Works on the first run with nothing installed. In 0.2.0 the steps `aidlc-init` a
 - **Trivy on demand.** `aidlc-secscan` uses `AIDLC_TRIVY`, the `trivy` on the `PATH`, the kit cache or, otherwise, downloads Trivy 0.76.1 and checks its sha256, pinned in `lib/trivy.mjs` for Linux, macOS (x64 and ARM64) and Windows and checked against the downloaded files. `AIDLC_TRIVY_BASE` points to an internal mirror. The generated CI no longer installs Trivy through a third-party action; it caches the kit's.
 - `scripts/primeira-execucao.test.mjs`: with no `aidlc` on the `PATH` and an empty home, `init`, `--check`, every generated hook command, `aidlc-phase`, a green gate with Trivy downloaded, a fresh clone, and a mutant (an edited kit copy fails `--check`). CI runs it on Linux, macOS and Windows, and downloads Trivy on Linux x64 and ARM64, macOS and Windows.
 
+### Changed
+
+- **Visual identity.** A new mark: three chevrons (the phases) rising through a ring that is open at the bottom (the gate), drawn as an exact vector in the diagram generator after concepts made with an image model. Diagrams, banner and social preview use the design system: stage `#07080f`, ink `#f2f4fa`, accent `#007aff`, Inter Tight and Geist Mono; every diagram text color passes 4.5:1 on both themes (new test). The README banner is a composition (`scripts/gerar-arte.mjs`): background art made with an image model with no text in it, and the type set in the design system fonts, with the numbers read from disk; a stamp fails the tests when the version or the counts change without regenerating it. Logo PNGs (512, 1024, horizontal for light and dark backgrounds) in `docs/assets/marca/`. The README links the method page on LEVELHARD in a callout under the banner.
+
 ### Limits
 
 The first run was measured on Linux on 2026-11-06; macOS and Windows are measured by CI. The AI tools themselves were not driven in a real session: that the Claude Code plugin loads from `.claude/settings.json` after trust comes from its documentation, not from a recorded session. Codex runs hooks in the session folder, so it must be opened at the project root.

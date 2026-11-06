@@ -1,17 +1,17 @@
 <p align="center">
   <a href="https://levelhard.com.br/aidlc">
-    <img src="docs/assets/diagramas/banner.en.claro.svg" alt="aidlc-harness: a quality kit for building with AI agents in the AI-DLC cycle. Done requires evidence. A rule without a mechanism is decoration." width="100%">
+    <img src="docs/assets/marca/banner.en.jpg" alt="aidlc-harness: the quality kit for building software with AI agents in the AI-DLC cycle. Done requires evidence. A rule without a mechanism is decoration." width="100%">
   </a>
 </p>
 
 <p align="center">
   <a href="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml"><img alt="CI" src="https://github.com/roqueribeiro/aidlc-harness/actions/workflows/ci.yml/badge.svg"></a>
-  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Version" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=version&sort=semver&color=2563eb"></a>
+  <a href="https://github.com/roqueribeiro/aidlc-harness/tags"><img alt="Version" src="https://img.shields.io/github/v/tag/roqueribeiro/aidlc-harness?label=version&sort=semver&color=007aff"></a>
   <a href="LICENSE"><img alt="MIT license" src="https://img.shields.io/badge/license-MIT-16a34a"></a>
   <a href="CONTRIBUTING.md#dco"><img alt="DCO" src="https://img.shields.io/badge/commits-DCO-16a34a"></a>
   <img alt="Node 20.19 or newer" src="https://img.shields.io/badge/node-%E2%89%A5%2020.19-5fa04e">
-  <img alt="Linux, macOS and Windows" src="https://img.shields.io/badge/os-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-6d28d9">
-  <a href="docs/TOOLS.md"><img alt="15 AI tools" src="https://img.shields.io/badge/AI%20tools-15-6d28d9"></a>
+  <img alt="Linux, macOS and Windows" src="https://img.shields.io/badge/os-Linux%20%C2%B7%20macOS%20%C2%B7%20Windows-667eea">
+  <a href="docs/TOOLS.md"><img alt="15 AI tools" src="https://img.shields.io/badge/AI%20tools-15-667eea"></a>
 </p>
 
 <p align="center">
@@ -24,6 +24,9 @@
 </p>
 
 ---
+
+> [!TIP]
+> **The method behind the kit:** [AI-DLC na prática: do sinal do usuário à loja](https://levelhard.com.br/aidlc), on LEVELHARD (in Portuguese). It walks through the cycle this kit enforces, phase by phase.
 
 **aidlc-harness takes a one-sentence request to approved requirements and then to code that only counts as done with evidence, inside the AI tool your team already uses.** The AI drafts everything with its own recommendations and asks only what it cannot decide, in the tool's own question window; a person approves each phase; and a gate refuses "done" without the raw test output. It works in **15 AI tools** (Claude Code, GitHub Copilot, Cursor, Kiro, OpenCode, Codex, Gemini CLI, Antigravity and more) and in **10 technology stacks**, from Node to Java, .NET and Go.
 
@@ -156,7 +159,7 @@ The list of findings in that report is empty, and the result is still **not** cl
 
 | Item | Status | How it was measured |
 | --- | --- | --- |
-| Test suite (`node --test`) | **504 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
+| Test suite (`node --test`) | **510 pass, 0 fail** (1 skipped: runs only on Windows, in CI) | Linux, Node 22, 2026-11-06 |
 | Continuous integration | green on **Linux, macOS and Windows**, Node 20, 22 and 24 | GitHub Actions on every push, including the clean-machine test and the installed package |
 | Install with `npx github:…` and `npm install -g github:…` | works | run from GitHub on 2026-11-06, and in CI from a packed tarball on the three systems |
 | First run with nothing installed | `init`, hooks, phases and a green gate (Trivy downloaded and checked) from the project copy, and a fresh clone | `scripts/primeira-execucao.test.mjs`, in CI on Linux, macOS and Windows with no `aidlc` on the `PATH` and an empty home |

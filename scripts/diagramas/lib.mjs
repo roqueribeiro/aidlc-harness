@@ -12,47 +12,53 @@
 
 import EN, { PADROES } from './en.mjs'
 
+/*
+ * As cores saem do design system (superfície do site: palco #07080f, tinta #f2f4fa, acento #007aff
+ * e as funcionais de sucesso, atenção e perigo). Cada cor de texto passa 4,5:1 sobre o fundo, a
+ * caixa e o fundo do próprio tipo, nos dois temas; o gerar-diagramas.test.mjs confere.
+ */
 export const TEMAS = {
   claro: {
     fundo: '#ffffff',
-    texto: '#0f172a',
-    suave: '#475569',
-    caixa: '#f8fafc',
-    borda: '#cbd5e1',
-    destaque: '#2563eb',
-    destaqueFundo: '#dbeafe',
-    verde: '#15803d',
-    verdeFundo: '#dcfce7',
-    ambar: '#b45309',
-    ambarFundo: '#fef3c7',
-    vermelho: '#b91c1c',
-    vermelhoFundo: '#fee2e2',
-    roxo: '#6d28d9',
-    roxoFundo: '#ede9fe',
-    faixa: '#f1f5f9',
+    texto: '#07080f',
+    suave: '#4a4d57',
+    caixa: '#f6f7fb',
+    borda: '#d9dce6',
+    destaque: '#0066cc',
+    destaqueFundo: '#e6f0ff',
+    verde: '#1a7f37',
+    verdeFundo: '#e3f6e8',
+    ambar: '#9a5b00',
+    ambarFundo: '#fdf0d8',
+    vermelho: '#c4281c',
+    vermelhoFundo: '#fde7e5',
+    roxo: '#4c51bf',
+    roxoFundo: '#ebedfd',
+    faixa: '#f1f2f7',
   },
   escuro: {
-    fundo: '#0b1220',
-    texto: '#e2e8f0',
-    suave: '#94a3b8',
-    caixa: '#111a2e',
-    borda: '#334155',
-    destaque: '#60a5fa',
-    destaqueFundo: '#13284d',
-    verde: '#4ade80',
-    verdeFundo: '#0f2a1b',
-    ambar: '#fbbf24',
-    ambarFundo: '#33250a',
-    vermelho: '#f87171',
-    vermelhoFundo: '#341414',
-    roxo: '#a78bfa',
-    roxoFundo: '#241a45',
-    faixa: '#0f172a',
+    fundo: '#07080f',
+    texto: '#f2f4fa',
+    suave: '#b0b2b8',
+    caixa: '#0d0f1a',
+    borda: '#262938',
+    destaque: '#3d96ff',
+    destaqueFundo: '#0a1a36',
+    verde: '#34c759',
+    verdeFundo: '#0b2214',
+    ambar: '#f59e0b',
+    ambarFundo: '#2a1d06',
+    vermelho: '#ff5a52',
+    vermelhoFundo: '#2c0f0e',
+    roxo: '#8b96f0',
+    roxoFundo: '#171a3d',
+    faixa: '#0a0b14',
   },
 }
 
-const FONTE = "system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif"
-const MONO = "ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
+// As famílias do design system primeiro (Inter no texto, Geist Mono no código); sem elas, a do sistema.
+const FONTE = "Inter, 'Segoe UI', system-ui, -apple-system, Roboto, 'Helvetica Neue', Arial, sans-serif"
+const MONO = "'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Consolas, monospace"
 
 /** Largura estimada de um texto, em px. Conservadora de proposito: erra para o lado de sobrar caixa. */
 export const largura = (texto, tam, mono = false) => String(texto).length * tam * (mono ? 0.62 : 0.58)
@@ -219,7 +225,7 @@ export class Desenho {
   svg() {
     return (
       `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${this.w} ${this.h}" width="${this.w}" height="${this.h}" font-family="${FONTE}" role="img" aria-label="${esc(this.nome)}">\n` +
-      `<rect width="${this.w}" height="${this.h}" fill="${this.t.fundo}"/>\n` +
+      (this.transparente ? '' : `<rect width="${this.w}" height="${this.h}" fill="${this.t.fundo}"/>\n`) +
       this.partes.join('\n') +
       `\n</svg>\n`
     )
