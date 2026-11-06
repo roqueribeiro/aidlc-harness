@@ -12,6 +12,7 @@
 import { readFileSync, writeFileSync } from 'node:fs'
 import { dirname, join, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
+import { ehPrincipal } from './lib/principal.mjs'
 
 const RAIZ = resolve(dirname(fileURLToPath(import.meta.url)), '..')
 export const COMANDOS = [
@@ -46,7 +47,7 @@ export function gerar(leitor) {
   return partes.join('\n').replace(/\n{3,}/g, '\n\n').trimEnd() + '\n'
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+if (ehPrincipal(import.meta.url)) {
   const leitor = (arq) => readFileSync(join(RAIZ, 'plugins', 'aidlc-harness', 'commands', arq), 'utf8')
   const destino = join(RAIZ, 'docs', 'pt-BR', 'PROMPTS.md')
   const novo = gerar(leitor)

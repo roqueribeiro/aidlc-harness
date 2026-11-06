@@ -11,6 +11,7 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 - `aidlc-doctor` no longer charges a Kiro- or Copilot-only project for Claude Code files, no longer points at the kit's internal folder or quotes another product's version, and checks that `AGENTS.md` has the kit block and is in sync.
 - The evidence gate log moved from `.claude/audit/` to `aidlc/audit/` (the folder `aidlc-init` creates for every tool); `aidlc-doctor` and `aidlc-cycle` read both.
 - `pkg-manager` now sees `pnpm`, `bun` and `bunx` invocations.
+- `scripts/setup.mjs` did nothing on Windows and exited 0: the "am I the main module" test compared a `file://` URL with a Windows path and never matched. The same defect was in `gerar-prompts`, `definir-dono` and `install-git-hooks`; all four now use `ehPrincipal`. Paths are built for the target platform, `Path` is found on Windows, and the setup prints the exact line to add it to the `PATH`.
 
 ### Added
 
