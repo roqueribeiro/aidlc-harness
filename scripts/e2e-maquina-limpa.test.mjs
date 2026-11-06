@@ -32,7 +32,9 @@ before(() => {
   mkdirSync(home, { recursive: true })
   const r = spawnSync(process.execPath, [join(RAIZ, 'scripts', 'setup.mjs'), '--dir', bin], { encoding: 'utf8', env: { ...process.env, HOME: home, USERPROFILE: home } })
   assert.equal(r.status, 0, r.stdout + r.stderr)
-  env = { ...process.env, HOME: home, USERPROFILE: home, PATH: bin + delimiter + process.env.PATH }
+  // No Windows a variável se chama `Path`: acrescentar `PATH` criaria uma segunda, que o cmd ignora.
+  const chave = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH'
+  env = { ...process.env, HOME: home, USERPROFILE: home, [chave]: bin + delimiter + process.env[chave] }
 })
 after(() => rmSync(base, { recursive: true, force: true }))
 
