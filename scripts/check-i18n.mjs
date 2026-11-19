@@ -38,6 +38,7 @@ export const PARES = {
   'docs/ARCHITECTURE.md': 'docs/pt-BR/ARQUITETURA.md',
   'docs/STRATEGY.md': 'docs/pt-BR/ESTRATEGIA.md',
   'docs/REFERENCE.md': 'docs/pt-BR/REFERENCIA.md',
+  'docs/OPERATIONS.md': 'docs/pt-BR/OPERACAO.md',
   'docs/INTEGRATIONS.md': 'docs/pt-BR/INTEGRACOES.md',
   'docs/ROQUESHIELD.md': 'docs/pt-BR/ROQUESHIELD.md',
   'docs/ADAPTERS.md': 'docs/pt-BR/ADAPTADORES.md',
