@@ -197,6 +197,7 @@ Start with **[docs/GETTING-STARTED.md](docs/GETTING-STARTED.md)** and **[docs/TO
 | [REGULATED](docs/REGULATED.md) | Profile for regulated companies |
 | [INTEGRATIONS](docs/INTEGRATIONS.md) | Security platforms, CI and AI tools |
 | [WHEN-IT-BREAKS](docs/WHEN-IT-BREAKS.md) | What each gate result means |
+| [OPERATIONS](docs/OPERATIONS.md) | Release, update a project, undo, monitor |
 
 The method behind the kit, in plain language, is at **[levelhard.com.br/aidlc](https://levelhard.com.br/aidlc)** (in Portuguese).
 

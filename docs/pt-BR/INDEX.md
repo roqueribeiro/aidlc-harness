@@ -17,9 +17,11 @@ Por onde começar depende do que você quer.
 | **Aplicar numa empresa regulada** | [REGULADO.md](REGULADO.md) |
 | **Acrescentar uma tecnologia, revisor ou regra** | [ESTENDER.md](ESTENDER.md) |
 | **Entender uma falha do gate** | [QUANDO-QUEBRA.md](QUANDO-QUEBRA.md) |
+| **Manter rodando: publicar, atualizar um projeto, desfazer, monitorar** | [OPERACAO.md](OPERACAO.md) |
 | **Entender por que o desenho é assim** | [ESTRATEGIA.md](ESTRATEGIA.md) |
 | **Achar um termo ou uma resposta rápida** | [GLOSSARIO.md](GLOSSARIO.md) |
 | **Ver o texto dos comandos `/inception`, `/construction`...** | [PROMPTS.md](PROMPTS.md) (gerado) |
+| **Saber como trabalhamos com agentes de IA aqui, e o mecanismo por trás de cada regra** | [OPERATING-MODEL.md](OPERATING-MODEL.md) |
 | **Contribuir** | [CONTRIBUTING.md](CONTRIBUTING.md) |
 | **Relatar uma vulnerabilidade** | [../../SECURITY.md](../../SECURITY.md) |
 

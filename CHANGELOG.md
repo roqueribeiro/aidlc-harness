@@ -4,6 +4,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Semantic versi
 
 ## [Unreleased]
 
+### Added
+
+- **`docs/OPERATIONS.md`** and its pair `docs/pt-BR/OPERACAO.md`: the routine, releasing a version, updating a project without a red CI (the kit copy, the settings pin and `AIDLC_REF` move in the same commit), undoing each step, backup and what to watch. Linked from both indexes and both READMEs.
+- **`docs/docs.json`**, the family documentation manifest: English as the principal, Portuguese as the pair, every document with its role, the generated pages of `docs/tools/` and `docs/pt-BR/ferramentas/` declared as outside the set, and `docs/pt-BR/PROMPTS.md` as generated and Portuguese only. `roqueos-docs` comes out `ok`; `check-i18n` keeps being this repository's own gate.
+
 ## [0.2.1] - 2026-11-06
 
 Works on the first run with nothing installed. In 0.2.0 the steps `aidlc-init` announced did not work on a new machine, and the tests passed because they ran with the kit on the `PATH`.

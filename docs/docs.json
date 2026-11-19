@@ -1,0 +1,32 @@
+{
+  "principal": "en",
+  "par": "pt-BR",
+  "documentos": [
+    { "papel": "readme", "principal": "README.md", "par": "README.pt-BR.md" },
+    { "papel": "indice", "principal": "docs/INDEX.md", "par": "docs/pt-BR/INDEX.md" },
+    { "papel": "comecar", "principal": "docs/GETTING-STARTED.md", "par": "docs/pt-BR/COMECAR.md" },
+    { "papel": "arquitetura", "principal": "docs/ARCHITECTURE.md", "par": "docs/pt-BR/ARQUITETURA.md" },
+    { "papel": "referencia", "principal": "docs/REFERENCE.md", "par": "docs/pt-BR/REFERENCIA.md" },
+    { "papel": "operacao", "principal": "docs/OPERATIONS.md", "par": "docs/pt-BR/OPERACAO.md" },
+    { "papel": "quando-quebra", "principal": "docs/WHEN-IT-BREAKS.md", "par": "docs/pt-BR/QUANDO-QUEBRA.md" },
+    { "papel": "glossario", "principal": "docs/GLOSSARY.md", "par": "docs/pt-BR/GLOSSARIO.md" },
+    { "papel": "estender", "principal": "docs/EXTENDING.md", "par": "docs/pt-BR/ESTENDER.md" },
+    { "papel": "integracoes", "principal": "docs/INTEGRATIONS.md", "par": "docs/pt-BR/INTEGRACOES.md" },
+    { "papel": "contribuir", "principal": "CONTRIBUTING.md", "par": "docs/pt-BR/CONTRIBUTING.md" },
+    { "papel": "extra", "principal": "OPERATING-MODEL.md", "par": "docs/pt-BR/OPERATING-MODEL.md" },
+    { "papel": "extra", "principal": "docs/AIDLC.md", "par": "docs/pt-BR/AIDLC.md" },
+    { "papel": "extra", "principal": "docs/STRATEGY.md", "par": "docs/pt-BR/ESTRATEGIA.md" },
+    { "papel": "extra", "principal": "docs/ROQUESHIELD.md", "par": "docs/pt-BR/ROQUESHIELD.md" },
+    { "papel": "extra", "principal": "docs/ADAPTERS.md", "par": "docs/pt-BR/ADAPTADORES.md" },
+    { "papel": "extra", "principal": "docs/REGULATED.md", "par": "docs/pt-BR/REGULADO.md" },
+    { "papel": "extra", "principal": "docs/TOOLS.md", "par": "docs/pt-BR/FERRAMENTAS.md" }
+  ],
+  "dispensas": {},
+  "historico": {
+    "docs/pt-BR/PROMPTS.md": "gerado por scripts/gerar-prompts.mjs a partir dos comandos em plugins/aidlc-harness/commands/, que são escritos em português; não tem par em inglês de propósito e o check:prompts é o gate dele"
+  },
+  "fora": {
+    "docs/tools/": "uma página por ferramenta de IA, gerada por scripts/gerar-ferramentas.mjs a partir de lib/adaptadores.mjs; o check:ferramentas é o gate e o par é docs/pt-BR/ferramentas/",
+    "docs/pt-BR/ferramentas/": "par em português de docs/tools/, gerado pelo mesmo scripts/gerar-ferramentas.mjs e conferido pelo mesmo check:ferramentas; não se edita à mão"
+  }
+}
