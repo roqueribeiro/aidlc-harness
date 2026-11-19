@@ -197,6 +197,7 @@ Comece por **[docs/pt-BR/COMECAR.md](docs/pt-BR/COMECAR.md)** e **[docs/pt-BR/FE
 | [REGULADO](docs/pt-BR/REGULADO.md) | Perfil para empresa regulada |
 | [INTEGRACOES](docs/pt-BR/INTEGRACOES.md) | Plataformas de segurança, CI e ferramentas de IA |
 | [QUANDO-QUEBRA](docs/pt-BR/QUANDO-QUEBRA.md) | O que cada resultado do gate quer dizer |
+| [OPERACAO](docs/pt-BR/OPERACAO.md) | Publicar, atualizar um projeto, desfazer, monitorar |
 
 O método por trás do kit, em linguagem simples, está em **[levelhard.com.br/aidlc](https://levelhard.com.br/aidlc)**.
 

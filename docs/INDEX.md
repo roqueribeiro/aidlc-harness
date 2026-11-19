@@ -17,9 +17,11 @@ Where to start depends on what you want.
 | **Apply it in a regulated company** | [REGULATED.md](REGULATED.md) |
 | **Add a technology, reviewer or rule** | [EXTENDING.md](EXTENDING.md) |
 | **Understand a gate failure** | [WHEN-IT-BREAKS.md](WHEN-IT-BREAKS.md) |
+| **Keep it running: release, update a project, undo, monitor** | [OPERATIONS.md](OPERATIONS.md) |
 | **Understand why the design is the way it is** | [STRATEGY.md](STRATEGY.md) |
 | **Find a term or a quick answer** | [GLOSSARY.md](GLOSSARY.md) |
 | **See the text of the Claude Code `/inception`, `/construction`... commands** | [pt-BR/PROMPTS.md](pt-BR/PROMPTS.md) (Portuguese, generated) |
+| **Know how we work with AI agents here, and the mechanism behind each rule** | [../OPERATING-MODEL.md](../OPERATING-MODEL.md) |
 | **Contribute** | [../CONTRIBUTING.md](../CONTRIBUTING.md) |
 | **Report a vulnerability** | [../SECURITY.md](../SECURITY.md) |
 
