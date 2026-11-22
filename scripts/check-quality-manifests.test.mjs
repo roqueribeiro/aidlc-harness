@@ -96,6 +96,20 @@ describe('check-quality-manifests', () => {
     assert.match(r.stdout + r.stderr, /regex invalida/)
   })
 
+  test('platform aceita linux alem de darwin, win32 e any (e mutante invalido reprova)', () => {
+    const { base, quality } = copia()
+    mexe(quality, 'node-yarn.json', (m) => {
+      m.gates[0].platform = 'linux'
+    })
+    assert.equal(roda(quality).status, 0)
+    mexe(quality, 'node-yarn.json', (m) => {
+      m.gates[0].platform = 'plan9'
+    })
+    const r = roda(quality)
+    rmSync(base, { recursive: true, force: true })
+    assert.equal(r.status, 1)
+  })
+
   test('o modelo de gate de segurança (templates/security) é um manifesto válido', () => {
     const { base, quality } = copia()
     cpSync(join(PLUGIN, 'templates/security/node-yarn-com-scan.json'), join(quality, 'node-yarn.json'))

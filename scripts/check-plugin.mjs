@@ -17,7 +17,7 @@
  */
 
 import { readFileSync, readdirSync, existsSync, statSync } from 'node:fs'
-import { join, basename, dirname } from 'node:path'
+import { join, basename, dirname, relative } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const ROOT = join(fileURLToPath(new URL('.', import.meta.url)), '..')
@@ -25,7 +25,7 @@ const PLUGIN = join(ROOT, 'plugins/aidlc-harness')
 const JSON_OUT = process.argv.includes('--json')
 
 const problems = []
-const fail = (file, msg) => problems.push({ file: file.replace(ROOT + '/', ''), msg })
+const fail = (file, msg) => problems.push({ file: relative(ROOT, file).replaceAll('\\', '/'), msg })
 
 /**
  * Le a frontmatter do jeito que um parser YAML leria, e reprova no que faria ele desistir.
@@ -346,8 +346,9 @@ function checkBins() {
   for (const f of readdirSync(dir)) {
     const file = join(dir, f)
     const mode = statSync(file).mode
-    // Sem bit de execucao, o bin entra no PATH e o shell responde "Permission denied".
-    if (!(mode & 0o111)) fail(file, 'executavel sem bit de execucao, o PATH do plugin nao vai conseguir rodar')
+    // Sem bit de execucao no POSIX, o bin entra no PATH e o shell responde "Permission denied".
+    // No Windows o NTFS nao guarda 0o111 (o setup cria .cmd e o gate chama pelo node).
+    if (process.platform !== 'win32' && !(mode & 0o111)) fail(file, 'executavel sem bit de execucao, o PATH do plugin nao vai conseguir rodar')
     const first = readFileSync(file, 'utf8').split('\n', 1)[0]
     if (!first.startsWith('#!')) fail(file, 'executavel sem shebang')
   }

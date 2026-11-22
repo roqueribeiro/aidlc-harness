@@ -33,12 +33,17 @@ function projeto(cmd) {
 }
 
 // PATH sem nenhuma pasta do kit: so o node (que os executaveis precisam) e o basico do sistema.
-const PATH_LIMPO = [dirname(process.execPath), '/usr/bin', '/bin'].join(delimiter)
+const WIN = process.platform === 'win32'
+const SYS_DIRS = WIN ? [join(process.env.SystemRoot ?? 'C:\\Windows', 'System32')] : ['/usr/bin', '/bin']
+const PATH_LIMPO = [dirname(process.execPath), ...SYS_DIRS].join(delimiter)
+const ENV_LIMPO = WIN
+  ? { Path: PATH_LIMPO, SystemRoot: process.env.SystemRoot ?? 'C:\\Windows', ComSpec: process.env.ComSpec ?? 'C:\\Windows\\System32\\cmd.exe' }
+  : { PATH: PATH_LIMPO }
 
 describe('aidlc-gate: executáveis do kit no PATH dos gates', () => {
   test('um gate que chama aidlc-scan o acha mesmo com o PATH sem o kit (não dá 127)', () => {
     const dir = projeto('aidlc-scan relatorio-que-nao-existe.json')
-    const r = spawnSync(process.execPath, [GATE], { cwd: dir, encoding: 'utf8', env: { PATH: PATH_LIMPO } })
+    const r = spawnSync(process.execPath, [GATE], { cwd: dir, encoding: 'utf8', env: ENV_LIMPO })
     rmSync(dir, { recursive: true, force: true })
     const saida = r.stdout + r.stderr
     assert.doesNotMatch(saida, /not found|exit 127/, saida)
@@ -49,9 +54,22 @@ describe('aidlc-gate: executáveis do kit no PATH dos gates', () => {
 
   test('o PATH do usuário continua valendo depois do kit (comando comum ainda roda)', () => {
     const dir = projeto('echo ok-do-usuario')
-    const r = spawnSync(process.execPath, [GATE], { cwd: dir, encoding: 'utf8', env: { PATH: PATH_LIMPO } })
+    const r = spawnSync(process.execPath, [GATE], { cwd: dir, encoding: 'utf8', env: ENV_LIMPO })
     rmSync(dir, { recursive: true, force: true })
     assert.match(r.stdout + r.stderr, /PASSOU/)
     assert.equal(r.status, 0)
+  })
+
+  test('mutante: falha ao abrir o shell do gate sai como erro ao iniciar, nunca como falso timeout', () => {
+    const dir = projeto('echo ok')
+    const envSemShell = WIN
+      ? { ...ENV_LIMPO, ComSpec: join(dir, 'shell-inexistente.exe') }
+      : { ...ENV_LIMPO, SHELL: join(dir, 'shell-inexistente') }
+    const r = spawnSync(process.execPath, [GATE], { cwd: dir, encoding: 'utf8', env: envSemShell })
+    rmSync(dir, { recursive: true, force: true })
+    const saida = r.stdout + r.stderr
+    assert.equal(r.status, 1)
+    assert.match(saida, /erro ao iniciar/)
+    assert.doesNotMatch(saida, /exit timeout/)
   })
 })

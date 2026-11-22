@@ -97,6 +97,11 @@ describe('README diz como comecar (aidlc-doctor, readme-quickstart)', () => {
     assert.equal(temQuickstart('# Xadrez\n\n## Como rodar o servidor\n'), true)
   })
 
+  test('aceita "Get started", usado no proprio README em ingles do kit', () => {
+    assert.equal(temQuickstart('# aidlc-harness\n\n## Get started in one minute\n\nnpx ...\n'), true)
+    assert.equal(temQuickstart('# Repo\n\n## Getting started\n'), true)
+  })
+
   test('nao aceita README sem a secao, nem a palavra solta fora de um titulo', () => {
     assert.equal(temQuickstart('# Repo\n\n## Sobre\n\nComo começar: leia o codigo.\n'), false)
     assert.equal(temQuickstart('# Como começar'), false)

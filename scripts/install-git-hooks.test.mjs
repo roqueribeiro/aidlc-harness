@@ -30,7 +30,7 @@ describe('instalação de verdade', () => {
     assert.equal(r.status, 0, r.stdout + r.stderr)
     const alvo = join(d, '.git', 'hooks', 'pre-push')
     assert.ok(existsSync(alvo))
-    assert.ok(statSync(alvo).mode & 0o111, 'precisa ser executável')
+    if (process.platform !== 'win32') assert.ok(statSync(alvo).mode & 0o111, 'precisa ser executável')
     assert.equal(readFileSync(alvo, 'utf8'), CONTEUDO)
     assert.match(rodar(d).stdout, /^ok /)
   })
@@ -67,7 +67,7 @@ describe('instalação de verdade', () => {
     assert.match(r.stdout, /não é repo/)
   })
 
-  test('o gancho deixa o push passar quando aidlc-gate não está no PATH', () => {
+  test('o gancho deixa o push passar quando aidlc-gate não está no PATH', { skip: process.platform === 'win32' && 'usa /bin/sh com PATH POSIX' }, () => {
     const d = repoTemp()
     rodar(d)
     const r = spawnSync('sh', [join(d, '.git', 'hooks', 'pre-push')], { env: { PATH: '/usr/bin:/bin' }, encoding: 'utf8' })
