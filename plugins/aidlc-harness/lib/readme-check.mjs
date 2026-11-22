@@ -10,7 +10,7 @@
  *  - "## Como rodar" e um titulo comum para a secao com os comandos. Ganhou `Como rodar`.
  */
 export const QUICKSTART =
-  /^#{2,3}\s*[^\w\n]*\s*(Quickstart|Quick Start|Come[cç]|Como come[cç]ar|Como rodar|Getting started|Start|Setup|Install|Uso|Usage|Commands|Comandos)/im
+  /^#{2,3}\s*[^\w\n]*\s*(Quickstart|Quick Start|Come[cç]|Como come[cç]ar|Como rodar|Get(?:ting)? started|Start|Setup|Install|Uso|Usage|Commands|Comandos)/im
 
 export const temQuickstart = (readme) => QUICKSTART.test(readme ?? '')
 

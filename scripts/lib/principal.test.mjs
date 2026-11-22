@@ -16,14 +16,14 @@ describe('ehPrincipal', () => {
     cpSync(join(AQUI, 'principal.mjs'), join(real, 'lib/principal.mjs'))
     writeFileSync(join(real, 'prog.mjs'), "import { ehPrincipal } from './lib/principal.mjs'\nif (ehPrincipal(import.meta.url)) { console.log('rodou'); process.exit(3) }\n")
     const link = real + '-link'
-    symlinkSync(real, link)
+    symlinkSync(real, link, process.platform === 'win32' ? 'junction' : undefined)
     try {
       const r = spawnSync(process.execPath, [join(link, 'prog.mjs')], { encoding: 'utf8' })
       assert.equal(r.status, 3, r.stdout + r.stderr)
       const direto = spawnSync(process.execPath, [join(real, 'prog.mjs')], { encoding: 'utf8' })
       assert.equal(direto.status, 3)
     } finally {
-      rmSync(link, { force: true })
+      rmSync(link, { recursive: true, force: true })
       rmSync(real, { recursive: true, force: true })
     }
   })

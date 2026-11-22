@@ -137,7 +137,9 @@ describe('servidor', () => {
     assert.match(cmd, new RegExp(`docker rmi ${velha}`))
     assert.doesNotMatch(cmd, /rm -rf/)
   })
-  test('a sonda nunca conta como release velha a tag de rollback do install.sh', () => {
+  const temAwk = !spawnSync('awk', ['BEGIN { exit 0 }'], { encoding: 'utf8' }).error
+  const soComAwk = { skip: !temAwk && 'sem awk local (a sonda roda no servidor Linux)' }
+  test('a sonda nunca conta como release velha a tag de rollback do install.sh', soComAwk, () => {
     // O bloco 3 da sonda roda no servidor; aqui o awk dele roda sobre a saida do docker images.
     const awk = /awk '([^']+)'/.exec(SONDA_DOCKER.split('echo ---;')[2])[1]
     const id = (c) => 'sha256:' + c.repeat(64)
@@ -145,7 +147,7 @@ describe('servidor', () => {
     const r = spawnSync('awk', [awk], { input: lista, encoding: 'utf8' })
     assert.deepEqual(r.stdout.trim().split('\n'), [id('6')])
   })
-  test('as tres releases mais novas de cada repositorio ficam (a ativa e dois rollbacks)', () => {
+  test('as tres releases mais novas de cada repositorio ficam (a ativa e dois rollbacks)', soComAwk, () => {
     const awk = /awk '([^']+)'/.exec(SONDA_DOCKER.split('echo ---;')[2])[1]
     const id = (c) => 'sha256:' + c.repeat(64)
     // A ativa e os dois rollbacks do historico de releases.

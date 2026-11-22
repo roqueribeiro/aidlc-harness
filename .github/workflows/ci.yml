@@ -66,8 +66,10 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Maquina limpa
-        run: node --test scripts/e2e-maquina-limpa.test.mjs scripts/setup.test.mjs scripts/pacote.test.mjs scripts/primeira-execucao.test.mjs plugins/aidlc-harness/lib/kit-no-projeto.test.mjs plugins/aidlc-harness/lib/trivy.test.mjs
+      - name: Suíte completa e integridade do plugin nos três sistemas
+        run: |
+          node --test
+          node scripts/check-plugin.mjs
 
   # O trivy que o kit baixa sozinho (versao e sha256 fixados em lib/trivy.mjs) existe e roda em
   # cada sistema oficial: o hash fixado de um sistema que nenhum teste baixa poderia estar errado.

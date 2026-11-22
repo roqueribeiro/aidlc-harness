@@ -32,7 +32,9 @@ import { comandoDoGate } from '../lib/executaveis.mjs'
  * A pasta dos executaveis entra na frente do PATH so para os comandos dos gates.
  */
 const PASTA_DOS_EXECUTAVEIS = dirname(fileURLToPath(import.meta.url))
-const ENV_DOS_GATES = { ...process.env, PATH: `${PASTA_DOS_EXECUTAVEIS}${delimiter}${process.env.PATH ?? ''}` }
+// No Windows a variavel no ambiente pode ser `Path`: espalhar `process.env` e gravar `PATH` cria duas chaves.
+const CHAVE_PATH = Object.keys(process.env).find((k) => k.toUpperCase() === 'PATH') ?? 'PATH'
+const ENV_DOS_GATES = { ...process.env, [CHAVE_PATH]: `${PASTA_DOS_EXECUTAVEIS}${delimiter}${process.env[CHAVE_PATH] ?? ''}` }
 
 /*
  * Configuracao congelada por execucao.
@@ -186,8 +188,8 @@ for (const g of gates) {
   const ms = Date.now() - started
   const out = `${r.stdout ?? ''}${r.stderr ?? ''}`
 
-  let ok = r.status === 0
-  let why = ok ? null : `exit ${r.status ?? 'timeout'}`
+  let ok = !r.error && r.status === 0
+  let why = ok ? null : r.error && r.error.code !== 'ETIMEDOUT' ? `erro ao iniciar (${r.error.code ?? r.error.message})` : `exit ${r.status ?? 'timeout'}`
   if (ok && g.expect && !out.includes(g.expect)) {
     ok = false
     why = `saida nao contem "${g.expect}"`
